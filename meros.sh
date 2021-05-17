@@ -12,7 +12,7 @@ source $MOS_PATH/bin/host-net-nft-rules.sh
 source $MOS_PATH/bin/qemu-extra.sh
 source $MOS_PATH/bin/manage.sh
 
-source $MOS_PATH/bin/kernel-make.sh
+source $MOS_PATH/bin/kernel-build.sh
 source $MOS_PATH/bin/chroot-build.sh
 source $MOS_PATH/bin/bootstrap.sh
 source $MOS_PATH/bin/vm-comm.sh
@@ -52,10 +52,9 @@ case $1 in
 
 	exit 1
       ;;
---build-kernel)
+--kernel-build)
 
-	sudo -u $USER_ID \
-	build_kernel
+	kernel_build
 
 	exit 1
 ;;
@@ -116,7 +115,7 @@ case $1 in
 	declare FILE=$2
 	declare VM_ID=$3
 
-	SSH_PUSH
+	ssh_push
 
 	exit 1
 ;;
@@ -124,7 +123,7 @@ case $1 in
 
 	declare VM_ID=$2
 
-	SSH_PULL
+	ssh_pull
 
 	exit 1
 	;;
@@ -132,7 +131,7 @@ case $1 in
 
 	declare VM_ID=$2
 
-	SSH_SYNC
+	ssh_sync
 
 	exit 1
 ;;
