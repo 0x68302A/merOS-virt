@@ -1,0 +1,16 @@
+#!/bin/bash
+
+## Define Packages into groups, flexible
+PACKAGES_MOS="rsync sudo iputils-ping tor resolvconf ssh locales"
+PACKAGES_USER="net-tools htop nano"
+PACKAGES_OFFSEC="netcat telnet nmap whois ruby ruby-dev libcrypt-ssleay-perl dnsutils jq"
+
+
+## Install Packages
+chmod 1777 /tmp
+dpkg --configure -a
+apt update
+apt install -y $PACKAGES_MOS $PACKAGES_USER $PACKAGES_OFFSEC
+
+## Configure system-mos Packages
+systemctl -q enable tor

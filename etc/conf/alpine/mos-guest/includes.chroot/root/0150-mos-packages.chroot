@@ -1,0 +1,35 @@
+#!/bin/ash
+
+## Define Packages into groups, flexible
+PACKAGES_MOS="rsync sudo iputils tor proxychains-ng openvpn openssh tmux"
+PACKAGES_USER="gawk firefox-esr wget curl git net-tools htop nano vim"
+PACKAGES_XORG="xorg-server-xephyr alpine-conf xfce4 xfce4-terminal lightdm-gtk-greeter xfce4-screensaver dbus-x11 xauth libcanberra-gtk3"
+
+PACKAGES_OFFSEC="netcat-openbsd ruby-net-telnet nmap whois ruby ruby-dev jq"
+PACKAGES_PYTHON="python2 py-pip python3 py3-pip"
+
+PACKAGES_ALPINE="libc6-compat gcompat bash openrc eudev-openrc file"
+
+## Install Packages
+chmod 1777 /tmp
+
+apk update
+apk add $PACKAGES_MOS $PACKAGES_USER $PACKAGES_XORG $PACKAGES_OFFSEC $PACKAGES_PYTHON $PACKAGES_ALPINE
+
+rc-update add local
+openrc
+
+## Configure GCC support
+
+# wget -nc https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.33-r0/glibc-2.33-r0.apk
+# wget -nc https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.33-r0/glibc-bin-2.33-r0.apk
+# wget -nc https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.33-r0/glibc-dev-2.33-r0.apk
+
+# apk add glibc-2.33-r0.apk --allow-untrusted
+# apk add glibc-bin-2.33-r0.apk --allow-untrusted
+# apk add glibc-dev-2.33-r0.apk --allow-untrusted
+
+
+## Configure offsec
+# gem install --silent wpscan
+# ./root/msfinstall

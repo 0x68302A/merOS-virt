@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "nameserver 10.0.4.2" > /etc/resolv.conf

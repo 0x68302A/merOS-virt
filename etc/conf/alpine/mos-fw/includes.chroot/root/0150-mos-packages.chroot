@@ -1,0 +1,13 @@
+#!/bin/sh
+
+PACKAGES_SEC="udev tor openssh"
+PACKAGES_USER="wget curl net-tools htop nano vim"
+PACKAGES_ALPINE="openrc"
+
+chmod 1777 /tmp
+
+apk update
+apk add $PACKAGES_SEC $PACKAGES_USER $PACKAGES_ALPINE
+
+rc-update add local
+openrc
