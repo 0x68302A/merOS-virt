@@ -7,7 +7,8 @@ declare -gA MACH_TOR
 
 MACH_VAR=(
 	[USER_NAME]="user"
-	[EXTRA_SIZE]="6G"
+	[EXTRA_SIZE]="3G"
+        [NS]="10.0.2.1"
 )
 
 MACH_NET=(
