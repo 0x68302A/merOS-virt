@@ -85,7 +85,7 @@ to ./mos-shared/[VM_ID]
 
 **CUSTOM IMAGE && NETWORK FUNCTIONS**
 
-``--brinit [BRIDGE_ID]` <br />
+`--brinit [BRIDGE_ID]` <br />
 Create a custom Bridge and attach a dns resolver.
 
 `--brkill [BRIDGE_ID]` <br />
