@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -uo pipefail
+
 declare MOS_PATH=$(dirname "$(realpath $0)")
 declare USER_ID=$(logname)
 declare ARCH=$(uname -m)
