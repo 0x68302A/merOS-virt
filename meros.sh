@@ -200,8 +200,12 @@ case $1 in
     declare verbose=1
     set -xv  # Set xtrace and verbose mode.
     ;;
+*)
+	printf "merOS command not found-\nEnter meros -h for help \n"
+;;
 --)
     shift
-    break;;
+    break
+;;
 esac
 shift
