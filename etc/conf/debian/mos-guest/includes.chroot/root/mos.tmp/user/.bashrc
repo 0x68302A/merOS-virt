@@ -116,3 +116,5 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
+export HTTPS_PROXY=socks5h://10.0.4.2:9050
