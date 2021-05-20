@@ -18,7 +18,7 @@ fi
 
 	make mrproper
 	make defconfig
-	cp $MOS_PATH/etc/conf/kernel/kernel.config .
+	printf "CONFIG_TUN=y" >> .config
 	make bzImage -j $(cat /proc/cpuinfo | grep processor | wc -l)
 	make headers_install
 	cp arch/$ARCH/boot/bzImage $MOS_PATH/etc/images/
