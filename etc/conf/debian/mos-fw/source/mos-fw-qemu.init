@@ -8,6 +8,7 @@ qemu_init() {
 
         sudo -u $USER_ID \
         qemu-system-x86_64 \
+	-sandbox on \
 	-snapshot \
 	-display none \
 	-daemonize \
