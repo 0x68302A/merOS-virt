@@ -15,6 +15,7 @@ qemu_iso-qcow() {
 
         sudo -u $USER_ID \
         qemu-system-x86_64 -snapshot -daemonize -enable-kvm -m $MEM_MB \
+	-name $VM_ID \
         -M  pc -cpu SandyBridge,enforce -smp 2 \
         $(netdev_qemu $VM_NIC.NIC $(random_mac_gen)) \
         -drive file=$IMAGE_FILE \
