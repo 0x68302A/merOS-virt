@@ -98,8 +98,7 @@ case $1 in
 
 	source_vm_var
 
-	network_config
-	qemu_init
+	init_master
 
 	exit 1
 ;;
