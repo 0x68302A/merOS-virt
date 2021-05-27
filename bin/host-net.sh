@@ -4,7 +4,6 @@ declare -x N1=$(( $RANDOM % 155 + 1 ))
 declare -x N2=$(( $RANDOM % 155 + 1 ))
 declare -x RAND_IP="10.0.$N1.$N2"
 
-
 random_mac_gen() {
 
 hexdump -n 6 -ve '1/1 "%.2x "' /dev/random |\
@@ -51,13 +50,11 @@ nic_attach() {
 
 dnsmasq_run() {
 
-	IFACE_ID=$1
-
 	START_IP=10.0.$N1.$(($N2+1))
 	END_IP=10.0.$N1.$(($N2+100))
 
-	dnsmasq --interface=$IFACE_ID --conf-file=/dev/null \
+	dnsmasq --interface=$BR_ID.BR --conf-file=/dev/null \
 	--except-interface=lo --bind-dynamic \
-	--dhcp-range=$START_IP,$END_IP --pid-file=$MOS_PATH/etc/active/$IFACE_ID.DNSMASQ.PID
+	--dhcp-range=$START_IP,$END_IP --pid-file=$MOS_PATH/etc/active/$BR_ID.DNSMASQ.PID
 
 }
