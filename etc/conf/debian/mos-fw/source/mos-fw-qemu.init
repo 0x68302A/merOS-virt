@@ -20,3 +20,9 @@ qemu_init() {
 	-append 'root=/dev/sda' -kernel $KERNEL \
         -pidfile $MOS_PATH/etc/active/$VM_ID.PID
 }
+
+init_master() {
+
+	qemu_init
+
+}
