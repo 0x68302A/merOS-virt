@@ -13,13 +13,6 @@ netdev_qemu() {
 
 qemu_iso-qcow() {
 
-        if [ -z $MEM_MB ]
-        then
-                declare MEM_MB=512
-        else
-                declare MEM_MB=$MEM_MB
-        fi
-
         sudo -u $USER_ID \
         qemu-system-x86_64 -snapshot -daemonize -enable-kvm -m $MEM_MB \
         -M  pc -cpu SandyBridge,enforce -smp 2 \

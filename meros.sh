@@ -85,8 +85,7 @@ case $1 in
 
 	declare BR_ID=$2.BR
 
-	source_vm_var
-	NFT_NAT_NET_ACCESS $BR_ID
+	sys_nftables_net_access $BR_ID
 
 	exit 1
 ;;
@@ -142,7 +141,7 @@ case $1 in
 
 	declare IMAGE=$2
 	declare BR_ID=$3
-	declare MEM_MB=$4
+	declare MEM_MB="${4:-1024}"
 
 	declare IMAGE_FILE=$(realpath $IMAGE)
 	declare VM_ID=${IMAGE:0:3}
@@ -159,11 +158,11 @@ case $1 in
 
 	root_check
 
-	declare BR_ID=$2
-	declare BR_IP=$RAND_IP
+	export BR_ID=$2
+#	declare BR_IP=$RAND_IP
 
-        nic_bridge_create $BR_ID $BR_IP
-	dnsmasq_run $BR_ID
+        nic_bridge_create $BR_ID $RAND_IP
+	dnsmasq_run
 
 	exit 1
 ;;
