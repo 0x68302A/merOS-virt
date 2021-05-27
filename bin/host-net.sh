@@ -58,6 +58,6 @@ dnsmasq_run() {
 
 	dnsmasq --interface=$IFACE_ID --conf-file=/dev/null \
 	--except-interface=lo --bind-dynamic \
-	--dhcp-range=$START_IP,$END_IP --pid-file=$ACTIVE_DIR/$IFACE_ID.DNSMASQ.PID
+	--dhcp-range=$START_IP,$END_IP --pid-file=$MOS_PATH/etc/active/$IFACE_ID.DNSMASQ.PID
 
 }
