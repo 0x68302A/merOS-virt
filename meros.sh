@@ -144,7 +144,7 @@ case $1 in
 	declare MEM_MB="${4:-1024}"
 
 	declare IMAGE_FILE=$(realpath $IMAGE)
-	declare VM_ID=${IMAGE:0:3}
+	declare VM_ID=${IMAGE:0:4}
 	declare VM_NIC=$VM_ID-$RANDOM
 
         nic_create $VM_NIC
