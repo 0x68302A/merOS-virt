@@ -34,3 +34,9 @@ qemu_init() {
 
 }
 
+init_master() {
+
+	network_config
+	qemu_init
+
+}
