@@ -10,13 +10,13 @@ network_config() {
 	nic_bridge_create HF 10.0.2.1
 	nic_bridge_create FG 10.0.4.1
 
-	nic_create FW_01
-	nic_create FW_02
-	nic_create GUEST
+	nic_create mos-fw_01
+	nic_create mos-fw_02
+	nic_create mos-guest
 
-	nic_attach FW_01 HF
-	nic_attach FW_02 FG
-	nic_attach GUEST FG
+	nic_attach mos-fw_01 HF
+	nic_attach mos-fw_02 FG
+	nic_attach mos-guest FG
 
 	sys_nftables_setup
 	sys_nftables_net_access HF.BR

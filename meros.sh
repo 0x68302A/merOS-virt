@@ -12,7 +12,7 @@ source $MOS_PATH/bin/host-conf.sh
 source $MOS_PATH/bin/host-net.sh
 source $MOS_PATH/bin/host-net-nft-rules.sh
 source $MOS_PATH/bin/qemu-extra.sh
-source $MOS_PATH/bin/manage.sh
+source $MOS_PATH/bin/shutdown.sh
 
 source $MOS_PATH/bin/kernel-build.sh
 source $MOS_PATH/bin/chroot-build.sh
@@ -181,7 +181,14 @@ case $1 in
 
 	root_check
 
-	kill_all
+	declare -x VM_ID=$2
+
+	if [ $VM_ID = "all" ]
+	then
+		kill_all
+	else
+		kill
+	fi
 
 	exit 1
 
