@@ -42,7 +42,7 @@ case $1 in
 
 	sudo -u $USER_ID \
 	view $MOS_PATH/etc/man
-	exit 1
+	exit 0
 ;;
 --setup)
 
@@ -52,20 +52,20 @@ case $1 in
 	sys_grub_conf
 	ln -sfn $MOS_PATH/meros.sh /usr/bin/meros
 
-	exit 1
+	exit 0
       ;;
 --kernel-build)
 
 	kernel_build
 
-	exit 1
+	exit 0
 ;;
 --bootstrap)
 
 	root_check
 	bootstrap
 
-	exit 1
+	exit 0
 ;;
 --build)
 
@@ -77,7 +77,7 @@ case $1 in
 	bootstrap
 	build_vm
 
-	exit 1
+	exit 0
 ;;
 --net-access)
 
@@ -87,7 +87,7 @@ case $1 in
 
 	sys_nftables_net_access $BR_ID
 
-	exit 1
+	exit 0
 ;;
 -i|--init)
 
@@ -99,7 +99,7 @@ case $1 in
 
 	init_master
 
-	exit 1
+	exit 0
 ;;
 -c|--connect)
 
@@ -108,7 +108,7 @@ case $1 in
 	source_vm_var
 	ssh_connect
 
-	exit 1
+	exit 0
 ;;
 -p|--push)
 
@@ -117,7 +117,7 @@ case $1 in
 
 	ssh_push
 
-	exit 1
+	exit 0
 ;;
 --pull)
 
@@ -125,7 +125,7 @@ case $1 in
 
 	ssh_pull
 
-	exit 1
+	exit 0
 	;;
 --sync)
 
@@ -133,7 +133,7 @@ case $1 in
 
 	ssh_sync
 
-	exit 1
+	exit 0
 ;;
 --run)
 
@@ -152,7 +152,7 @@ case $1 in
 
 	qemu_iso-qcow
 
-	exit 1
+	exit 0
 ;;
 --brinit)
 
@@ -164,7 +164,7 @@ case $1 in
         nic_bridge_create $BR_ID $RAND_IP
 	dnsmasq_run
 
-	exit 1
+	exit 0
 ;;
 --brkill)
 
@@ -174,7 +174,7 @@ case $1 in
 
         ip link del $BR_ID && rm $MOS_PATH/etc/active/$BR_ID
 
-	exit 1
+	exit 0
 ;;
 --shutdown)
 
@@ -189,7 +189,7 @@ case $1 in
 		kill
 	fi
 
-	exit 1
+	exit 0
 
 ;;
 --clean)
@@ -199,7 +199,7 @@ case $1 in
 	rm -rf $MOS_PATH/etc/build/kernel/*
 	rm -rf $MOS_PATH/etc/build/bootstrap/*
 
-	exit 1
+	exit 0
 ;;
 -V|--verbose)
     declare verbose=1
