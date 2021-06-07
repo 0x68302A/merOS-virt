@@ -1,0 +1,39 @@
+#!/bin/sh
+
+declare -x VM_CONF_ROOT=$MOS_PATH/etc/conf/$DISTRO
+
+network_config() {
+
+	nic_bridge_create HF 10.0.2.1
+	nic_bridge_create FO 10.0.4.1
+
+	nic_create mos-fw_01
+	nic_create mos-fw_02
+	nic_create mos-offsec
+
+	nic_attach mos-fw_01 HF
+	nic_attach mos-fw_02 FO
+	nic_attach mos-offsec FO
+
+	sys_nftables_setup
+	sys_nftables_net_access HF.BR
+}
+
+qemu_init() {
+
+	declare VM_ID=mos-fw
+	source_vm_var
+	qemu_init
+
+	declare VM_ID=mos-offsec
+	source_vm_var
+	qemu_init
+
+}
+
+init_master() {
+
+	network_config
+	qemu_init
+
+}
