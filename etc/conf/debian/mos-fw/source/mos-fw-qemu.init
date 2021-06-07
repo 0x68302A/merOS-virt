@@ -4,7 +4,6 @@ qemu_init() {
 
         export KERNEL=$MOS_PATH/etc/images/bzImage
         export IMAGE_PATH=$MOS_PATH/etc/images
-        export VM_ID="mos-fw"
 
         sudo -u $USER_ID \
         qemu-system-x86_64 \

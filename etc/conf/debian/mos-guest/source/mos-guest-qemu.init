@@ -5,7 +5,6 @@ qemu_init() {
         export KERNEL=$MOS_PATH/etc/images/bzImage
 	export RAMDISK=$MOS_PATH/etc/images/initramfs.img
         export IMAGE_PATH=$MOS_PATH/etc/images
-        export VM_ID="mos-guest"
 
         sudo -u $USER_ID \
         qemu-system-x86_64 \
@@ -16,8 +15,9 @@ qemu_init() {
 	-enable-kvm \
 	-m 4096 \
 	-M  pc -cpu SandyBridge,enforce -smp 4 \
-        $(netdev_qemu mos-guest.NIC $(random_mac_gen)) \
-        -drive "file=$IMAGE_PATH/$VM_ID-$DISTRO-sda.qcow2,format=qcow2" -append 'root=/dev/sda' -kernel $KERNEL \
+        $(netdev_qemu $VM_ID.NIC $(random_mac_gen)) \
+        -drive "file=$IMAGE_PATH/$VM_ID-$DISTRO-sda.qcow2,format=qcow2" \
+	-append 'root=/dev/sda' -kernel $KERNEL \
         -pidfile $MOS_PATH/etc/active/$VM_ID.PID
 }
 
