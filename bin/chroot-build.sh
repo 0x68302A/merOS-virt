@@ -10,7 +10,7 @@ chroot_configure() {
 	rm -rf $CHROOT_DIR/etc/ssh/ssh_host_rsa_key
 	rm -rf $MOS_PATH/etc/ssh-keys/$VM_ID-id_rsa
 
-	cp -r $MOS_PATH/etc/build/bootstrap/$DISTRO/BASE $CHROOT_DIR
+	cp -r $MOS_PATH/etc/build/bootstrap/$DISTRO/BASE/* $CHROOT_DIR/
 
 	sudo -u $USER_ID \
 	ssh-keygen -f "/home/$USER_ID/.ssh/known_hosts" -R "[10.0.4.4]:2022"
@@ -29,7 +29,7 @@ chroot_configure() {
 	> $CHROOT_DIR/etc/ssh/authorized_keys
 
 	# touch $CHROOT_DIR/etc/resolv.conf
-	echo "nameserver $(/sbin/ip route | awk '/default/ { print $3 }') \n nameserver $NS" > $CHROOT_DIR/etc/resolv.conf
+	echo "nameserver $(/sbin/ip route | awk '/default/ { print $3 }') \n nameserver ${MACH_VAR[NS]}" > $CHROOT_DIR/etc/resolv.conf
 
 	chroot $CHROOT_DIR /root/0100-conf.chroot
 	chroot $CHROOT_DIR /root/0150-packages.chroot
