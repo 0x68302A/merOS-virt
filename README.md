@@ -47,9 +47,11 @@ Builds the qemu compatible .qcow image. <br />
 `-i|--init [VM-ID]` <br />
 Start a VM, configured and built with meros. <br />
 
-`--shutdown` <br />
-Kill all qemu instances, deconfigure all bridges & NICs  <br />
-and reset nftables - Reads fro ./etc/active
+`--shutdown` [VM-ID] or `all` <br />
+Where [VM-ID] refers to the first 4 letters of .iso <br />
+or custom qcow image. <br />
+Kill qemu instances, deconfigure all bridges & NICs  <br />
+and reset nftables - Reads from ./etc/active 
 	
 `build && init` utilize the configuration files found  <br />
 under ./etc/conf/[VM-ID]/ containing: <br />
@@ -91,8 +93,12 @@ Create a custom Bridge and attach a dns resolver.
 `--brkill [BRIDGE_ID]` <br />
 Kill and deconfigure Bridge
 
-`--run [IMAGE] [BRIDGE_ID]` <br />
+`--net-access` [BRIDGE_ID]` <br />
+Grand NAT net access to Bridge
+
+`--run [IMAGE] [BRIDGE_ID]` `[MEM in MB] <br />
 Run a custom .iso or .qcow image <br />
+[MEM] defaults to 1024MB. <br />
 
 
 **CONTRIBUTE**
