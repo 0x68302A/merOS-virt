@@ -43,7 +43,7 @@ qemu_qcow_build() {
 	declare ROOT_QCOW=$MOS_PATH/etc/images/$VM_ID-$DISTRO-sda.qcow2
 	rm -rf $ROOT_QCOW
 
-	virt-make-fs \
+	virt-make-fs -v \
 		--format qcow2 \
 		--type ext4 \
 		--size +${MACH_VAR[EXTRA_SIZE]} \
