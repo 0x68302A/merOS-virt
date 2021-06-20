@@ -7,10 +7,10 @@ case $DISTRO in
 debian)
 	declare BOOTSTRAP_DIR=$MOS_PATH/etc/build/bootstrap/$DISTRO/BASE
 
-#	if [ -d $BOOTSTRAP_DIR ]
-#	then
-#		:
-#	else
+	if [ -d $BOOTSTRAP_DIR ]
+	then
+		:
+	else
 
 	mkdir -p $BOOTSTRAP_DIR
 
@@ -19,7 +19,7 @@ debian)
 		stable \
 		$BOOTSTRAP_DIR/ \
 		http://deb.debian.org/debian
-#	fi
+	fi
 	;;
 alpine)
 	declare BOOTSTRAP_DIR=$MOS_PATH/etc/build/bootstrap/$DISTRO/BASE
