@@ -8,30 +8,17 @@ declare ARCH=$(uname -m)
 
 declare DISTRO="debian"
 
-source $MOS_PATH/bin/host-conf.sh
-source $MOS_PATH/bin/host-net.sh
-source $MOS_PATH/bin/host-net-nft-rules.sh
-source $MOS_PATH/bin/qemu-extra.sh
-source $MOS_PATH/bin/shutdown.sh
-
-source $MOS_PATH/bin/kernel-build.sh
-source $MOS_PATH/bin/chroot-build.sh
-source $MOS_PATH/bin/bootstrap.sh
-source $MOS_PATH/bin/vm-comm.sh
+for f in $MOS_PATH/bin/*; do source $f; done
 
 source_vm_var() {
 
-	for f in $MOS_PATH/etc/conf/$DISTRO/$VM_ID/source/*
-	do
-		source $f
-	done
+	for f in $MOS_PATH/etc/conf/$DISTRO/$VM_ID/source/*; do source $f; done
+
 }
 
 root_check() {
 
-	if [[ $(/usr/bin/id -u) -ne 0 ]]; then
-
-		printf "Not running as root! \nFor more, use merOS -h \n"
+	if [[ $(/usr/bin/id -u) -ne 0 ]]; then printf "Not running as root! \nFor more, use merOS -h \n"
 
 	exit 0
 	fi
@@ -76,6 +63,13 @@ case $1 in
 	source_vm_var
 	bootstrap
 	build_vm
+
+	exit 0
+;;
+--build-busybox)
+
+#	bootstrap_busybox
+	build_busybox
 
 	exit 0
 ;;
@@ -134,6 +128,9 @@ case $1 in
 	ssh_sync
 
 	exit 0
+;;
+--run-busybox)
+	qemu_busybox
 ;;
 --run)
 
