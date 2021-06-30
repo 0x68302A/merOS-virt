@@ -2,11 +2,6 @@
 
 declare -x DEFAULT_GW=$(echo $(ip route | grep default) | cut -d " " -f 3)
 
-sysctl -q net.ipv4.ip_forward=1
-sysctl -q net.ipv6.conf.default.forwarding=0
-sysctl -q net.ipv6.conf.all.forwarding=0
-
-
 sys_nftables_setup() {
 
 	nft "add table FILTER"
@@ -15,6 +10,10 @@ sys_nftables_setup() {
 }
 
 sys_nftables_net_access() {
+
+	sysctl -q net.ipv4.ip_forward=1
+	sysctl -q net.ipv6.conf.default.forwarding=0
+	sysctl -q net.ipv6.conf.all.forwarding=0
 
 	BR_ID=$1
 
