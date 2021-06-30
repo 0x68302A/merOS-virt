@@ -21,3 +21,18 @@ qemu_iso-qcow() {
         -drive file=$IMAGE_FILE \
         -pidfile $MOS_PATH/etc/active/$VM_ID-$RANDOM.PID
 }
+
+qemu_busybox() {
+
+export STAGE=$MOS_PATH/etc/build/bootstrap/busybox
+export BUILD=$MOS_PATH/etc/build/busybox
+KERNEL_BZIMAGE=$MOS_PATH/etc/images/bzImage
+
+qemu-system-x86_64 \
+    -kernel $KERNEL_BZIMAGE \
+    -initrd $BUILD/obj/initramfs.igz \
+    -nographic -append "earlyprintk=serial,ttyS0 console=ttyS0"
+
+}
+
+
