@@ -1,5 +1,8 @@
 #!/bin/sh
 
+
+wifi_connect() {
+
 IFACE=$2
 NET_SSID=$3
 NET_PASSWD=$4
@@ -24,3 +27,4 @@ case "$1" in
 	printf "Connected to $NET_SSID \n"
 ;;
 esac
+}
