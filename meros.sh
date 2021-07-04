@@ -18,7 +18,8 @@ source_vm_var() {
 
 root_check() {
 
-	if [[ $(/usr/bin/id -u) -ne 0 ]]; then printf "Not running as root! \nFor more, use merOS -h \n"
+	if [[ $(/usr/bin/id -u) -ne 0 ]]
+	then printf "Not running as root! \nFor more, use merOS -h \n"
 
 	exit 0
 	fi
