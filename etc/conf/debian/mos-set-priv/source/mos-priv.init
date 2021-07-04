@@ -2,9 +2,6 @@
 
 declare -x VM_CONF_ROOT=$MOS_PATH/etc/conf/$DISTRO
 
-declare -x VM_ID_01=mos-guest
-declare -x VM_ID_02=mos-fw
-
 network_config() {
 
 	nic_bridge_create HF 10.0.2.1
