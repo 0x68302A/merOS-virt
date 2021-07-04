@@ -1,0 +1,7 @@
+#/bin/sh
+
+mkdir /dev/pts
+mkdir /dev/shm
+
+mount -t devpts -o gid=4,mode=620 none /dev/pts
+mount -t tmpfs none /dev/shm
