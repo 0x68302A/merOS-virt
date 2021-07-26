@@ -6,41 +6,43 @@ import apt
 import shutil
 import os
 
-def sys_apt_conf():
-  systemAdmin = ["iproute2", "nftables"]
-  systemQemu = ["qemu-system", "libvirt-clients", "libvirt-daemon-system"]
-  system_build = ["build-ninja", "libpixman-1-dev", "meson"]
 
-  packageList = systemAdmin + systemQemu
+def host_apt_conf():
+	systemAdmin = ["iproute2", "nftables"]
+	systemQemu = ["qemu-system", "libvirt-clients", "libvirt-daemon-system"]
+	system_build = ["build-ninja", "libpixman-1-dev", "meson"]
 
-  cache = apt.cache.Cache()
-  cache.update()
-  cache.open()
+	packageList = systemAdmin + systemQemu
 
-  for package in packageList:
+	cache = apt.cache.Cache()
+	cache.update()
+	cache.open()
 
-    pkg_name = package
-    pkg = cache[pkg_name]
-    if pkg.is_installed:
-       print("{pkg_name} already installed".format(pkg_name=pkg_name))
-    else:
-       pkg.mark_install()
-       cache.commit()
+	for package in packageList:
 
-def sys_tree_conf():
-	os.makedirs(mos_path + "/etc/build", mode = 0o777, *, exist_ok = False)
-	os.makedirs(mos_path + "/etc/images", mode = 0o777, *, exist_ok = False)
-	os.makedirs(mos_path + "/etc/ssh_keys", mode = 0o777, *, exist_ok = False)
+		pkg_name = package
+		pkg = cache[pkg_name]
+		if pkg.is_installed:
+			print("{pkg_name} already installed".format(pkg_name=pkg_name))
+		else:
+			pkg.mark_install()
+			cache.commit()
 
 
-def sys_grub_conf():
-  shutil.copyfile("etc/host/grub", "/etc/default/grub")
-  subprocess.run(["update-grub"])
-  print(mosPath)
-  print("grup-update was complete")
+def host_tree_conf():
+	os.makedirs(mos_path + "/data/build", mode = 0o777, exist_ok = False)
+	os.makedirs(mos_path + "/data/images", mode = 0o777, exist_ok = False)
+	os.makedirs(mos_path + "/data/ssh_keys", mode = 0o777, exist_ok = False)
 
-sys_link = "/usr/bin/meros"
 
-def sys_link_set():
+def host_grub_conf():
+	shutil.copyfile("conf/host/grub", "/etc/default/grub")
+	subprocess.run(["update-grub"])
+	print("grup-update was complete")
+
+
+def host_syslink():
+	sys_link = "/usr/bin/meros"
+
 	os.remove(sys_link)
-	os.symlink(mosPath + "/meros.py", sys_link)
+	os.symlink(mos_path + "/meros.py", sys_link)
