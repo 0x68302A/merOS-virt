@@ -1,2 +1,3 @@
 debian = python3-guestfs
 libvirt
+python-apt
