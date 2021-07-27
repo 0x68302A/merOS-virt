@@ -30,8 +30,7 @@ uid = os.getuid()
 gid = os.getgid()
 
 host_ssh_pubkey_key_dir =  "/home/" + os.getlogin() + "/" + "./ssh/"
-
-mos_ssh_priv_key_dir = mos_path + "/data/ssh-keys"
+mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
 mos_img_dir = mos_path + "/data/images"
 
 target_id = "mos-guest" # TODO Grab from ???
@@ -39,7 +38,7 @@ target_distro = "alpine" # TODO Grab from VM XML
 
 def tProgress(): print(now.strftime('%H:%M:%S'))
 
-def run_as_root(exec):
+def run_as_root_02(exec):
 #	global euid
 	if euid != 0:
 		# print("merOS needs to run some commands as root, see more with -h")
@@ -47,9 +46,22 @@ def run_as_root(exec):
 		# the next line replaces the currently-running process with the sudo
 		os.execlpe('sudo', *args)
 
+from getpass import getpass
+from subprocess import Popen, PIPE
+
+def run_as_root():
+
+	cmd = "sudo cat /etc/passwd"
+	password = getpass("Please enter your password: ")
+	# sudo requires the flag '-S' in order to take input from stdin
+	proc = Popen(cmd.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+	# Popen only accepts byte-arrays so you must encode the string
+	proc.communicate(password.encode())
+
 def drop_exec_priv():
 	if euid == 0:
-		os.seteuid(uid)
+		print("should drop")
+		os.seteuid(euid)
 
 def get_default_gateway():
 	"""Read the default gateway directly from /proc."""
