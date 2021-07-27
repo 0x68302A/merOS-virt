@@ -5,8 +5,8 @@ from mos import *
 
 import guestfs
 
-target_rootfs = mos.mosPath + "/etc/build/vm_rootfs" + "/" + vmID + ".tar"
-target_img = mos.mosPath + "/etc/images" + "/" + vmID + ".img"
+target_rootfs = mos.mos_path + "/etc/build/vm_rootfs" + "/" + target_id + ".tar"
+target_img = mos.mos_path + "/etc/images" + "/" + target_id + ".img"
 
 target_size = 1.6
 target_free_space = 0.4

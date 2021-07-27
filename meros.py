@@ -2,6 +2,7 @@
 
 import mos
 from mos import *
+from mos.helper import *
 
 import getopt
 import sys
@@ -23,10 +24,11 @@ def main():
 			display_help()
 			sys.exit()
 		elif o in ("--setup"):
-			mos.runAsRoot(print("Running as root"))
-			mos.runAsRoot(mos.sys_apt_conf())
-			mos.runAsRoot(mos.sys_grub_conf())
-			mos.runAsRoot(mos.sys_link_set())
+			mos.host_tree_conf()
+			mos.run_as_root(print("Running as root"))
+			mos.run_as_root(mos.host_apt_conf())
+			mos.run_as_root(mos.host_grub_conf())
+			mos.run_as_root(mos.host_syslink())
 			sys.exit()
 		elif o in ("--kernel-build"):
 			mos.kernel_build()
@@ -38,18 +40,18 @@ def main():
 			mos.bootstrap()
 			mos.chroot_build()
 			mos.gen_keys()
-			mos.runAsRoot(print("merOS"))
-			mos.runAsRoot(mos.chroot_configure())
+			mos.run_as_root(print("merOS"))
+			mos.run_as_root(mos.chroot_configure())
 			mos.packRootfs()
 			mos.buildRootfs() # TODO Drop Priveleges, BETTER permissions management
 			sys.exit()
 		elif o in ("--run"):
-			mos.runAsRoot(print("Running as root"))
-			mos.runAsRoot(mos.vm_init())
-			mos.runAsRoot(mos.net_init())
+			mos.run_as_root(print("Running as root"))
+			mos.run_as_root(mos.vm_init())
+			mos.run_as_root(mos.net_init())
 		elif o in ("--shutdown"):
-			mos.runAsRoot(print("Running as root"))
-			mos.runAsRoot(mos.vm_shutdown_all())
+			mos.run_as_root(print("Running as root"))
+			mos.run_as_root(mos.vm_shutdown_all())
 		elif o in ("-o", "--output"):
 			output = a
 		else:
