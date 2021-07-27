@@ -8,6 +8,7 @@ import getopt
 import sys
 
 def main():
+
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help","setup","kernel-build","bootstrap","build","run","shutdown","output="])
 	except getopt.GetoptError as err:
@@ -34,7 +35,7 @@ def main():
 			mos.kernel_build()
 			sys.exit()
 		elif o in ("--build"):
-			build_id = sys.argv[2]
+			target_id = sys.argv[2]
 			print("Building:", build_id)
 
 			mos.bootstrap()
