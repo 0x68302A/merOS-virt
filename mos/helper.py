@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import mos
-from mos import *
 
 import os
 import os.path
@@ -18,19 +17,26 @@ from rich.markdown import Markdown
 
 import tarfile
 
-mosPath = os.getcwd()
-vmID = "mos-guest"
-targetDistro = "alpine" # TODO Grab from VM XML
+mos_path = os.path.dirname(__file__)
 
-def tProgress():
-  print(now.strftime('%H:%M:%S'))
-
+uname = os.uname()
+arch = str(uname[4])
 
 euid = os.geteuid()
 uid = os.getuid()
 gid = os.getgid()
 
-def runAsRoot(exec):
+host_ssh_pubkey_key_dir =  "/home/" + os.getlogin() + "/" + "./ssh/"
+
+mos_ssh_priv_key_dir = mos_path + "/data/ssh-keys"
+mos_img_dir = mos_path + "/data/images"
+
+target_id = "mos-guest" # TODO Grab from ???
+target_distro = "alpine" # TODO Grab from VM XML
+
+def tProgress(): print(now.strftime('%H:%M:%S'))
+
+def run_as_root(exec):
 #	global euid
 	if euid != 0:
 		# print("merOS needs to run some commands as root, see more with -h")
@@ -42,7 +48,7 @@ def drop_exec_priv():
 	if euid == 0:
 		os.seteuid(uid)
 
-def getDefaultGatewayLinux():
+def get_default_gateway():
 	"""Read the default gateway directly from /proc."""
 	with open("/proc/net/route") as fh:
 		for line in fh:
@@ -52,10 +58,9 @@ def getDefaultGatewayLinux():
                 		continue
 			return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
 
-defaultGw = str(getDefaultGatewayLinux())
+default_gw = str(get_default_gateway())
 
-
-def tarDir(output_filename, source_dir):
+def tar_dir(output_filename, source_dir):
 	with tarfile.open(output_filename, "w:") as tar:
 		tar.add(source_dir, arcname=os.path.basename(source_dir))
 

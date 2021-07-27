@@ -30,9 +30,10 @@ def host_apt_conf():
 
 
 def host_tree_conf():
-	os.makedirs(mos_path + "/data/build", mode = 0o777, exist_ok = False)
-	os.makedirs(mos_path + "/data/images", mode = 0o777, exist_ok = False)
-	os.makedirs(mos_path + "/data/ssh_keys", mode = 0o777, exist_ok = False)
+	os.makedirs(mos_path + "/data/build", mode = 0o777, exist_ok = True)
+	os.makedirs(mos_path + "/data/build/bootstrap", mode = 0o777, exist_ok = True)
+	os.makedirs(mos_path + "/data/images", mode = 0o777, exist_ok = True)
+	os.makedirs(mos_path + "/data/ssh_keys", mode = 0o777, exist_ok = True)
 
 
 def host_grub_conf():

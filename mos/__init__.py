@@ -7,4 +7,3 @@ from mos.bootstrap import *
 from mos.chroot_conf import *
 from mos.chroot_build import *
 from mos.libvirt_manage import *
-
