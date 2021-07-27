@@ -3,6 +3,7 @@
 import mos
 from mos import *
 from mos.helper import *
+import subprocess
 
 import getopt
 import sys
@@ -36,15 +37,13 @@ def main():
 			sys.exit()
 		elif o in ("--build"):
 			target_id = sys.argv[2]
-			print("Building:", build_id)
-
-			mos.bootstrap()
-			mos.chroot_build()
-			mos.gen_keys()
-			mos.run_as_root(print("merOS"))
-			mos.run_as_root(mos.chroot_configure())
-			mos.packRootfs()
-			mos.buildRootfs() # TODO Drop Priveleges, BETTER permissions management
+			print("Building:", target_id)
+			mos.target_bootstrap()
+			mos.target_chroot_setup()
+			mos.target_ssh_keys_gen()
+			mos.target_chroot_configure()
+			mos.target_rootfs_tar_build()
+			mos.target_rootfs_qcow_(build)
 			sys.exit()
 		elif o in ("--run"):
 			mos.run_as_root(print("Running as root"))
