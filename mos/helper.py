@@ -1,23 +1,26 @@
 #!/usr/bin/python3
 
 import mos
+from mos import *
 
 import os
 import os.path
+import sys
 import socket, struct
 import getpass
-import sys
+
 import subprocess
 
 import getopt
 import datetime
 
+helper_path = os.path.dirname(os.path.realpath(__file__))
+mos_path = os.path.dirname(helper_path)
+
 from rich.console import Console
 from rich.markdown import Markdown
 
 import tarfile
-
-mos_path = os.path.dirname(__file__)
 
 uname = os.uname()
 arch = str(uname[4])
