@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
-import mos
-from mos.helper import *
+import mos.helper as helper
 
 import os
 import git
@@ -14,34 +13,41 @@ class CloneProgress(RemoteProgress):
 		if message:
 			print(message)
 
-def kernel_build():
-	kernel_build_dir = mos.mos_path + "/data/build/kernel"
-	kernel_git_dir = mos.mos_path + "/data/build/kernel/linux"
-	kernel_git_url = "https://github.com/torvalds/linux"
-
-	os.chdir(kernel_build_dir)
-
-	print("cloning into %s" % kernel_git_dir)
-	git.Repo.clone_from(kernel_git_url, kernel_git_dir,
-			    branch='master', progress=CloneProgress())
-	os.chdir(kernel_git_dir)
-
-	subprocess.run(['make mrproper'], shell=True)
-	subprocess.run(['make defconfig'], shell=True)
-
-	with open('.config', 'a') as f:
-		f.write('CONFIG_TUN=y')
-		f.write('CONFIG_VIRTIO_PCI=y')
-		f.write('CONFIG_VIRTIO_MMIO=y')
-
-	subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
-	subprocess.run(['make headers_install'], shell=True)
-
-	bzimage_loc = mos_path + "arch" + arch + "/boot/bzImage"
-	shutil.copyfile(bzimage, mos_img_dir)
-
-'''
-	TODO Add proggres tracker
-	git.objects.submodule.base.UpdateProgress()
-	git.Git(kernel_build_dir).clone(kernel_git_url, depth=1)
-'''
+class KernelBuild():
+	def kernel_make():
+		
+		h = helper.Helper()
+		mos_path = h.mos_path
+		mos_img_dir = h.mos_img_dir
+		arch = h.arch
+		
+		kernel_git_url = "https://github.com/torvalds/linux"
+		mos_kernel_build_dir = mos_path + "/data/build/kernel"
+		mos_kernel_git_dir = mos_path + "/data/build/kernel/linux"
+	
+		os.chdir(mos_kernel_build_dir)
+	
+		print("cloning into %s" % mos_kernel_git_dir)
+		git.Repo.clone_from(kernel_git_url, mos_kernel_git_dir,
+				branch='master', progress=CloneProgress())
+		os.chdir(mos_kernel_git_dir)
+	
+		subprocess.run(['make mrproper'], shell=True)
+		subprocess.run(['make defconfig'], shell=True)
+	
+		with open('.config', 'a') as f:
+			f.write('CONFIG_TUN=y')
+			f.write('CONFIG_VIRTIO_PCI=y')
+			f.write('CONFIG_VIRTIO_MMIO=y')
+	
+		subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
+		subprocess.run(['make headers_install'], shell=True)
+	
+		bzimage_loc = self.mos_path + "arch" + self.arch + "/boot/bzImage"
+		shutil.copyfile(bzimage, self.mos_img_dir)
+	
+	'''
+		TODO Add proggres tracker
+		git.objects.submodule.base.UpdateProgress()
+		git.Git(mos_kernel_build_dir).clone(kernel_git_url, depth=1)
+	'''
