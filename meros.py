@@ -1,19 +1,24 @@
 #!/usr/bin/python3
 
-import mos
-from mos import *
-from mos.helper import *
+
+import mos.helper as helper
+import mos.kernel_build as kernel_build
+import mos.host_conf as host_conf
+import mos.target_get as target_get
+import mos.target_manage as target_manage
+
 import subprocess
 
 import getopt
 import sys
 
+
 def main():
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help","setup","kernel-build","bootstrap","build","run","shutdown","output="])
+		opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help","setup","kernel-build","get","bootstrap","build","run","shutdown","output="])
 	except getopt.GetoptError as err:
-        	# print help information and exit:
+		# print help information and exit:
 		print(err)  # will print something like "option -a not recognized"
 		display_help()
 		sys.exit(2)
@@ -26,29 +31,25 @@ def main():
 			display_help()
 			sys.exit()
 		elif o in ("--setup"):
-			mos.host_tree_conf()
-			mos.run_as_root(print("Running as root"))
-			mos.run_as_root(mos.host_apt_conf())
-			mos.run_as_root(mos.host_grub_conf())
-			mos.run_as_root(mos.host_syslink())
+			h = host_conf.HostConf()
+			h.main()
 			sys.exit()
 		elif o in ("--kernel-build"):
-			mos.kernel_build()
+			kb = kernel_build.KernelBuild
+			kb.kernel_make()
 			sys.exit()
+		elif o in ("--get"):
+			target_distro = sys.argv[2]
+			tg = target_get.TargetGet(target_distro)
+			tg.get_rootfs()
 		elif o in ("--build"):
 			target_id = sys.argv[2]
-			print("Building:", target_id)
-			mos.target_bootstrap()
-			mos.target_chroot_setup()
-			mos.target_ssh_keys_gen()
-			mos.target_chroot_configure()
-			mos.target_rootfs_tar_build()
-			mos.target_rootfs_qcow_(build)
+			tm = target_manage.TargetManage(target_id)
+			tm.full_setup()
 			sys.exit()
 		elif o in ("--run"):
-			mos.run_as_root(print("Running as root"))
-			mos.run_as_root(mos.vm_init())
-			mos.run_as_root(mos.net_init())
+			mos.vm_init()
+			mos.net_init()
 		elif o in ("--shutdown"):
 			mos.run_as_root(print("Running as root"))
 			mos.run_as_root(mos.vm_shutdown_all())
