@@ -1,86 +1,78 @@
 #!/usr/bin/python3
 
-import mos
-from mos import *
-
 import os
 import os.path
 import sys
 import socket, struct
 import getpass
-
 import subprocess
-
 import getopt
 import datetime
-
-helper_path = os.path.dirname(os.path.realpath(__file__))
-mos_path = os.path.dirname(helper_path)
-
 from rich.console import Console
 from rich.markdown import Markdown
-
 import tarfile
+import xml.etree.ElementTree as xml
 
-uname = os.uname()
-arch = str(uname[4])
+class Helper:
 
-euid = os.geteuid()
-uid = os.getuid()
-gid = os.getgid()
+	helper_path = os.path.dirname(os.path.realpath(__file__))
+	mos_path = os.path.dirname(helper_path)
 
-host_ssh_pubkey_key_dir =  "/home/" + os.getlogin() + "/" + "./ssh/"
-mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
-mos_img_dir = mos_path + "/data/images"
+	uname = os.uname()
+	arch = str(uname[4])
 
-target_id = "mos-guest" # TODO Grab from ???
-target_distro = "alpine" # TODO Grab from VM XML
+	euid = os.geteuid()
+	uid = os.getuid()
+	gid = os.getgid()
 
-def tProgress(): print(now.strftime('%H:%M:%S'))
+	host_ssh_pubkey_key_dir =  "/home/" + os.getlogin() + "/" + "./ssh/"
+	mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
+	mos_img_dir = mos_path + "/data/images"
 
-def run_as_root_02(exec):
-#	global euid
-	if euid != 0:
-		# print("merOS needs to run some commands as root, see more with -h")
-		args = ['sudo', sys.executable] + sys.argv + [os.environ]
-		# the next line replaces the currently-running process with the sudo
-		os.execlpe('sudo', *args)
+	
+	# xml_conf_file = mos_path + "/conf" + "/" + target_distro + "/" + target_id + "/" + targetd_id + ".xml"
 
-from getpass import getpass
-from subprocess import Popen, PIPE
 
-def run_as_root():
+	def get_default_gateway():
+		"""Read the default gateway directly from /proc."""
+		with open("/proc/net/route") as fh:
+			for line in fh:
+				fields = line.strip().split()
+				if fields[1] != '00000000' or not int(fields[3], 16) & 2:
+			# If not default route or not RTF_GATEWAY, skip it
+							continue
+				return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
 
-	cmd = "sudo cat /etc/passwd"
-	password = getpass("Please enter your password: ")
-	# sudo requires the flag '-S' in order to take input from stdin
-	proc = Popen(cmd.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
-	# Popen only accepts byte-arrays so you must encode the string
-	proc.communicate(password.encode())
+	default_gw = str(get_default_gateway())
 
-def drop_exec_priv():
-	if euid == 0:
-		print("should drop")
-		os.seteuid(euid)
 
-def get_default_gateway():
-	"""Read the default gateway directly from /proc."""
-	with open("/proc/net/route") as fh:
-		for line in fh:
-			fields = line.strip().split()
-			if fields[1] != '00000000' or not int(fields[3], 16) & 2:
-		# If not default route or not RTF_GATEWAY, skip it
-                		continue
-			return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
+	def tar_dir(output_filename, source_dir):
+		with tarfile.open(output_filename, "w:") as tar:
+			tar.add(source_dir, arcname=os.path.basename(source_dir))
 
-default_gw = str(get_default_gateway())
 
-def tar_dir(output_filename, source_dir):
-	with tarfile.open(output_filename, "w:") as tar:
-		tar.add(source_dir, arcname=os.path.basename(source_dir))
+	def display_help():
+		console = Console()
+		with open("README.md", "r+") as help_file:
+			console.print(Markdown(help_file.read()))
+		sys.exit(0)
+		
+	def parse_xml(xml_conf_file):
+		# Parse XML with ElementTree
+		tree = ET.ElementTree(file=xml_conf_file)
+		print(tree.getroot())
+		root = tree.getroot()
+		print("tag=%s, attrib=%s" % (root.tag, root.attrib))
 
-def display_help():
-    console = Console()
-    with open("README.md", "r+") as help_file:
-        console.print(Markdown(help_file.read()))
-    sys.exit(0)
+		# get the information via the children!
+		print("-" * 25)
+		print("Iterating using getchildren()")
+		print("-" * 25)
+		users = root.getchildren()
+		for user in users:
+			user_children = user.getchildren()
+			for user_child in user_children:
+				print("%s=%s" % (user_child.tag, user_child.text))
+		
+		if __name__ == "__main__":
+			parseXML("newdata.xml")
