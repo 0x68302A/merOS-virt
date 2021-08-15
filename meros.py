@@ -6,6 +6,7 @@ import mos.kernel_build as kernel_build
 import mos.host_conf as host_conf
 import mos.target_get as target_get
 import mos.target_manage as target_manage
+# import mos.libvirt_manage as libvirt_manage
 
 import subprocess
 
@@ -43,11 +44,13 @@ def main():
 			tg = target_get.TargetGet(target_distro)
 			tg.get_rootfs()
 		elif o in ("--build"):
-			target_id = sys.argv[2]
-			tm = target_manage.TargetManage(target_id)
-			tm.full_setup()
+			target_full_id = sys.argv[2]
+			tm = target_manage.TargetManage(target_full_id)
+			tm.chroot_setup()
+			tm.rootfs_build()
 			sys.exit()
 		elif o in ("--run"):
+			lm = libvirt_manage.LibvirtManage()
 			mos.vm_init()
 			mos.net_init()
 		elif o in ("--shutdown"):
