@@ -20,6 +20,7 @@ class HostConf:
 		os.makedirs(self.mos_path + "/data/build/bootstrap", mode = 0o777, exist_ok = True)
 		os.makedirs(self.mos_path + "/data/images", mode = 0o777, exist_ok = True)
 		os.makedirs(self.mos_path + "/data/ssh_keys", mode = 0o777, exist_ok = True)
+		os.makedirs(self.mos_path + "/conf/target", mode = 0o777, exist_ok = True)
 
 
 	def apt_conf(self):
