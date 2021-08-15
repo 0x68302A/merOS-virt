@@ -15,37 +15,40 @@ from Crypto.PublicKey import RSA
 import guestfs
 
 class TargetManage:
-	def __init__(self, target_id):
-		self.target_id = target_id
+	def __init__(self, target_full_id):
+		self.target_full_id = target_full_id
 
 		h = helper.Helper()
 		self.h = h
 		self.mos_path  =  h.mos_path
 		self.arch = h.arch
 
+		self.target_id_split = self.target_full_id.split("-")
+		self.target_fam = self.target_id_split[0]
+		self.target_id = self.target_id_split[1]
+
 		self.target_distro = "alpine"
 		self.default_gw = h.default_gw
 
-		self.target_chroot_conf_dir = self.mos_path + "/conf/" + self.target_distro + "/" + self.target_id + "/includes.chroot"
-		self.target_chroot_dir = self.mos_path + "/data/build/bootstrap/" + self.target_distro + "/" + self.target_id
+		self.target_chroot_conf_dir = self.mos_path + "/conf/target/" + self.target_fam + "/rootfs/" + self.target_id + "/includes.chroot"
+		self.target_chroot_dir = self.mos_path + "/data/build/bootstrap/" + self.target_fam + "/" + self.target_id
 		self.target_ssh_dir = self.target_chroot_dir + "/etc/ssh"
 
-		self.mos_img_dir = self.mos_path + "/data/images"
+		self.mos_img_dir = self.mos_path + "/data/images/"
 		self.mos_ssh_priv_key_dir = self.mos_path + "/data/ssh_keys"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
 		self.distro_rootfs_targz = self.mos_bootstrap_dir + "/" + "rootfs" + "_" + self.target_distro + "_" + self.arch + ".tar.gz"
-		self.target_rootfs_tar = self.mos_path + "/data/build/bootstrap" + "/" + self.target_id + ".tar"
-		self.target_rootfs_img = self.mos_img_dir + "/" + self.target_id + ".img"
-
-		self.DNS1 = "1.1.1.1"
-		self.DNS2 = "1.0.0.1"
+		self.target_rootfs_tar = self.mos_path + "/data/build/bootstrap" + "/" + self.target_fam + "/" + self.target_id + ".tar"
+		self.target_rootfs_img = self.mos_img_dir + "/" + self.target_full_id + ".img"
 
 		## TODO READ FROM XML
 		self.target_size = 1.6
 		self.target_free_space = 0.4
 		self.target_storage = int(self.target_size + self.target_free_space)
 
+		self.DNS1 = "1.1.1.1"
+		self.DNS2 = "1.0.0.1"
 
 
 	def chroot_unpack(self):
@@ -75,7 +78,7 @@ class TargetManage:
 			os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 			content_file.write(key.exportKey('PEM'))
 
-		with open(self.mos_ssh_priv_key_dir + "/" + self.target_id + "-id_rsa", 'wb') as content_file:
+		with open(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 'wb') as content_file:
 			os.chmod(self.mos_ssh_priv_key_dir + "/" + self.target_id + "-id_rsa", 0o0600)
 			content_file.write(key.exportKey('PEM'))
 			pubkey = key.publickey()
@@ -84,20 +87,25 @@ class TargetManage:
 
 
 	def chroot_configure(self):
-		os.chroot(self.target_chroot_dir)
+		f = os.open("/", os.O_PATH)
+		os.chdir(self.target_chroot_dir)
+		os.chroot(".")
 		with open("/etc/resolv.conf", 'w') as file:
 				file.write("nameserver " + self.default_gw + "\n")
 				
 		# subprocess.run("id", shell=True)
 		subprocess.run("/root/0100-conf.chroot", shell=True)
 		subprocess.run("/root/0150-packages.chroot", shell=True)
-		sys.exit()
+		os.chdir(f)
+		os.chroot(".")
 
 
 	def rootfs_tar_build(self):
-		print(self.target_rootfs_tar)
-		print(self.target_chroot_dir)
-		os.remove(self.target_rootfs_tar)
+		if os.path.exists(self.target_rootfs_tar):
+			os.remove(self.target_rootfs_tar)
+		else:
+			pass
+			
 		tar = tarfile.open(self.target_rootfs_tar, "x:")
 		
 		for i in os.listdir(self.target_chroot_dir):
@@ -107,7 +115,11 @@ class TargetManage:
 
 
 	def rootfs_qcow_build(self):
-#		os.remove(target_img)
+		if os.path.exists(self.target_rootfs_img):
+			os.remove(self.target_rootfs_img)
+		else:
+			pass
+			
 		g = guestfs.GuestFS(python_return_dict=True)
 
 		g.disk_create(self.target_rootfs_img, "qcow2", 1024 * self.target_storage * 1024 * 						1024)
@@ -133,11 +145,15 @@ class TargetManage:
 		os.chown(self.target_rootfs_img, self.h.uid, self.h.gid)
 
 
-	def full_setup(self):
-		tm  = TargetManage(self.target_id)
+	def chroot_setup(self):
+		tm  = TargetManage(self.target_full_id)
 		tm.chroot_unpack()
 		tm.ssh_keys_gen()
-		# tm.chroot_configure()
+		tm.chroot_configure()
+	
+
+	def rootfs_build(self):
+		tm  = TargetManage(self.target_full_id)
 		tm.rootfs_tar_build()
 		tm.rootfs_qcow_build()
 	
