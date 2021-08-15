@@ -1,6 +1,0 @@
-#!/bin/sh
-
-mkdir -p /home/user/.ssh/
-cp /etc/ssh/authorized_keys /home/user/.ssh/authorized_keys
-
-chown -R /home/user/.ssh user:user
