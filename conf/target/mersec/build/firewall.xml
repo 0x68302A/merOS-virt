@@ -1,4 +1,4 @@
 <target>
         <details name="guest" />
-        <size free_space_mb="800" />
+        <size free_space_mb="200" />
 </target>

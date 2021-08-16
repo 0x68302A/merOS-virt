@@ -11,7 +11,7 @@ import datetime
 from rich.console import Console
 from rich.markdown import Markdown
 import tarfile
-import xml.etree.ElementTree as xml
+import xml.etree.ElementTree as ET
 
 class Helper:
 
@@ -29,8 +29,7 @@ class Helper:
 	mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
 	mos_img_dir = mos_path + "/data/images"
 
-	
-	# xml_conf_file = mos_path + "/conf" + "/" + target_distro + "/" + target_id + "/" + targetd_id + ".xml"
+	target_distro = "alpine"
 
 
 	def get_default_gateway():
@@ -57,22 +56,8 @@ class Helper:
 			console.print(Markdown(help_file.read()))
 		sys.exit(0)
 		
-	def parse_xml(xml_conf_file):
-		# Parse XML with ElementTree
-		tree = ET.ElementTree(file=xml_conf_file)
-		print(tree.getroot())
-		root = tree.getroot()
-		print("tag=%s, attrib=%s" % (root.tag, root.attrib))
-
-		# get the information via the children!
-		print("-" * 25)
-		print("Iterating using getchildren()")
-		print("-" * 25)
-		users = root.getchildren()
-		for user in users:
-			user_children = user.getchildren()
-			for user_child in user_children:
-				print("%s=%s" % (user_child.tag, user_child.text))
-		
-		if __name__ == "__main__":
-			parseXML("newdata.xml")
+	def parse_xml(self, xml_conf_file, field, value):
+		root_node = ET.parse(xml_conf_file).getroot()
+		for tag in root_node.findall(field):
+			p_value = tag.get(value)
+			return p_value
