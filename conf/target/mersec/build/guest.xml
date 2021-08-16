@@ -1,0 +1,4 @@
+<target>
+        <details name="guest" />
+        <size free_space="0.8" type="xs:int"/>
+</target>

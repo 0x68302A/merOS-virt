@@ -42,10 +42,7 @@ class TargetManage:
 		self.target_rootfs_tar = self.mos_path + "/data/build/bootstrap" + "/" + self.target_fam + "/" + self.target_id + ".tar"
 		self.target_rootfs_img = self.mos_img_dir + "/" + self.target_full_id + ".img"
 
-		## TODO READ FROM XML
-		self.target_size = 1.6
-		self.target_free_space = 0.4
-		self.target_storage = int(self.target_size + self.target_free_space)
+		self.target_id_xml = self.mos_path + "/conf/target/" + self.target_fam + "/build/" + self.target_id + ".xml"
 
 		self.DNS1 = "1.1.1.1"
 		self.DNS2 = "1.0.0.1"
@@ -119,7 +116,12 @@ class TargetManage:
 			os.remove(self.target_rootfs_img)
 		else:
 			pass
-			
+
+		self.target_size = os.path.getsize(self.target_rootfs_tar) / 1073741824
+		self.target_free_space = float(self.h.parse_xml(self.target_id_xml, "size", "free_space"))
+		self.target_storage = int(round(self.target_size + self.target_free_space, 1))
+		
+
 		g = guestfs.GuestFS(python_return_dict=True)
 
 		g.disk_create(self.target_rootfs_img, "qcow2", 1024 * self.target_storage * 1024 * 						1024)
