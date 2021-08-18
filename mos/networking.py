@@ -2,28 +2,13 @@
 
 import pyroute2
 from pyroute2 import IPRoute
-
-ifname = "anic_r"
-brname = "br_r"
+from pyroute2 import nftables
 
 ip = IPRoute()
 
-# dev = ip.link_lookup(ifname=ifname)[0]
-
-def nic_create():
-	ip.link("add",
-		ifname=ifname,
-		kind="tuntap",
-		mode="tap")
-
-
-def nic_create_bridge():
-	ip.link("add",
-		ifname=ifname,
-		kind="bridge")
-
-
-
-
-if __name__ == "__main__":
-	nic_create()
+nft.chain('add',
+		table='test0',
+		name='test_chain0',
+		hook='input',
+		type='filter',
+		policy=0)
