@@ -6,7 +6,7 @@ import mos.kernel_build as kernel_build
 import mos.host_conf as host_conf
 import mos.target_get as target_get
 import mos.target_manage as target_manage
-# import mos.libvirt_manage as libvirt_manage
+import mos.libvirt_manage as libvirt_manage
 
 import subprocess
 
@@ -15,56 +15,64 @@ import sys
 
 
 def main():
+	h = helper.Helper
 
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help","setup","kernel-build","get","bootstrap","build","run","shutdown","output="])
 	except getopt.GetoptError as err:
-		# print help information and exit:
-		print(err)  # will print something like "option -a not recognized"
-		display_help()
+		print(err)
+		h.display_help()
 		sys.exit(2)
 	output = None
 	verbose = False
+
 	for o, a in opts:
 		if o == "-v":
 			verbose = True
+
 		elif o in ("-h", "--help"):
-			display_help()
+			h.display_help()
 			sys.exit()
+
 		elif o in ("--setup"):
-			h = host_conf.HostConf()
-			h.main()
+			hc = host_conf.HostConf()
+			hc.main()
 			sys.exit()
+
 		elif o in ("--kernel-build"):
-			kb = kernel_build.KernelBuild
+			kb = kernel_build.KernelBuild()
+			kb.kernel_clone()
 			kb.kernel_make()
 			sys.exit()
+
 		elif o in ("--get"):
 			target_distro = sys.argv[2]
 			tg = target_get.TargetGet(target_distro)
 			tg.get_rootfs()
+
 		elif o in ("--build"):
 			target_full_id = sys.argv[2]
 			tm = target_manage.TargetManage(target_full_id)
 			tm.chroot_setup()
 			tm.rootfs_build()
 			sys.exit()
+
 		elif o in ("--run"):
+			target_fam = sys.argv[2]
 			lm = libvirt_manage.LibvirtManage()
-			mos.vm_init()
-			mos.net_init()
+			lm.net_init(target_fam)	
+			lm.vm_init(target_fam)
+
 		elif o in ("--shutdown"):
-			mos.run_as_root(print("Running as root"))
-			mos.run_as_root(mos.vm_shutdown_all())
-		elif o in ("-o", "--output"):
-			output = a
+			lm = libvirt_manage.LibvirtManage()
+			lm.vm_shutdown_all
+
 		else:
 			print("Error")
-#			assert False, "unhandled option"
+			assert False, "unhandled option"
 
 if __name__ == "__main__":
 	main()
-
 
 
 '''
