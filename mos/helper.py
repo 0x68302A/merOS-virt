@@ -8,10 +8,9 @@ import getpass
 import subprocess
 import getopt
 import datetime
-from rich.console import Console
-from rich.markdown import Markdown
 import tarfile
 import xml.etree.ElementTree as ET
+import random as r
 
 class Helper:
 
@@ -55,7 +54,7 @@ class Helper:
 		with open("README.md", "r+") as help_file:
 			console.print(Markdown(help_file.read()))
 		sys.exit(0)
-		
+
 	def parse_xml(self, xml_conf_file, field, value):
 		root_node = ET.parse(xml_conf_file).getroot()
 		for tag in root_node.findall(field):
