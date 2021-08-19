@@ -11,8 +11,23 @@ from distutils import *
 from distutils import dir_util
 import tarfile
 import subprocess
-from Crypto.PublicKey import RSA
+from cryptography.hazmat.primitives import serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
 import guestfs
+
+
+class SSHKeys:
+	def __init__(self):
+		self.key = rsa.generate_private_key(
+			backend=crypto_default_backend(), public_exponent=65537, key_size=2048)
+		
+		self.private_key = self.key.private_bytes(
+			crypto_serialization.Encoding.PEM, crypto_serialization.PrivateFormat.PKCS8, crypto_serialization.NoEncryption()).decode("utf-8")
+		
+		self.public_key = self.key.public_key().public_bytes(
+			crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH).decode("utf-8")
+
 
 class TargetManage:
 	def __init__(self, target_full_id):
@@ -54,33 +69,10 @@ class TargetManage:
 			None
 		else:
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
-
+			
 			tar_file = tarfile.open(self.distro_rootfs_targz)
 			tar_file.extractall(self.target_chroot_dir)
 			tar_file.close
-
-		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
-
-
-	def ssh_keys_gen(self):
-
-		key = RSA.generate(2048)
-
-		if not os.path.exists(self.target_ssh_dir):
-			os.makedirs(self.target_ssh_dir)
-		else:
-			None
-
-		with open(self.target_ssh_dir + "/ssh_host_rsa_key", 'wb') as content_file:
-			os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
-			content_file.write(key.exportKey('PEM'))
-
-		with open(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 'wb') as content_file:
-			os.chmod(self.mos_ssh_priv_key_dir + "/" + self.target_id + "-id_rsa", 0o0600)
-			content_file.write(key.exportKey('PEM'))
-			pubkey = key.publickey()
-		with open(self.target_ssh_dir + "/authorized_keys", 'wb') as content_file:
-					content_file.write(pubkey.exportKey('OpenSSH'))
 
 
 	def chroot_configure(self):
@@ -89,22 +81,43 @@ class TargetManage:
 		os.chroot(".")
 		with open("/etc/resolv.conf", 'w') as file:
 				file.write("nameserver " + self.default_gw + "\n")
-				
+
 		# subprocess.run("id", shell=True)
 		subprocess.run("/root/0100-conf.chroot", shell=True)
 		subprocess.run("/root/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
 
+		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
+
+	def chroot_keyadd(self):
+		self.hkkg = SSHKeys()
+		ssh_private_key_01 = self.hkkg.private_key
+
+		self.aukg = SSHKeys()
+		ssh_private_key_02 = self.aukg.private_key
+		ssh_public_key_02 = self.aukg.public_key
+
+		with open(self.target_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
+			content_file.write(ssh_private_key_01)
+
+		with open(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 'w') as content_file:
+			content_file.write(ssh_private_key_02)
+			
+		with open(self.target_ssh_dir + "/authorized_keys", 'w') as content_file:
+					content_file.write(ssh_public_key_02)
+			
+		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
+		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 0o0600)
 
 	def rootfs_tar_build(self):
 		if os.path.exists(self.target_rootfs_tar):
 			os.remove(self.target_rootfs_tar)
 		else:
 			pass
-			
+
 		tar = tarfile.open(self.target_rootfs_tar, "x:")
-		
+
 		for i in os.listdir(self.target_chroot_dir):
 			tar_file = self.target_chroot_dir + "/" + i
 			tar.add(tar_file)
@@ -121,7 +134,7 @@ class TargetManage:
 		self.target_free_space_mb = float(self.h.parse_xml(self.target_id_xml, "size", "free_space_mb"))
 		self.target_storage_mb = int(round(self.target_size_mb + self.target_free_space_mb, 1))
 		print(self.target_storage_mb)
-		
+
 
 		g = guestfs.GuestFS(python_return_dict=True)
 
@@ -151,17 +164,17 @@ class TargetManage:
 	def chroot_setup(self):
 		tm  = TargetManage(self.target_full_id)
 		tm.chroot_unpack()
-		tm.ssh_keys_gen()
+		tm.chroot_keyadd()
 		tm.chroot_configure()
-	
+
 
 	def rootfs_build(self):
 		tm  = TargetManage(self.target_full_id)
 		tm.rootfs_tar_build()
 		tm.rootfs_qcow_build()
-	
+
 
 
 """
-TODO ssh-keygen -f "/home/$USER_ID/.ssh/known_hosts" -R "[10.0.4.4]:	
+TODO ssh-keygen -f "/home/$USER_ID/.ssh/known_hosts" -R "[10.0.4.4]:
 """
