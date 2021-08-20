@@ -24,10 +24,9 @@ class Helper:
 	uid = os.getuid()
 	gid = os.getgid()
 
-	host_ssh_pubkey_key_dir =  "/home/" + os.getlogin() + "/" + "./ssh/"
+	mos_img_dir = mos_path + "/data/images/"
 	mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
-	mos_img_dir = mos_path + "/data/images"
-
+	
 	target_distro = "alpine"
 
 
