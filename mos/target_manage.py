@@ -55,7 +55,7 @@ class TargetManage:
 
 	def chroot_unpack(self):
 
-		if os.path.exists(self.target_chroot_dir):
+		if os.path.exists(self.target_chroot_dir + "/sbin/init"):
 			None
 		else:
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
