@@ -17,18 +17,6 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 import guestfs
 
 
-class SSHKeys:
-	def __init__(self):
-		self.key = rsa.generate_private_key(
-			backend=crypto_default_backend(), public_exponent=65537, key_size=2048)
-		
-		self.private_key = self.key.private_bytes(
-			crypto_serialization.Encoding.PEM, crypto_serialization.PrivateFormat.PKCS8, crypto_serialization.NoEncryption()).decode("utf-8")
-		
-		self.public_key = self.key.public_key().public_bytes(
-			crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH).decode("utf-8")
-
-
 class TargetManage:
 	def __init__(self, target_full_id):
 		self.target_full_id = target_full_id
@@ -37,6 +25,11 @@ class TargetManage:
 		self.h = h
 		self.mos_path  =  h.mos_path
 		self.arch = h.arch
+
+		self.mos_img_dir = self.h.mos_img_dir
+		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
+		self.target_rootfs_img = self.mos_img_dir + "/" + self.target_full_id + ".img"
+
 
 		self.target_id_split = self.target_full_id.split("-")
 		self.target_fam = self.target_id_split[0]
@@ -49,13 +42,10 @@ class TargetManage:
 		self.target_chroot_dir = self.mos_path + "/data/build/bootstrap/" + self.target_fam + "/" + self.target_id
 		self.target_ssh_dir = self.target_chroot_dir + "/etc/ssh"
 
-		self.mos_img_dir = self.mos_path + "/data/images/"
-		self.mos_ssh_priv_key_dir = self.mos_path + "/data/ssh_keys"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
-
 		self.distro_rootfs_targz = self.mos_bootstrap_dir + "/" + "rootfs" + "_" + self.target_distro + "_" + self.arch + ".tar.gz"
 		self.target_rootfs_tar = self.mos_path + "/data/build/bootstrap" + "/" + self.target_fam + "/" + self.target_id + ".tar"
-		self.target_rootfs_img = self.mos_img_dir + "/" + self.target_full_id + ".img"
+		
 
 		self.target_id_xml = self.mos_path + "/conf/target/" + self.target_fam + "/build/" + self.target_id + ".xml"
 
@@ -65,7 +55,7 @@ class TargetManage:
 
 	def chroot_unpack(self):
 
-		if os.path.isdir(self.target_chroot_dir):
+		if os.path.exists(self.target_chroot_dir):
 			None
 		else:
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
@@ -76,19 +66,22 @@ class TargetManage:
 
 
 	def chroot_configure(self):
+		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
+		
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
 		os.chroot(".")
 		with open("/etc/resolv.conf", 'w') as file:
 				file.write("nameserver " + self.default_gw + "\n")
-
+		
 		# subprocess.run("id", shell=True)
 		subprocess.run("/root/0100-conf.chroot", shell=True)
 		subprocess.run("/root/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
-
+		
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
+
 
 	def chroot_keyadd(self):
 		self.hkkg = SSHKeys()
@@ -164,8 +157,8 @@ class TargetManage:
 	def chroot_setup(self):
 		tm  = TargetManage(self.target_full_id)
 		tm.chroot_unpack()
-		tm.chroot_keyadd()
 		tm.chroot_configure()
+		tm.chroot_keyadd()
 
 
 	def rootfs_build(self):
@@ -174,7 +167,16 @@ class TargetManage:
 		tm.rootfs_qcow_build()
 
 
-
+class SSHKeys:
+	def __init__(self):
+		self.key = rsa.generate_private_key(
+			backend=crypto_default_backend(), public_exponent=65537, key_size=2048)
+		
+		self.private_key = self.key.private_bytes(
+			crypto_serialization.Encoding.PEM, crypto_serialization.PrivateFormat.PKCS8, crypto_serialization.NoEncryption()).decode("utf-8")
+		
+		self.public_key = self.key.public_key().public_bytes(
+			crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH).decode("utf-8")
 """
 TODO ssh-keygen -f "/home/$USER_ID/.ssh/known_hosts" -R "[10.0.4.4]:
 """
