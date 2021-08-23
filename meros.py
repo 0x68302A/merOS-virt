@@ -6,7 +6,7 @@ import mos.kernel_build as kernel_build
 import mos.host_conf as host_conf
 import mos.target_get as target_get
 import mos.target_manage as target_manage
-import mos.qemu_manage as qemu_manage
+import mos.libvirt_manage as libvirt_manage
 
 import subprocess
 
@@ -57,10 +57,11 @@ def main():
 			sys.exit()
 
 		elif o in ("--run"):
-			target_full_id = sys.argv[2]
-			qm = qemu_manage.QemuManage(target_full_id)
-			qm.qemu_run()
-			
+			target_fam = sys.argv[2]
+			lm = libvirt_manage.LibvirtManage()
+			lm.net_init(target_fam)	
+			lm.vm_init(target_fam)
+
 		elif o in ("--shutdown"):
 			lm = libvirt_manage.LibvirtManage()
 			lm.vm_shutdown_all
