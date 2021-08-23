@@ -52,7 +52,6 @@ class TargetManage:
 		self.DNS1 = "1.1.1.1"
 		self.DNS2 = "1.0.0.1"
 
-
 	def chroot_unpack(self):
 
 		if os.path.exists(self.target_chroot_dir + "/sbin/init"):
@@ -65,9 +64,9 @@ class TargetManage:
 			tar_file.close
 
 
-	def chroot_configure(self):
+	def chroot_configure(self):		
+
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
-		
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
 		os.chroot(".")
@@ -79,8 +78,6 @@ class TargetManage:
 		subprocess.run("/root/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
-		
-		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
 
 
 	def chroot_keyadd(self):
@@ -111,9 +108,9 @@ class TargetManage:
 
 		tar = tarfile.open(self.target_rootfs_tar, "x:")
 
+		os.chdir(self.target_chroot_dir)
 		for i in os.listdir(self.target_chroot_dir):
-			tar_file = self.target_chroot_dir + "/" + i
-			tar.add(tar_file)
+			tar.add(i)
 		tar.close()
 
 
