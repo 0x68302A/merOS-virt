@@ -54,8 +54,16 @@ class Helper:
 			console.print(Markdown(help_file.read()))
 		sys.exit(0)
 
-	def parse_xml(self, xml_conf_file, field, value):
+
+	def parse_xml(self, func, xml_conf_file, field, value, output):
+		root_file = ET.parse(xml_conf_file)
 		root_node = ET.parse(xml_conf_file).getroot()
-		for tag in root_node.findall(field):
-			p_value = tag.get(value)
-			return p_value
+		if func == "read":
+			for tag in root_node.findall(field):
+				p_value = tag.get(value)
+				return p_value
+		else:
+			for element in root_node.iter(field):
+				element.text = value
+				root_file.write(output)
+				
