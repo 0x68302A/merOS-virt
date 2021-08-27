@@ -57,10 +57,9 @@ def main():
 			sys.exit()
 
 		elif o in ("--run"):
-			target_fam = sys.argv[2]
-			lm = libvirt_manage.LibvirtManage()
-			lm.net_init(target_fam)	
-			lm.vm_init(target_fam)
+			target_full_id = sys.argv[2]
+			lm = libvirt_manage.LibvirtManage(target_full_id)
+			lm.doms_init()
 
 		elif o in ("--shutdown"):
 			lm = libvirt_manage.LibvirtManage()

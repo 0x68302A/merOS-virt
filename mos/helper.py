@@ -10,6 +10,7 @@ import getopt
 import datetime
 import tarfile
 import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import fromstring, ElementTree
 import random as r
 
 class Helper:
@@ -55,15 +56,27 @@ class Helper:
 		sys.exit(0)
 
 
-	def parse_xml(self, func, xml_conf_file, field, value, output):
-		root_file = ET.parse(xml_conf_file)
-		root_node = ET.parse(xml_conf_file).getroot()
-		if func == "read":
-			for tag in root_node.findall(field):
-				p_value = tag.get(value)
-				return p_value
-		else:
-			for element in root_node.iter(field):
-				element.text = value
-				root_file.write(output)
-				
+class ParseXML:
+	def __init__(self, xml_conf_file):
+		self.xml_conf_file = xml_conf_file
+		print(self.xml_conf_file)
+		self.xml_data = open(self.xml_conf_file)
+		self.xml_str = self.xml_data.read()
+		self.xml_tree = ElementTree(fromstring(self.xml_str))
+		self.xml_root = self.xml_tree.getroot()
+
+
+	def read_xml(self, node, value):
+		print(self.xml_tree)
+		for tag in self.xml.tree.findall(node):
+			p_value = tag.get(value)
+			return p_value
+
+
+	def edit_xml(self, node, value):
+		self.xml_root.set(node, value)
+		for i in self.xml_root.iter(node):
+			i.text = value
+			return ET.tostring(self.xml_root, encoding='unicode', method='xml')
+
+
