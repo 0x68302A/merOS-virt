@@ -41,6 +41,7 @@ def main():
 
 		elif o in ("--kernel-build"):
 			kb = kernel_build.KernelBuild()
+			kb.kernel_clone()
 			kb.kernel_build()
 			sys.exit()
 
