@@ -20,6 +20,7 @@ class KernelBuild:
 		self.mos_path = self.h.mos_path
 		self.mos_img_dir = self.h.mos_img_dir
 		self.arch = self.h.arch
+		print(self.arch)
 		
 		self.kernel_git_url = "https://github.com/torvalds/linux"
 		self.mos_kernel_build_dir = self.mos_path + "/data/build/kernel"
@@ -29,9 +30,11 @@ class KernelBuild:
 
 
 	def kernel_clone(self):
-		
-		print("cloning into %s" % self.mos_kernel_git_dir)
-		git.Repo.clone_from(self.kernel_git_url, self.mos_kernel_git_dir,
+		if os.path.exists(self.mos_kernel_git_dir):
+			pass
+		else:
+			print("cloning into %s" % self.mos_kernel_git_dir)
+			git.Repo.clone_from(self.kernel_git_url, self.mos_kernel_git_dir,
 				depth=1, branch='master', progress=CloneProgress())
 
 
@@ -40,9 +43,6 @@ class KernelBuild:
 		if os.path.exists(self.bzimage):
 			pass
 		else:
-			
-			kernel_clone()
-			
 			os.chdir(self.mos_kernel_git_dir)
 			
 			subprocess.run(['make mrproper'], shell=True)
