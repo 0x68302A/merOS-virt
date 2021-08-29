@@ -1,9 +1,4 @@
-#!/bin/bash
-
-## debian ##
-# libvirt = python3-guestfs, libvirt, python3-guestfs, libguestfs-tools
-# apt = python3-apt
-# cryptograpy = rustc, libssl-dev
+#!/bin/sh
 
 ## For debian, we need
 apt install -y \
@@ -16,3 +11,7 @@ apt install -y \
 ## We can then install the pip requirments
 pip3 install \
 	GitPython cryptography pyroute2.nftables
+
+## And finally we run the python setup- Creates directories, etc.
+python3 ./meros.py \
+	--setup
