@@ -1,8 +1,0 @@
-## debian ##
-# libvirt = python3-guestfs, libvirt, python3-guestfs, libguestfs-tools
-# apt = python3-apt
-# cryptograpy = rustc, libssl-dev
-
-GitPython
-cryptography 
-pyroute2.nftables
