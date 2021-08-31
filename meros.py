@@ -60,11 +60,11 @@ def main():
 		elif o in ("--run"):
 			target_full_id = sys.argv[2]
 			lm = libvirt_manage.LibvirtManage(target_full_id)
+			lm.nets_init()
 			lm.doms_init()
 
 		elif o in ("--shutdown"):
-			lm = libvirt_manage.LibvirtManage()
-			lm.vm_shutdown_all
+			lm = libvirt_manage.LibvirtTerminate()
 
 		else:
 			print("Error")

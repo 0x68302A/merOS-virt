@@ -27,7 +27,6 @@ class LibvirtManage:
 		
 		self.xml_dir = self.mos_path + "/conf/target/" + self.target_fam + "/libvirt/"
 		
-		
 		try:
 			self.conn = libvirt.open("qemu:///system")
 		except libvirt.libvirtError:
@@ -40,11 +39,10 @@ class LibvirtManage:
 		for i in self.doms:
 			try:
 				self.xml_parse = helper.ParseXML(i)
-				self.edit_xml = self.xml_parse.edit_xml("kernel", self.kernel_img)
-				self.edit_xml = self.xml_parse.edit_xml("file", self.target_rootfs_img)
-				self.edit_xml = self.xml_parse.edit_xml("devices/disk/source", self.target_rootfs_img, attribute="file")
-				# print(self.edit_xml)
-				dom0 = self.conn.createXML(self.edit_xml)
+				self.xml = self.xml_parse.edit_xml("kernel", self.kernel_img)
+				self.xml = self.xml_parse.edit_xml("devices/disk/source", self.target_rootfs_img, attribute="file")
+				# print(self.xml)
+				dom0 = self.conn.createXML(self.xml)
 			except libvirt.libvirtError:
 				print('Failed to Parse XML')
 				sys.exit(1)
@@ -57,23 +55,27 @@ class LibvirtManage:
 		self.nets = glob.glob(self.xml_dir + "/net_*")
 		for i in self.nets:
 			try:
-				dom0 = self.conn.networkCreateXML(self.xml2str(i))
+				self.xml_parse = helper.ParseXML(i)
+				self.xml = self.xml_parse.read_xml()
+				# print(self.xml)
+				dom0 = self.conn.networkCreateXML(self.xml)
 			except libvirt.libvirtError:
 				print('Failed to Parse XML')
 				sys.exit(1)
 
 
-	def vm_shutdown_all(self):
-		libvirt_conn()
-		for i in conn.listDomainsID():
-				dom = conn.lookupByID(i)
-				dom.destroy()
+class LibvirtTerminate:
+	def __init__(self):
+		self.conn = libvirt.open("qemu:///system")
+		for i in self.conn.listDomainsID():
+				self.dom = self.conn.lookupByID(i)
+				self.dom.destroy()
 				time.sleep(1)
-		for i in conn.listNetworks():
-				net = conn.networkLookupByName(i)
-				net.destroy()
+		for i in self.conn.listNetworks():
+				self.net = self.conn.networkLookupByName(i)
+				self.net.destroy()
 				time.sleep(1)
-		if conn.listDomainsID():
+		if self.conn.listDomainsID():
 			print('ERROR! There are live domains.')
 		else:
 			print('merOS shut down gracefully')
@@ -92,5 +94,3 @@ class LibvirtManage:
 	
 		print("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
 		print(dom0.info())
-	
-	
