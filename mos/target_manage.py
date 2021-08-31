@@ -120,16 +120,19 @@ class TargetManage:
 		else:
 			pass
 
-		self.target_size_mb = os.path.getsize(self.target_rootfs_tar) / 1048576
-		self.target_free_space_mb = float(self.h.parse_xml(self.target_id_xml, "size", "free_space_mb"))
-		self.target_storage_mb = int(round(self.target_size_mb + self.target_free_space_mb, 1))
+		self.pxml = helper.ParseXML(self.target_id_xml)
+
+		self.target_rootfs_size_mb = os.path.getsize(self.target_rootfs_tar) / 1048576
+		self.target_free_space_mb = float(self.pxml.read_xml("size", "free_space_mb"))
+		self.target_storage_mb = int(round(self.target_rootfs_size_mb + self.target_free_space_mb))
+		print(self.target_free_space_mb)
 		print(self.target_storage_mb)
 
 
 		g = guestfs.GuestFS(python_return_dict=True)
 
-		g.disk_create(self.target_rootfs_img, "qcow2", self.target_storage_mb  * 1024 * 1024 )
-		g.set_trace(1)
+		g.disk_create(self.target_rootfs_img, "qcow2", self.target_storage_mb * 1024 * 1024 )
+		# g.set_trace(1)
 		g.add_drive_opts(self.target_rootfs_img, format = "qcow2", readonly=0)
 		g.launch()
 		devices = g.list_devices()

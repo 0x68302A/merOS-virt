@@ -17,7 +17,7 @@ class LibvirtManage:
 		self.arch = h.arch
 		
 		self.mos_img_dir = self.h.mos_img_dir
-		self.target_rootfs_img = self.mos_img_dir + "/" + self.target_full_id + ".img"
+		self.target_rootfs_img = self.mos_img_dir + self.target_full_id + ".img"
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.kernel_img = self.mos_img_dir + "bzImage"
 		
@@ -35,23 +35,16 @@ class LibvirtManage:
 			sys.exit(1)
 
 
-	def xml2str(self, xml_id):
-		with open(xml_id, 'r') as file:
-			xml_data = file.read()# .replace('\n', '')
-		return xml_data
-
-
 	def doms_init(self):
 		self.doms = glob.glob(self.xml_dir + "/dom_*")
 		for i in self.doms:
 			try:
 				self.xml_parse = helper.ParseXML(i)
-				self.mod_xml = self.xml_parse.edit_xml("kernel", self.kernel_img)
-				self.mod_xml = self.xml_parse.edit_xml("file", self.target_rootfs_img)
-				# self.h.parse_xml(write=True, i, "source file", self.target_rootfs_img, i)
-				# print(self.xml2str(i))
-				print(self.mod_xml)
-				dom0 = self.conn.createXML(self.mod_xml)
+				self.edit_xml = self.xml_parse.edit_xml("kernel", self.kernel_img)
+				self.edit_xml = self.xml_parse.edit_xml("file", self.target_rootfs_img)
+				self.edit_xml = self.xml_parse.edit_xml("devices/disk/source", self.target_rootfs_img, attribute="file")
+				# print(self.edit_xml)
+				dom0 = self.conn.createXML(self.edit_xml)
 			except libvirt.libvirtError:
 				print('Failed to Parse XML')
 				sys.exit(1)
