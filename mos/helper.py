@@ -67,16 +67,22 @@ class ParseXML:
 
 
 	def read_xml(self, node, value):
-		print(self.xml_tree)
-		for tag in self.xml.tree.findall(node):
+		# print(self.xml_tree)
+		for tag in self.xml_tree.findall(node):
 			p_value = tag.get(value)
 			return p_value
 
 
-	def edit_xml(self, node, value):
-		self.xml_root.set(node, value)
-		for i in self.xml_root.iter(node):
-			i.text = value
+	def edit_xml(self, node, value, **kwargs):
+		try:
+			for element in self.xml_root.findall(node):
+			        element.set(kwargs['attribute'],value)
+			        element.set(attr,value)
 			return ET.tostring(self.xml_root, encoding='unicode', method='xml')
+		except NameError:
+			pass
 
-
+		for i in self.xml_root.iter(node):
+			self.xml_root.set(node, value)
+			i.text = value
+		return ET.tostring(self.xml_root, encoding='unicode', method='xml')
