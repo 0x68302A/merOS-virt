@@ -6,7 +6,7 @@ import glob
 import libvirt
 import sys
 import time
-
+import re
 
 class LibvirtManage:
 	def __init__(self, target_full_id):
@@ -21,10 +21,13 @@ class LibvirtManage:
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.kernel_img = self.mos_img_dir + "bzImage"
 		
-		self.target_id_split = self.target_full_id.split("-")
-		self.target_fam = self.target_id_split[0]
-		self.target_id = self.target_id_split[1]
-		
+		try:
+			self.target_id_split = self.target_full_id.split("-")
+			self.target_fam = self.target_id_split[0]
+			self.target_id = self.target_id_split[1]
+		except:
+			self.target_fam = self.target_full_id
+
 		self.xml_dir = self.mos_path + "/conf/target/" + self.target_fam + "/libvirt/"
 		
 		try:
@@ -38,14 +41,18 @@ class LibvirtManage:
 		self.doms = glob.glob(self.xml_dir + "/dom_*")
 		for i in self.doms:
 			try:
+				self.xml_id = re.split('\/|\_|\.', i)
+				self.target_id = self.xml_id[-2]
+
+				self.target_rootfs_img = ( self.mos_img_dir
+							+ self.target_id + ".img" )
+
 				self.xml_parse = helper.ParseXML(i)
 				self.xml = self.xml_parse.edit_xml("kernel", self.kernel_img)
 				self.xml = self.xml_parse.edit_xml("devices/disk/source", self.target_rootfs_img, attribute="file")
-				# print(self.xml)
 				dom0 = self.conn.createXML(self.xml)
 			except libvirt.libvirtError:
-				print('Failed to Parse XML')
-				sys.exit(1)
+				print('Domain is running, or Failed to Parse XML')
 	
 			print("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
 			print(dom0.info())
@@ -57,11 +64,9 @@ class LibvirtManage:
 			try:
 				self.xml_parse = helper.ParseXML(i)
 				self.xml = self.xml_parse.read_xml()
-				# print(self.xml)
 				dom0 = self.conn.networkCreateXML(self.xml)
 			except libvirt.libvirtError:
-				print('Failed to Parse XML')
-				sys.exit(1)
+				print('Network is running, or Failed to Parse XML')
 
 
 class LibvirtTerminate:
