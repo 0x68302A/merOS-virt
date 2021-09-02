@@ -1,6 +1,6 @@
 <network>
-  <name>mos_pub_net</name>
-  <bridge name='mos_pub_net' stp='on' delay='0'/>
+  <name>mersec_pub</name>
+  <bridge name='mersec_pub' stp='on' delay='0'/>
   <mtu size="9000"/>
   <ip address='10.0.2.1' netmask='255.255.255.0'>  
   </ip>
