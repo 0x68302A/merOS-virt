@@ -12,8 +12,8 @@ from distutils import dir_util
 import tarfile
 import subprocess
 from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa
 import guestfs
 
 
@@ -120,10 +120,10 @@ class TargetManage:
 		else:
 			pass
 
-		self.pxml = helper.ParseXML(self.target_id_xml)
+		self.xml_parse = helper.ParseXML(self.target_id_xml)
 
 		self.target_rootfs_size_mb = os.path.getsize(self.target_rootfs_tar) / 1048576
-		self.target_free_space_mb = float(self.pxml.read_xml("size", "free_space_mb"))
+		self.target_free_space_mb = float(self.xml_parse.read_xml_value("size", "free_space_mb"))
 		self.target_storage_mb = int(round(self.target_rootfs_size_mb + self.target_free_space_mb))
 		print(self.target_free_space_mb)
 		print(self.target_storage_mb)
