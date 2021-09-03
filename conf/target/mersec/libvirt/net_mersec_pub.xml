@@ -1,7 +1,6 @@
-<network>
+<network ipv6='no'>
   <name>mersec_pub</name>
   <bridge name='mersec_pub' stp='on' delay='0'/>
-  <mtu size="9000"/>
   <ip address='10.0.2.1' netmask='255.255.255.0'>  
   </ip>
   <dns enable='no'/>

@@ -50,7 +50,7 @@
       <address bus="0x00" domain="0x0000" function="0x2" slot="0x05" type="pci" />
     </controller>
     <controller index="0" model="pci-root" type="pci" />
-/    <controller index="0" type="ide">
+    <controller index="0" type="ide">
       <address bus="0x00" domain="0x0000" function="0x1" slot="0x01" type="pci" />
     </controller>
     <interface type="bridge">
