@@ -38,14 +38,21 @@ class TargetManage:
 		self.target_distro = "alpine"
 		self.default_gw = h.default_gw
 
-		self.target_chroot_conf_dir = self.mos_path + "/conf/target/" + self.target_fam + "/rootfs/" + self.target_id + "/includes.chroot"
+		self.target_conf_dir = self.mos_path + "/conf/target/" + self.target_fam
+
+		self.target_chroot_conf_dir = self.target_conf_dir + "/rootfs/"	+ self.target_id + "/includes.chroot"
+
+		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
+
 		self.target_chroot_dir = self.mos_path + "/data/build/bootstrap/" + self.target_fam + "/" + self.target_id
+
 		self.target_ssh_dir = self.target_chroot_dir + "/etc/ssh"
 
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
+
 		self.distro_rootfs_targz = self.mos_bootstrap_dir + "/" + "rootfs" + "_" + self.target_distro + "_" + self.arch + ".tar.gz"
+
 		self.target_rootfs_tar = self.mos_path + "/data/build/bootstrap" + "/" + self.target_fam + "/" + self.target_id + ".tar"
-		
 
 		self.target_id_xml = self.mos_path + "/conf/target/" + self.target_fam + "/build/" + self.target_id + ".xml"
 
@@ -66,6 +73,7 @@ class TargetManage:
 
 	def chroot_configure(self):		
 
+		distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
@@ -126,11 +134,12 @@ class TargetManage:
 		self.target_free_space_mb = float(self.xml_parse.read_xml_value("size", "free_space_mb"))
 		self.target_storage_mb = int(round(self.target_rootfs_size_mb + self.target_free_space_mb))
 		print(self.target_free_space_mb)
-		print(self.target_storage_mb)
+
 
 
 		g = guestfs.GuestFS(python_return_dict=True)
 
+		print(self.target_storage_mb)
 		g.disk_create(self.target_rootfs_img, "qcow2", self.target_storage_mb * 1024 * 1024 )
 		# g.set_trace(1)
 		g.add_drive_opts(self.target_rootfs_img, format = "qcow2", readonly=0)
