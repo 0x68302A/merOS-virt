@@ -39,21 +39,20 @@ class KernelBuild:
 
 
 	def kernel_build(self):
-		
-		if os.path.exists(self.bzimage):
-			pass
-		else:
-			os.chdir(self.mos_kernel_git_dir)
-			
-			subprocess.run(['make mrproper'], shell=True)
-			subprocess.run(['make defconfig'], shell=True)
-			
-			with open('.config', 'a') as f:
-				f.write('CONFIG_TUN=y')
-				f.write('CONFIG_VIRTIO_PCI=y')
-				f.write('CONFIG_VIRTIO_MMIO=y')
-				
-			subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
-			subprocess.run(['make headers_install'], shell=True)
-			
+
+		os.chdir(self.mos_kernel_git_dir)
+
+		subprocess.run(['make mrproper'], shell=True)
+		subprocess.run(['make defconfig'], shell=True)
+
+		self.kernelopts = ("CONFIG TUN=y"
+					+ "\nCONFIG_VIRTIO_PCI=y"
+					+ "\nCONFIG_VIRTIO_MMIO=y")
+
+		with open('.config', 'a') as f:
+			f.write(self.kernelopts)
+
+		subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
+		subprocess.run(['make headers_install'], shell=True)
+
 		shutil.copyfile(self.bzimage, self.mos_img_dir + "bzImage")
