@@ -1,5 +1,6 @@
 <network ipv6='no'>
   <name>mersec_priv</name>
+  <forward mode='open'/>
   <bridge name='mersec_priv' stp='on' delay='0'/>
   <ip address='10.0.4.1' netmask='255.255.255.0'>  
   </ip>
