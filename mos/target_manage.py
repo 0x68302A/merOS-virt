@@ -89,12 +89,12 @@ class TargetManage:
 
 
 	def chroot_keyadd(self):
-		self.hkkg = SSHKeys()
-		ssh_private_key_01 = self.hkkg.private_key
+		self.host_key = SSHKeys()
+		ssh_private_key_01 = self.host_key.private_key
 
-		self.aukg = SSHKeys()
-		ssh_private_key_02 = self.aukg.private_key
-		ssh_public_key_02 = self.aukg.public_key
+		self.comminication_key = SSHKeys()
+		ssh_private_key_02 = self.comminication_key.private_key
+		ssh_public_key_02 = self.comminication_key.public_key
 
 		with open(self.target_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
 			content_file.write(ssh_private_key_01)
