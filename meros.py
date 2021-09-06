@@ -62,6 +62,7 @@ def main():
 			lm = libvirt_manage.LibvirtManage(target_full_id)
 			lm.nets_init()
 			lm.doms_init()
+			lm.hooks_init()
 
 		elif o in ("--shutdown"):
 			lm = libvirt_manage.LibvirtTerminate()
