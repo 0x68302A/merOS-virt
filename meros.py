@@ -7,6 +7,7 @@ import mos.host_conf as host_conf
 import mos.target_get as target_get
 import mos.target_manage as target_manage
 import mos.libvirt_manage as libvirt_manage
+import mos.ssh_communication as ssh_communication
 
 import subprocess
 
@@ -18,7 +19,7 @@ def main():
 	h = helper.Helper
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help","setup","kernel-build","get","bootstrap","build","run","shutdown","output="])
+		opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help","setup","kernel-build","get","bootstrap","build","run","shutdown","connect","output="])
 	except getopt.GetoptError as err:
 		print(err)
 		h.display_help()
@@ -63,6 +64,11 @@ def main():
 			lm.nets_init()
 			lm.doms_init()
 			lm.hooks_init()
+
+		elif o in ("--connect"):
+			target_full_id = sys.argv[2]
+			tc = ssh_communication.InteractiveShell(target_full_id)
+			tc.interactive_shell()
 
 		elif o in ("--shutdown"):
 			lm = libvirt_manage.LibvirtTerminate()
