@@ -1,4 +1,5 @@
 <target>
-        <details name="guest" />
+        <details name="guest" username="user" />
         <size free_space_mb="800" />
+        <network network_addr="10.0.4.1" ip_addr="10.0.4.4" ssh_port="2022"/>
 </target>
