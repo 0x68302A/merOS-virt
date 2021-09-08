@@ -10,6 +10,11 @@ import termios
 import tty
 import select
 
+import struct
+import fcntl
+import signal
+import errno
+
 class InteractiveShell:
     def __init__(self, target_full_id):
         self.target_full_id = target_full_id
@@ -41,7 +46,7 @@ class InteractiveShell:
         self.sshClient.connect( hostname = self.target_ip, username = self.target_username, port = self.target_ssh_port, pkey = self.k )
 
         self.channel = self.sshClient.get_transport().open_session()
-        self.channel.get_pty()
+        self.channel.get_pty(term="xterm")
         self.channel.invoke_shell()
         self.interactive_shell(self.channel)
 
@@ -52,9 +57,13 @@ class InteractiveShell:
             tty.setraw(sys.stdin.fileno())
             tty.setcbreak(sys.stdin.fileno())
             chan.settimeout(0.0)
+            signal.signal(signal.SIGWINCH, self.signal_winsize_handler)
 
             while True:
-                r, w, e = select.select([chan, sys.stdin], [], [])
+                try:
+                    r, w, e = select.select([chan, sys.stdin], [], [])
+                except select.error as e:
+                    if e[0] != errno.EINTR: raise
                 if chan in r:
                     try:
                         x = u(chan.recv(1024))
@@ -73,3 +82,10 @@ class InteractiveShell:
 
         finally:
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
+
+    def signal_winsize_handler(self, signum, frame):
+        if signum == signal.SIGWINCH:
+            s = struct.pack('HHHH', 0, 0, 0, 0)
+            t = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+            winsize = struct.unpack('hhhh', t)
+            self.channel.resize_pty(width=winsize[1], height=winsize[0])
