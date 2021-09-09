@@ -12,6 +12,7 @@ import tarfile
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import fromstring, ElementTree
 import random as r
+import pydoc
 
 class Helper:
 
@@ -50,10 +51,9 @@ class Helper:
 
 
 	def display_help():
-		console = Console()
-		with open("README.md", "r+") as help_file:
-			console.print(Markdown(help_file.read()))
-		sys.exit(0)
+		with open(Helper.mos_path + "/README.md", "r") as help_file:
+			help_data = help_file.read()
+			pydoc.pager(help_data)
 
 
 class ParseXML:

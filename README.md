@@ -1,119 +1,120 @@
-**SYNOPSIS**
+NAME
 
-**merOS - <br /> Build && Interconnect a set of systems.**
+	merOS - Build and interact with a set of virtual machines.
 
 
-`meros [OPTION]` <br />
-Enter `meros -h` to display this page. <br />
+SYNOPSIS
 
-**DESCRIPTION**
+	merOS can be used to: 
 
-merOS can be used to: 
+	Bootstrap, a base installation of currently A) Alpine or B) Debian Linux-
+	Populate a chroot, with a custom set of configuration files
+	under a foldering tree as found in debian-live-build-
+	Pack the rootfs, under a qemu image-
+	Virtualize the system- Target-
+	Network/ Netfilter a set of Targets with/ without a DNS resolver.
 
-- **Bootstrap** a base installation of currently A) debian or B) alpine linux.
-- **Populate** the bootstrap chroot with a custom set of configuration files.
-under a foldering structure as used in debian live-build.
-- **Pack the above fs** under a qemu image.
-- **Virtualize** the system.
-- **Network/ firewall** a set of VMs with/ without a DNS resolver.
+	merOS can also be used  with its' own included set of Firewall- Guest VMs - "mersec"
+	A VM-set inspired from the Whonix project, but with flexibility,
+	minimalist configuration, and light-weightness in mind.
 
-merOS can also be used  with its' own included set of Firewall- Guest VMs - **"mos-priv".** <br />
-This is a VM-set inspired **from the Whonix project**, but with flexibility,
-minimalist configuration, and light-weightness in mind. <br />
-This project is under heavy developmnent, and should be used with caution.
+	This project is under heavy developmnent, and should be used with caution.
 
-**SYSTEM CONFIGURATION**
 
-`--setup` <br /> 
-Set-up host ( dependencies - etc ) <br />
-Configuration files are under ./etc/host/
+DESCRIPTION
 
-**BUILDING && MANAGING A VM**
+	Families are used to describe sets of systems,
+	and Targets are the individual Virtualized Machines.
+
+	Configuration files are found
+	under ./conf/target/[fam_id]/ - and contain:
 	
-`--build-kernel` <br />
-Builds the Linux kernel, based on host Arch. <br />
-Custom .config kernel configuration files are <br />
-under ./etc/conf/kernel/ <br />
+	1. The includes.chroot custom rootfs directory
+	under ./conf/target/[fam_id]/rootfs/[target_id]/
 
-`--bootstrap` <br />
-Grab and bootstrap a clean base rootfs. <br />
-The [DISTRO] variable is currently set <br />
-under the meros script. <br />
- 
-`--build [VM_ID]` <br />
-Builds the qemu compatible .qcow image. <br />
+	3. Build XML conf files which describe target properties
+	under ./conf/target/[fam_id]/build/[target_id]
+
+	4. Network & Firewall hooks
+	under ./conf/target/[fam_id]/hooks/
+
+	5. Libvirt XML conf files, for which some
+	properties are modified on runtime.
+	under ./conf/target/[fam_id]/libvirt/[target_id]
+
+	The included "mersec" configuration set can be used
+	as a template, as to create any other set of systems.
 
 
-`-i|--init [VM-ID]` <br />
-Start a VM, configured and built with meros. <br />
+SYSTEM PREPERATION
 
-`--shutdown` [VM-ID] or `all` <br />
-Where [VM-ID] refers to the first 4 letters of .iso <br />
-or custom qcow image. <br />
-Kill qemu instances, deconfigure all bridges & NICs  <br />
-and reset nftables - Reads from ./etc/active 
+	You can run meros.py --setup,
+	or manually resolve dependancies,
+	and a dir tree creation
+
+	Custom merOS created data are found
+	under ./data/
+
+
+BUILD && MANAGE A VM
 	
-`build && init` utilize the configuration files found  <br />
-under ./etc/conf/[VM-ID]/ containing: <br />
 
-1. The includes.chroot directory <br />
-in which custom rootfs files can be placed- <br />
- and in turn passed on in our build.
-3. Build && init files for building and qemu managemenet <br >
-
-3. Network && Firewall settings
-
-3. A *.var file containing critical VM info
-
-The included "mos-priv" configuration set may be used  <br />
-as a template to create any other set of systems.
-
-**COMMUNICATING WITH A VM**
-
-Using [VM-ID] ssh credectials - as defined in <br />
-./etc/conf/[VM-ID]/[VM-ID].var
-
-`-c|--connect [VM-ID]`
-
-`-p|--push [FILE/ FOLDER] [VM-ID]`
-
-`--pull [VM-ID]` <br />
-Pull all files from @mos-guest:/mos-shared/
-to ./mos-shared/[VM_ID]
-
-`-s|--sync [VM-ID]` <br />
-Pull & Push all files from @mos-guest:/mos-shared/ <br />
-to ./mos-shared/[VM_ID]
-
-**CUSTOM IMAGE && NETWORK FUNCTIONS**
-
-`--brinit [BRIDGE_ID]` <br />
-Create a custom Bridge and attach a dns resolver.
-
-`--brkill [BRIDGE_ID]` <br />
-Kill and deconfigure Bridge
-
-`--net-access` [BRIDGE_ID]` <br />
-Grand NAT net access to Bridge
-
-`--run [IMAGE] [BRIDGE_ID]` `[MEM in MB] <br />
-Run a custom .iso or .qcow image <br />
-[MEM] defaults to 1024MB. <br />
+	[vm_full_id] refers to the
+	[fam_id] + [vm_id] parameters
+	of the Target.	
 
 
-**CONTRIBUTE**
+	--build-kernel
+	Builds the Linux kernel, based on host Arch.
+	Custom .config kernel configuration options
+	can be set.
+	
+	--get [alpine]
+	Grab the base rootfs, from oficcial mirrors
+	Debian will also be availabe, after some polishing.
 
-I am by no means a professional developer. <br />
-This is a project in which I hope to learn, and share ideas-  <br />
-concepts and practical solutions to development and  <br />
-modern privacy problems.
+	--build [vm_full_id]
+	This creates and populates the rootfs chroot
+	and builds the qemu compatible .qcow image.
+	Result images are found under ./data/images/
 
-Any contributions are welcome, you're encouraged to create tickets, pull requests <br />
-and offer any ideas on the project!
+	--init [vm_full_id]
+	Initialize Target Networks
+	and machines.
 
-You can also donate on: BTC_ADDRESS
+	--shutdown
+	Currently halts as libvirt guests.
+	
 
-**COPYRIGHT**
+COMMUNICATING WITH A VM
 
-License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
-This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent permitted by law.
+	--connect [vm_full_id]
+
+	--push [file/ folder] [vm_full_id]
+
+	--pull [vm_full_id]
+	Pull all files from @[target_id]:/mos-shared/
+	to ./data/mos-shared/[vm_full_id]
+
+	--sync [vm_full_id]
+	Pull & Push all files from mos-guest:/mos-shared/
+	to ./data/mos-shared/[vm_full_id]
+
+
+CONTRIBUTING
+
+	I am by no means a professional developer.
+	This is a project in which I hope to learn, and share ideas-
+	concepts and practical solutions to development and
+	modern privacy and management problems.
+
+	Any contributions are welcome, you're encouraged to create tickets, pull requests
+	or offer any ideas on the project!
+
+	You can also donate on: BTC_ADDRESS
+
+
+COPYRIGHT
+
+	License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+	This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent permitted by law.
