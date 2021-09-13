@@ -18,7 +18,16 @@ def main():
 	h = helper.Helper
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help","setup","kernel-build","get","bootstrap","build","init","shutdown","connect","output="])
+		opts, args = getopt.getopt(sys.argv[1:], "hic:v", [
+								"help", "setup",
+								"kernel-build",
+								"get", "bootstrap", "build",
+								"init","shutdown",
+								"connect","push",
+								"output="
+								])
+
+
 	except getopt.GetoptError as err:
 		print(err)
 		h.display_help()
@@ -57,17 +66,23 @@ def main():
 			tm.rootfs_build()
 			sys.exit()
 
-		elif o in ("--init"):
+		elif o in ("-i", "--init"):
 			target_full_id = sys.argv[2]
 			lm = libvirt_manage.LibvirtManage(target_full_id)
 			lm.nets_init()
 			lm.doms_init()
 			lm.hooks_init()
 
-		elif o in ("--connect"):
+		elif o in ("-c", "--connect"):
 			target_full_id = sys.argv[2]
-			tc = ssh_communication.InteractiveShell(target_full_id)
+			tc = ssh_communication.SSHCommunication(target_full_id)
 			tc.interactive_shell()
+
+		elif o in ("--push"):
+			file = sys.argv[3]
+			target_full_id = sys.argv[2]
+			ts = ssh_communication.SSHCommunication(target_full_id)
+			ts.target_push(file)
 
 		elif o in ("--shutdown"):
 			lm = libvirt_manage.LibvirtTerminate()
