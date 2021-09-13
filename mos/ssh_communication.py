@@ -16,6 +16,8 @@ import fcntl
 import signal
 import errno
 
+import logging
+
 class SSHCommunication:
 	def __init__(self, target_full_id):
 		self.target_full_id = target_full_id
@@ -82,6 +84,8 @@ class SSHCommunication:
 
 		finally:
 			termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
+
+		logging.info('connected to Target %s', self.target_full_id)
 
 	def signal_winsize_handler(self, signum, frame):
 		if signum == signal.SIGWINCH:

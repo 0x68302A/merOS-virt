@@ -9,6 +9,7 @@ import mos.target_manage as target_manage
 import mos.libvirt_manage as libvirt_manage
 import mos.ssh_communication as ssh_communication
 import subprocess
+import logging
 
 import getopt
 import sys
@@ -16,6 +17,14 @@ import sys
 
 def main():
 	h = helper.Helper
+
+	logging.basicConfig(
+			filename='data/meros.log',
+			format='%(asctime)s::MerOS::%(levelname)s::%(message)s',
+			datefmt='%H:%M:%S',
+			encoding='utf-8',
+			level=logging.INFO)
+
 
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "hic:v", [
@@ -62,8 +71,11 @@ def main():
 		elif o in ("--build"):
 			target_full_id = sys.argv[2]
 			tm = target_manage.TargetManage(target_full_id)
-			tm.chroot_setup()
-			tm.rootfs_build()
+			tm.chroot_unpack()
+			tm.chroot_configure()
+			tm.chroot_keyadd()
+			tm.rootfs_tar_build()
+			tm.rootfs_qcow_build()
 			sys.exit()
 
 		elif o in ("-i", "--init"):

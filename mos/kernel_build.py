@@ -8,6 +8,7 @@ from git import Repo
 from git import RemoteProgress
 import subprocess
 import shutil
+import logging
 
 class CloneProgress(RemoteProgress):
 	def update(self, op_code, cur_count, max_count=None, message=''):
@@ -20,12 +21,12 @@ class KernelBuild:
 		self.mos_path = self.h.mos_path
 		self.mos_img_dir = self.h.mos_img_dir
 		self.arch = self.h.arch
-		print(self.arch)
-		
+		logging.info('System Architecture is %s', self.arch)
+
 		self.kernel_git_url = "https://github.com/torvalds/linux"
 		self.mos_kernel_build_dir = self.mos_path + "/data/build/kernel"
 		self.mos_kernel_git_dir = self.mos_path + "/data/build/kernel/linux"
-		
+
 		self.bzimage = self.mos_kernel_git_dir + "/arch/" + self.arch + "/boot/bzImage"
 
 

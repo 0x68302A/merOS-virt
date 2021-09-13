@@ -5,10 +5,7 @@ import mos.target_get as target_get
 
 import os
 import sys
-from shutil import *
-import distutils
-from distutils import *
-from distutils import dir_util
+import distutils, distutils.dir_util
 import tarfile
 import subprocess
 from cryptography.hazmat.primitives import serialization as crypto_serialization
@@ -16,6 +13,7 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from cryptography.hazmat.primitives.asymmetric import rsa
 import guestfs
 
+import logging
 
 class TargetManage:
 	def __init__(self, target_full_id):
@@ -65,13 +63,13 @@ class TargetManage:
 			None
 		else:
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
-			
+
 			tar_file = tarfile.open(self.distro_rootfs_targz)
 			tar_file.extractall(self.target_chroot_dir)
 			tar_file.close
 
 
-	def chroot_configure(self):		
+	def chroot_configure(self):
 
 		distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
@@ -80,12 +78,16 @@ class TargetManage:
 		os.chroot(".")
 		with open("/etc/resolv.conf", 'w') as file:
 				file.write("nameserver " + self.default_gw + "\n")
-		
+
 		# subprocess.run("id", shell=True)
 		subprocess.run("/root/0100-conf.chroot", shell=True)
 		subprocess.run("/root/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
+		logging.info('Configured Target: %s ',
+				self.target_full_id)
+
+
 
 
 	def chroot_keyadd(self):
@@ -101,12 +103,16 @@ class TargetManage:
 
 		with open(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 'w') as content_file:
 			content_file.write(ssh_private_key_02)
-			
+
 		with open(self.target_ssh_dir + "/authorized_keys", 'w') as content_file:
 					content_file.write(ssh_public_key_02)
-			
+
 		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 0o0600)
+
+		logging.info('Created SSH Keypair for Target: %s',
+				self.target_full_id)
+
 
 	def rootfs_tar_build(self):
 		if os.path.exists(self.target_rootfs_tar):
@@ -133,13 +139,9 @@ class TargetManage:
 		self.target_rootfs_size_mb = os.path.getsize(self.target_rootfs_tar) / 1048576
 		self.target_free_space_mb = float(self.xml_parse.read_xml_value("size", "free_space_mb"))
 		self.target_storage_mb = int(round(self.target_rootfs_size_mb + self.target_free_space_mb))
-		print(self.target_free_space_mb)
-
-
 
 		g = guestfs.GuestFS(python_return_dict=True)
 
-		print(self.target_storage_mb)
 		g.disk_create(self.target_rootfs_img, "qcow2", self.target_storage_mb * 1024 * 1024 )
 		# g.set_trace(1)
 		g.add_drive_opts(self.target_rootfs_img, format = "qcow2", readonly=0)
@@ -158,34 +160,18 @@ class TargetManage:
 
 		g.shutdown()
 		g.close()
-		print("done")
+		logging.info('Created QCOW image for Target: %s with %i MB size',
+				self.target_full_id, self.target_storage_mb)
 
 		os.chown(self.target_rootfs_img, self.h.uid, self.h.gid)
-
-
-	def chroot_setup(self):
-		tm  = TargetManage(self.target_full_id)
-		tm.chroot_unpack()
-		tm.chroot_configure()
-		tm.chroot_keyadd()
-
-
-	def rootfs_build(self):
-		tm  = TargetManage(self.target_full_id)
-		tm.rootfs_tar_build()
-		tm.rootfs_qcow_build()
-
 
 class SSHKeys:
 	def __init__(self):
 		self.key = rsa.generate_private_key(
 			backend=crypto_default_backend(), public_exponent=65537, key_size=2048)
-		
+
 		self.private_key = self.key.private_bytes(
-			crypto_serialization.Encoding.PEM, crypto_serialization.PrivateFormat.PKCS8, crypto_serialization.NoEncryption()).decode("utf-8")
-		
+			crypto_serialization.Encoding.PEM, crypto_serialization.PrivateFormat.TraditionalOpenSSL, crypto_serialization.NoEncryption()).decode("utf-8")
+
 		self.public_key = self.key.public_key().public_bytes(
 			crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH).decode("utf-8")
-"""
-TODO ssh-keygen -f "/home/$USER_ID/.ssh/known_hosts" -R "[10.0.4.4]:
-"""

@@ -8,6 +8,7 @@ import sys
 import time
 import re
 import subprocess
+import logging
 
 class LibvirtManage:
 	def __init__(self, target_full_id):
@@ -36,7 +37,7 @@ class LibvirtManage:
 		try:
 			self.conn = libvirt.open("qemu:///system")
 		except libvirt.libvirtError:
-			print('Failed to open connection to the hypervisor')
+			logging.error('Failed to open connection to the hypervisor')
 			sys.exit(1)
 
 
@@ -55,10 +56,10 @@ class LibvirtManage:
 				self.xml = self.xml_parse.edit_xml("devices/disk/source", self.target_rootfs_img, attribute="file")
 				dom0 = self.conn.createXML(self.xml)
 			except libvirt.libvirtError:
-				print('Domain is running, or Failed to Parse XML')
-	
-			print("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
-			print(dom0.info())
+				logging.error('Domain is running, or Failed to Parse XML')
+
+			logging.info("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
+			logging.info(dom0.info())
 
 
 	def nets_init(self):
@@ -69,7 +70,7 @@ class LibvirtManage:
 				self.xml = self.xml_parse.read_xml()
 				dom0 = self.conn.networkCreateXML(self.xml)
 			except libvirt.libvirtError:
-				print('Network is running, or Failed to Parse XML')
+				logging.error('Network is running, or Failed to Parse XML')
 
 
 	def hooks_init(self):
@@ -78,7 +79,7 @@ class LibvirtManage:
 			try:
 				subprocess.call(i)
 			except CalledProcessError:
-				print(CalledProcessError)
+				logging.error(CalledProcessError)
 
 class LibvirtTerminate:
 	def __init__(self):
@@ -92,9 +93,9 @@ class LibvirtTerminate:
 				self.net.destroy()
 				time.sleep(1)
 		if self.conn.listDomainsID():
-			print('ERROR! There are live domains.')
+			logging.error('ERROR! There are live domains.')
 		else:
-			print('merOS shut down gracefully')
+			logging.info('merOS shut down gracefully')
 	
 	
 	def vm_shutdown(self):
@@ -105,8 +106,8 @@ class LibvirtTerminate:
 			dom = conn.lookupByID(xml_id)
 			dom0 = conn.destroy(dom)
 		except libvirt.libvirtError:
-			print('Failed to find the main domain')
+			logging.error('Failed to find the main domain')
 			sys.exit(1)
 	
-		print("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
-		print(dom0.info())
+		logging.info(("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType())))
+		logging.info((dom0.info()))
