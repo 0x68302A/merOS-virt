@@ -141,8 +141,11 @@ class SSHCommunication:
 		elif os.path.isfile(local_file):
 			self.sftp.put(local_file, remote_file)
 
+		logging.info('Transfered "%s" to "%s"', file, self.target_full_id)
 
 	def target_pull(self):
 		local_path = os.path.join(self.mos_path, "data/mos-shared/", self.target_full_id)
 		remote_path = "/home/user/mos-shared/"
 		self.download_files(self.sftp, remote_path, local_path)
+
+		logging.info('Pulled data from "%s"', self.target_full_id)
