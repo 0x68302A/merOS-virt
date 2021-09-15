@@ -17,13 +17,14 @@ import sys
 
 def main():
 	h = helper.Helper
+	mos_path = h.mos_path
 
 	logging.basicConfig(
-			filename='data/meros.log',
-			format='%(asctime)s::MerOS::%(levelname)s::%(message)s',
-			datefmt='%H:%M:%S',
-			encoding='utf-8',
-			level=logging.INFO)
+			filename = mos_path + '/data/meros.log',
+			format = '%(asctime)s::MerOS::%(levelname)s::%(message)s',
+			datefmt = '%H:%M:%S',
+			encoding = 'utf-8',
+			level = logging.INFO)
 
 
 	try:
@@ -32,7 +33,7 @@ def main():
 								"kernel-build",
 								"get", "bootstrap", "build",
 								"init","shutdown",
-								"connect","push",
+								"connect","push", "pull",
 								"output="
 								])
 
@@ -91,10 +92,15 @@ def main():
 			tc.interactive_shell()
 
 		elif o in ("--push"):
-			file = sys.argv[3]
 			target_full_id = sys.argv[2]
+			file = sys.argv[3]
 			ts = ssh_communication.SSHCommunication(target_full_id)
 			ts.target_push(file)
+
+		elif o in ("--pull"):
+			target_full_id = sys.argv[2]
+			ts = ssh_communication.SSHCommunication(target_full_id)
+			ts.target_pull()
 
 		elif o in ("--shutdown"):
 			lm = libvirt_manage.LibvirtTerminate()

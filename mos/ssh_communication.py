@@ -15,6 +15,7 @@ import struct
 import fcntl
 import signal
 import errno
+import stat
 
 import logging
 
@@ -50,6 +51,11 @@ class SSHCommunication:
 		self.channel = self.sshClient.get_transport().open_session()
 		self.channel.get_pty(term="xterm")
 		self.channel.invoke_shell()
+
+		self.transport = paramiko.Transport((self.target_ip, int(self.target_ssh_port)))
+		self.transport.connect(username = self.target_username, pkey = self.k )
+		self.sftp = paramiko.SFTPClient.from_transport(self.transport)
+
 
 	# thanks to Mike Looijmans for this code
 	def interactive_shell(self):
@@ -94,16 +100,38 @@ class SSHCommunication:
 			winsize = struct.unpack('hhhh', t)
 			self.channel.resize_pty(width=winsize[1], height=winsize[0])
 
+
+	def download_files(self, sftp_client, remote_dir, local_dir):
+		if not self.exists_remote(sftp_client, remote_dir):
+			return
+
+		if not os.path.exists(local_dir):
+			os.mkdir(local_dir)
+
+		for filename in sftp_client.listdir(remote_dir):
+			if stat.S_ISDIR(sftp_client.stat(remote_dir + filename).st_mode):
+			# uses '/' path delimiter for remote server
+				self.download_files(sftp_client, remote_dir
+						+ filename
+						+ '/', os.path.join(local_dir, filename))
+			else:
+				if not os.path.isfile(os.path.join(local_dir, filename)):
+					sftp_client.get(remote_dir + filename, os.path.join(local_dir, filename))
+
+
+	def exists_remote(self, sftp_client, path):
+		try:
+			sftp_client.stat(path)
+		except IOError as e:
+			if e.errno == errno.ENOENT:
+				return False
+			raise
+		else:
+			return True
+
+
 	def target_push(self, file):
 		local_file = os.path.abspath(file)
-
-		transport = paramiko.Transport((self.target_ip, int(self.target_ssh_port)))
-		transport.connect(username = self.target_username, pkey = self.k )
-
-		sftp = paramiko.SFTPClient.from_transport(transport)
-
-		# local_path = os.path.join(self.mos_path, "data/mos-shared/", self.target_full_id)
-		# os.makedirs(local_path, mode = 0o777, exist_ok = True)
 		remote_path = "/home/user/mos-shared"
 		remote_file  = os.path.join(remote_path, file)
 
@@ -111,16 +139,10 @@ class SSHCommunication:
 			pass
 
 		elif os.path.isfile(local_file):
-			sftp.put(local_file, remote_file)
+			self.sftp.put(local_file, remote_file)
 
 
-		'''
-		TODO: MANAGE FOLDER TRANSFERS
-		try:
-			sftp.mkdir(path, mode)
-		except IOError:
-			pass
-
-			for file in os.listdir(local_file):
-				sftp.put(file, remote_file)
-		'''
+	def target_pull(self):
+		local_path = os.path.join(self.mos_path, "data/mos-shared/", self.target_full_id)
+		remote_path = "/home/user/mos-shared/"
+		self.download_files(self.sftp, remote_path, local_path)
