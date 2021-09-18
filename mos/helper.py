@@ -14,11 +14,19 @@ from xml.etree.ElementTree import fromstring, ElementTree
 import random as r
 import pydoc
 
+## Use a helper class
+## which we will be calling in all modules
 class Helper:
 
+
+	## Define MerOS path
 	helper_path = os.path.dirname(os.path.realpath(__file__))
 	mos_path = os.path.dirname(helper_path)
 
+	## Define Host architecture
+	## We shouldn't cross-compile or
+	## or Virtualize foreign Architectures
+	## It's a waste of resources
 	uname = os.uname()
 	arch = str(uname[4])
 
@@ -26,12 +34,15 @@ class Helper:
 	uid = os.getuid()
 	gid = os.getgid()
 
+	## Define some misc, basic Paths.
 	mos_img_dir = mos_path + "/data/images/"
 	mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
-	
+
 	target_distro = "alpine"
 
-
+	## Grab default host Gateway
+	## We will be using that in our networked Targets
+	## As to resolve addresses seamlessely
 	def get_default_gateway():
 		"""Read the default gateway directly from /proc."""
 		with open("/proc/net/route") as fh:
@@ -56,6 +67,10 @@ class Helper:
 			pydoc.pager(help_data)
 
 
+## Use an XML Parsing class
+## As we will be utilizing such scripts
+## containing Target Configurations
+## throughout all stages
 class ParseXML:
 	def __init__(self, xml_conf_file):
 		self.xml_conf_file = xml_conf_file

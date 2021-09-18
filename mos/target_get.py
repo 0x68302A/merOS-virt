@@ -13,12 +13,15 @@ class TargetGet:
 	def __init__(self, target_distro):
 		self.target_distro = target_distro
 
+		## Import Global Variables
 		h = helper.Helper()
 		self.arch = h.arch
 
 		self.target_bootstrap_dir = h.mos_path + "/data/build/bootstrap"
 		self.distro_rootfs_targz = "rootfs" + "_" + self.target_distro + "_" + self.arch + ".tar.gz"
 
+		## Define Release options
+		## Such as URL and branch
 		self.alpine_mirror = "http://dl-cdn.alpinelinux.org/alpine/"
 		self.alpine_mirror_releases_url = self.alpine_mirror + "latest-stable/releases/" + self.arch
 		self.alpine_mirror_release = self.alpine_mirror + "/latest-stable/releases/" + self.arch + "/latest-releases.yaml"
@@ -49,6 +52,9 @@ class TargetGet:
 		open(self.distro_rootfs_targz, 'wb').write(target_rootfs_url_request.content)
 
 
+	## Create a handling Method
+	## For Distro definition
+	## TODO: Add a Debian Option
 	def get_rootfs(self):
 		b = TargetGet(self.target_distro)
 		if self.target_distro == "alpine":

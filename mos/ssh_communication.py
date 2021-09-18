@@ -23,6 +23,7 @@ class SSHCommunication:
 	def __init__(self, target_full_id):
 		self.target_full_id = target_full_id
 
+		## Import Gloval Variables
 		h = helper.Helper()
 		self.h = h
 		self.mos_path  =  h.mos_path
@@ -38,6 +39,8 @@ class SSHCommunication:
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.mos_ssh_key = self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa"
 
+		## Parse XML
+		## Grabing Target- Specific SSH related Options
 		self.xml_parse = helper.ParseXML(self.target_id_xml)
 		self.target_ip = str(self.xml_parse.read_xml_value("network", "ip_addr"))
 		self.target_ssh_port = str(self.xml_parse.read_xml_value("network", "ssh_port"))
@@ -57,6 +60,8 @@ class SSHCommunication:
 		self.sftp = paramiko.SFTPClient.from_transport(self.transport)
 
 
+	## Grabed from Paramiko Examples
+	## With an addition for Flexibe window size handling
 	# thanks to Mike Looijmans for this code
 	def interactive_shell(self):
 		chan = self.channel

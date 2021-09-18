@@ -13,6 +13,8 @@ import logging
 class LibvirtManage:
 	def __init__(self, target_full_id):
 		self.target_full_id = target_full_id
+
+		## Import Global Variables
 		h = helper.Helper()
 		self.h = h
 		self.mos_path  =  h.mos_path
@@ -23,6 +25,10 @@ class LibvirtManage:
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.kernel_img = self.mos_img_dir + "bzImage"
 
+		## Identify if we provided
+		## Full Target ID
+		## Or just Family
+		## TODO: Manage Identification through Helper()
 		try:
 			self.target_id_split = self.target_full_id.split("-")
 			self.target_fam = self.target_id_split[0]
@@ -34,12 +40,12 @@ class LibvirtManage:
 		self.xml_dir = self.conf_dir + "/libvirt/"
 		self.hooks_dir = self.conf_dir + "/hooks/"
 
+		## Connect to Hypervisor
 		try:
 			self.conn = libvirt.open("qemu:///system")
 		except libvirt.libvirtError:
 			logging.error('Failed to open connection to the hypervisor')
 			sys.exit(1)
-
 
 	def doms_init(self):
 		self.doms = glob.glob(self.xml_dir + "dom_*")
@@ -51,6 +57,8 @@ class LibvirtManage:
 				self.target_rootfs_img = ( self.mos_img_dir
 							+ self.target_id + ".img" )
 
+				## Parse Domain XML
+				## and modify it accordingly
 				self.xml_parse = helper.ParseXML(i)
 				self.xml = self.xml_parse.edit_xml("kernel", self.kernel_img)
 				self.xml = self.xml_parse.edit_xml("devices/disk/source", self.target_rootfs_img, attribute="file")
@@ -73,6 +81,8 @@ class LibvirtManage:
 				logging.error('Network is running, or Failed to Parse XML')
 
 
+	## Run Family- specific Hooks
+	## Mainly in regards to Networking
 	def hooks_init(self):
 		self.hooks = glob.glob(self.hooks_dir + "*")
 		for i in self.hooks:
@@ -81,6 +91,8 @@ class LibvirtManage:
 			except CalledProcessError:
 				logging.error(CalledProcessError)
 
+## Terminate All Libvrit Domains
+## TODO: Create a method to allow for Target-Specific Termination
 class LibvirtTerminate:
 	def __init__(self):
 		self.conn = libvirt.open("qemu:///system")
@@ -96,10 +108,10 @@ class LibvirtTerminate:
 			logging.error('ERROR! There are live domains.')
 		else:
 			logging.info('merOS shut down gracefully')
-	
-	
+
+
 	def vm_shutdown(self):
-	
+
 		xml2str(xml_id)
 		libvirt_conn()
 		try:
@@ -108,6 +120,6 @@ class LibvirtTerminate:
 		except libvirt.libvirtError:
 			logging.error('Failed to find the main domain')
 			sys.exit(1)
-	
+
 		logging.info(("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType())))
 		logging.info((dom0.info()))
