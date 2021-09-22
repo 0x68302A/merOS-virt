@@ -35,7 +35,7 @@ class Helper:
 	gid = os.getgid()
 
 	## Define some misc, basic Paths.
-	mos_img_dir = mos_path + "/data/images/"
+	mos_img_dir = mos_path + "/data/images"
 	mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
 
 	target_distro = "alpine"

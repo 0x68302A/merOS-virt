@@ -57,12 +57,12 @@ class LibvirtManage:
 				self.target_rootfs_img = ( self.mos_img_dir
 							+ self.target_id + ".img" )
 
-				## Parse Domain XML
-				## and modify it accordingly
-				self.xml_parse = helper.ParseXML(i)
-				self.xml = self.xml_parse.edit_xml("kernel", self.kernel_img)
-				self.xml = self.xml_parse.edit_xml("devices/disk/source", self.target_rootfs_img, attribute="file")
-				dom0 = self.conn.createXML(self.xml)
+				with open(i, 'r') as file :
+					xml_data = file.read()
+
+				xml_data = xml_data.replace('mos_img_dir', self.h.mos_img_dir)
+
+				dom0 = self.conn.createXML(xml_data)
 			except libvirt.libvirtError:
 				logging.error('Domain is running, or Failed to Parse XML')
 
