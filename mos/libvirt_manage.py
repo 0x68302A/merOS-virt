@@ -77,6 +77,7 @@ class LibvirtManage:
 				self.xml_parse = helper.ParseXML(i)
 				self.xml = self.xml_parse.read_xml()
 				dom0 = self.conn.networkCreateXML(self.xml)
+				logging.info('Created Network interface from %s', i)
 			except libvirt.libvirtError:
 				logging.error('Network is running, or Failed to Parse XML')
 
@@ -88,6 +89,7 @@ class LibvirtManage:
 		for i in self.hooks:
 			try:
 				subprocess.call(i)
+				logging.info('Applied netfilter rules from %s', i)
 			except CalledProcessError:
 				logging.error(CalledProcessError)
 
