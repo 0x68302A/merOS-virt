@@ -71,7 +71,12 @@ class TargetManage:
 
 	def chroot_configure(self):
 
-		distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
+
+		try:
+                	distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
+		except:
+			logging.info('No common rootfs Configuration found')                       
+
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
