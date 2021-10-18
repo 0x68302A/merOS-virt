@@ -64,7 +64,7 @@ under ./data/
 [fam-id] + [vm-id] parameters
 of the Target.	
 
---build-kernel
+---kernel-build
 Builds the Linux kernel, based on host Arch.
 Custom .config kernel configuration options
 can be set.
