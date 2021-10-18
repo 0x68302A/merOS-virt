@@ -1,5 +1,6 @@
 ### merOS - Build and interact with a set of virtual machines.
 
+## NOTE: CURRENTLY OPERATIONAL ONLY UNDER DEBIAN ( AND BASED ) x86 SYSTEMS
 
 ### SYNOPSIS
 
