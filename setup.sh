@@ -10,7 +10,7 @@ apt install -y \
 
 ## We can then install the pip requirments
 pip3 install \
-	GitPython cryptography pyroute2.nftables paramiko
+	GitPython cryptography pyroute2.nftables paramiko requests
 
 ## And finally we run the python setup- Creates directories, etc.
 python3 ./meros.py \
