@@ -55,7 +55,8 @@ def main():
 
 		elif o in ("--setup"):
 			hc = host_conf.HostConf()
-			hc.main()
+			hc.tree_conf()
+			hc.syslink()
 			sys.exit()
 
 		elif o in ("--kernel-build"):

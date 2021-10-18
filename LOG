@@ -1,0 +1,9 @@
+21:24:22::MerOS::INFO::System Architecture is x86_64
+21:46:09::MerOS::INFO::Downloaded x86_64 - alpine rootfs from http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64
+21:46:35::MerOS::INFO::Configured Target: mersec-firewall 
+22:04:01::MerOS::INFO::Created Directory Tree, all data created by us are now found under ./data
+22:04:01::MerOS::INFO::Created symlink of meros.py. /nMerOS can now be run ( as root ) simply by calling meros
+22:04:35::MerOS::INFO::Downloaded x86_64 - alpine rootfs from http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64
+22:04:43::MerOS::INFO::Configured Target: mersec-firewall 
+22:04:43::MerOS::INFO::Created SSH Keypair for Target: mersec-firewall
+22:05:09::MerOS::INFO::Created QCOW image for Target: mersec-firewall with 263 MB size
