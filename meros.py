@@ -20,7 +20,7 @@ def main():
 	mos_path = h.mos_path
 
 	logging.basicConfig(
-			filename = mos_path + '/LOG'
+			filename = mos_path + '/LOG',
 			format = '%(asctime)s::MerOS::%(levelname)s::%(message)s',
 			datefmt = '%H:%M:%S',
 			encoding = 'utf-8',
