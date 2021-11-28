@@ -81,7 +81,7 @@ class KernelBuild:
 			subprocess.run(['make olddefconfig'], shell=True)
 			subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
 			subprocess.run(['make headers_install'], shell=True)
-			info.logging('Built Linux kernel from source')
+			logging.info('Built Linux kernel from source')
 
 			## Transfer bzimage from Build Path to Target Path - data/images/
 			shutil.copyfile(self.bzimage, self.target_bzimage)
