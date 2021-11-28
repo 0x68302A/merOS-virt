@@ -18,9 +18,9 @@ import glob
 import logging
 
 class TargetManage:
-	def __init__(self, target_fam):
-		self.target_fam = target_fam
-		logging.info('Target Family is %s', self.target_fam)
+	def __init__(self, family_id):
+		self.family_id = family_id
+		logging.info('Target Family is %s', self.family_id)
 
 		h = helper.Helper()
 		self.h = h
@@ -29,7 +29,7 @@ class TargetManage:
 
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.default_gw = h.default_gw
-		self.target_conf_dir = self.mos_path + "/conf/target/" + self.target_fam
+		self.target_conf_dir = self.mos_path + "/conf/target/" + self.family_id
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
@@ -91,14 +91,14 @@ class TargetManage:
 		with open(self.target_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
 			content_file.write(ssh_private_key_01)
 
-		with open(self.mos_ssh_priv_key_dir + "/" + self.target_id + "-id_rsa", 'w') as content_file:
+		with open(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-' + self.target_id + "-id_rsa", 'w') as content_file:
 			content_file.write(ssh_private_key_02)
 
 		with open(self.target_ssh_dir + "/authorized_keys", 'w') as content_file:
 					content_file.write(ssh_public_key_02)
 
 		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
-		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.target_id + "-id_rsa", 0o0600)
+		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", 0o0600)
 
 		logging.info('Created SSH Keypair for Target: %s',
 				self.target_id)
@@ -161,7 +161,7 @@ class TargetManage:
 
 		self.target_xmls = glob.glob(self.mos_path
 					+ '/conf/target/'
-					+ self.target_fam
+					+ self.family_id
 					+ '/build/'
 					+ '*.xml')
 
@@ -191,20 +191,20 @@ class TargetManage:
 
 			self.target_chroot_dir = os.path.join(self.mos_path
 									+ '/data/build/bootstrap/'
-									+ self.target_fam + '/'
+									+ self.family_id + '/'
 									+ self.target_id)
 
 			self.target_ssh_dir = os.path.join(self.target_chroot_dir + '/etc/ssh')
 
 			self.target_rootfs_tar = (self.mos_path
 							+ '/data/build/bootstrap/'
-							+ self.target_fam + '/'
+							+ self.family_id + '/'
 							+ self.target_id + '.tar')
 
 			self.mos_img_dir = self.h.mos_img_dir
 
 			self.target_rootfs_img = (self.mos_img_dir + '/'
-							+ self.target_fam + '-'
+							+ self.family_id + '-'
 							+ self.target_id + '.img')
 
 
