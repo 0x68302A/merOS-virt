@@ -1,31 +1,24 @@
-### merOS - Build and interact with a set of virtual machines.
+### merOS - Build and interact with a set of virtual machines- Targets
 
-## NOTE: CURRENTLY OPERATIONAL ONLY UNDER DEBIAN ( AND BASED ) x86 SYSTEMS
+### Note, currently supporting only debian-based x86 systems
 
 ### SYNOPSIS
 
 **merOS** can be used to: 
 
-- Bootstrap, a base installation- Chroot of currently A) Alpine or B) Debian Linux
+- Bootstrap, a base installation (Chroot) of A) Alpine or B) Debian Linux.
 	
-- Populate, this Chroot with a custom set of configuration files
+- Populate, the Chroot with a custom set of configuration files and packages.
 
-- Pack the Chroot Rootfs, under a qemu image
+- Pack the the Chroot, under a qemu image.
 
-- Virtualize the system- Target
+- Virtualize the Chroot- Thereof, Target.
 
 - Network/ Netfilter a set of Targets with/ without a DNS resolver.
 
-merOS can also be used  with its' own included set of Firewall- Guest VMs - "*mersec*"
-A VM-set inspired from the Whonix project, but with flexibility,
-minimalist configuration, and light- weightness in mind.
-
-**It should be noted though, that this project is under heavy development, and should be used with caution.**
-
 ### DESCRIPTION
 
-Families are used to describe sets of systems,
-and Targets are the individual Virtualized Machines.
+Families are used to describe sets of Targets (Systems)
 
 Configuration files are found, and should be placed,
 under ./conf/target/[fam-id]/ - containing:
@@ -43,42 +36,35 @@ under ./conf/target/[fam-id]/ - containing:
 	properties are modified on runtime.
 	under /libvirt/[target-id]
 
-**The included "*mersec*" configuration set can be used
-as a template, as to create any other set of systems.**
+---
+
+
+ "*mersec*" is a Family, consisting of two Targets, that we are currently maintaining.
+A VM-set inspired from the Whonix project, but with flexibility,
+minimalist configuration, and light- weightness in mind.
+
+**This project is under heavy development, and should be used with caution.**
+
 
 
 ### SYSTEM PREPERATION
 
-You can run meros.py --setup,
+You can run setup.sh,
 or manually resolve dependancies,
-and a dir tree creation
+and create a dir tree, as found inside
 
-custom merOS created data are found
+Custom merOS created data are found
 under ./data/
 
 
 ### BUILD && MANAGE A VM
 	
-
-[vm-full-id] refers to the
-[fam-id] + [vm-id] parameters
-of the Target.	
-
----kernel-build
-Builds the Linux kernel, based on host Arch.
-Custom .config kernel configuration options
-can be set.
-	
---get [alpine]
-Grab the base rootfs, from oficcial mirrors
-Debian will also be availabe, after some polishing.
-
---build [vm-full-id]
+--build [Family_ID]
 This creates and populates the rootfs chroot
 and builds the qemu compatible .qcow image.
 Result images are found under ./data/images/
 
---init [vm-full-id]
+--init [Family_ID]
 Initialize Target Networks
 and machines.
 
@@ -88,7 +74,7 @@ Currently halts as libvirt guests.
 
 ### COMMUNICATING WITH A VM
 
---connect [vm-full-id]
+--connect [Family_ID + Target_ID]
 
 --push [vm-full-id] [file/ folder] 
 
