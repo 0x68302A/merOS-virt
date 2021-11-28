@@ -1,9 +1,0 @@
-#!/bin/sh
-
-build_vm() {
-
-	source_vm_var
-	chroot_configure
-	qemu_qcow_build
-
-}
