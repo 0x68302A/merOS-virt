@@ -1,7 +1,5 @@
 ### merOS - Build and interact with a set of virtual machines- Targets
 
-### Note, currently supporting only debian-based x86 systems
-
 ### SYNOPSIS
 
 **merOS** can be used to: 
@@ -36,13 +34,9 @@ under ./conf/target/[fam-id]/ - containing:
 	properties are modified on runtime.
 	under /libvirt/[target-id]
 
----
-
-
  "*mersec*" is a Family, consisting of two Targets, that we are currently maintaining.
 A VM-set inspired from the Whonix project, but with flexibility,
 minimalist configuration, and light- weightness in mind.
-
 **This project is under heavy development, and should be used with caution.**
 
 
@@ -103,3 +97,5 @@ COPYRIGHT
 
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent permitted by law.
+
+### Note, currently supporting only debian-based x86 systems
