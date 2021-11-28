@@ -51,25 +51,30 @@ class KernelBuild:
 	## Kernel Building
 	def kernel_build(self):
 
-		## To manage build more efficiently
-		## we chdir to build Path
-		os.chdir(self.mos_kernel_git_dir)
 
-		## Simple make preparation calls
-		subprocess.run(['make mrproper'], shell=True)
-		subprocess.run(['make defconfig'], shell=True)
+		if os.path.isfile(self.bzimage):
+			pass
+		else:
 
-		## Custom kernel Configuration options
-		self.kernelopts = ("CONFIG TUN=y"
+			## To manage build more efficiently
+			## we chdir to build Path
+			os.chdir(self.mos_kernel_git_dir)
+
+			## Simple make preparation calls
+			subprocess.run(['make mrproper'], shell=True)
+			subprocess.run(['make defconfig'], shell=True)
+
+			## Custom kernel Configuration options
+			self.kernelopts = ("CONFIG TUN=y"
 					+ "\nCONFIG_VIRTIO_PCI=y"
 					+ "\nCONFIG_VIRTIO_MMIO=y")
 
-		with open('.config', 'a') as f:
-			f.write(self.kernelopts)
+			with open('.config', 'a') as f:
+				f.write(self.kernelopts)
 
-		## Final make calls
-		subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
-		subprocess.run(['make headers_install'], shell=True)
+			## Final make calls
+			subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
+			subprocess.run(['make headers_install'], shell=True)
 
-		## Transfer bzimage from Build Path to Target Path - data/images/
-		shutil.copyfile(self.bzimage, self.mos_img_dir + "bzImage")
+			## Transfer bzimage from Build Path to Target Path - data/images/
+			shutil.copyfile(self.bzimage, self.mos_img_dir + "/bzImage")

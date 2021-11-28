@@ -71,13 +71,9 @@ def main():
 			tg.get_rootfs()
 
 		elif o in ("--build"):
-			target_full_id = sys.argv[2]
-			tm = target_manage.TargetManage(target_full_id)
-			tm.chroot_unpack()
-			tm.chroot_configure()
-			tm.chroot_keyadd()
-			tm.rootfs_tar_build()
-			tm.rootfs_qcow_build()
+			target_fam = sys.argv[2]
+			tm = target_manage.TargetManage(target_fam)
+			tm.main()
 			sys.exit()
 
 		elif o in ("-i", "--init"):

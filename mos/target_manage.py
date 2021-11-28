@@ -2,6 +2,7 @@
 
 import mos.helper as helper
 import mos.target_get as target_get
+import mos.kernel_build as kernel_build
 
 import os
 import sys
@@ -12,50 +13,34 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 import guestfs
+import glob
 
 import logging
 
 class TargetManage:
-	def __init__(self, target_full_id):
-		self.target_full_id = target_full_id
+	def __init__(self, target_fam):
+		self.target_fam = target_fam
+		logging.info('Target Family is %s', self.target_fam)
 
 		h = helper.Helper()
 		self.h = h
 		self.mos_path  =  h.mos_path
 		self.arch = h.arch
 
-		self.mos_img_dir = self.h.mos_img_dir
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
-		self.target_rootfs_img = self.mos_img_dir + "/" + self.target_full_id + ".img"
-
-
-		self.target_id_split = self.target_full_id.split("-")
-		self.target_fam = self.target_id_split[0]
-		self.target_id = self.target_id_split[1]
-
-		self.target_distro = "alpine"
 		self.default_gw = h.default_gw
-
 		self.target_conf_dir = self.mos_path + "/conf/target/" + self.target_fam
-
-		self.target_chroot_conf_dir = self.target_conf_dir + "/rootfs/"	+ self.target_id + "/includes.chroot"
-
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
-
-		self.target_chroot_dir = self.mos_path + "/data/build/bootstrap/" + self.target_fam + "/" + self.target_id
-
-		self.target_ssh_dir = self.target_chroot_dir + "/etc/ssh"
-
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
-		self.distro_rootfs_targz = self.mos_bootstrap_dir + "/" + "rootfs" + "_" + self.target_distro + "_" + self.arch + ".tar.gz"
-
-		self.target_rootfs_tar = self.mos_path + "/data/build/bootstrap" + "/" + self.target_fam + "/" + self.target_id + ".tar"
-
-		self.target_id_xml = self.mos_path + "/conf/target/" + self.target_fam + "/build/" + self.target_id + ".xml"
 
 		self.DNS1 = "1.1.1.1"
 		self.DNS2 = "1.0.0.1"
+
+	def rootfs_build(self):
+
+		tg = target_get.TargetGet(self.target_distro)
+		tg.get_rootfs()
 
 	def chroot_unpack(self):
 
@@ -90,7 +75,7 @@ class TargetManage:
 		os.chdir(f)
 		os.chroot(".")
 		logging.info('Configured Target: %s ',
-				self.target_full_id)
+				self.target_id)
 
 
 
@@ -106,17 +91,17 @@ class TargetManage:
 		with open(self.target_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
 			content_file.write(ssh_private_key_01)
 
-		with open(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 'w') as content_file:
+		with open(self.mos_ssh_priv_key_dir + "/" + self.target_id + "-id_rsa", 'w') as content_file:
 			content_file.write(ssh_private_key_02)
 
 		with open(self.target_ssh_dir + "/authorized_keys", 'w') as content_file:
 					content_file.write(ssh_public_key_02)
 
 		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
-		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa", 0o0600)
+		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.target_id + "-id_rsa", 0o0600)
 
 		logging.info('Created SSH Keypair for Target: %s',
-				self.target_full_id)
+				self.target_id)
 
 
 	def rootfs_tar_build(self):
@@ -139,7 +124,7 @@ class TargetManage:
 		else:
 			pass
 
-		self.xml_parse = helper.ParseXML(self.target_id_xml)
+		# self.xml_parse = helper.ParseXML(self.target_xml)
 
 		self.target_rootfs_size_mb = os.path.getsize(self.target_rootfs_tar) / 1048576
 		self.target_free_space_mb = float(self.xml_parse.read_xml_value("size", "free_space_mb"))
@@ -166,9 +151,77 @@ class TargetManage:
 		g.shutdown()
 		g.close()
 		logging.info('Created QCOW image for Target: %s with %i MB size',
-				self.target_full_id, self.target_storage_mb)
+				self.target_id, self.target_storage_mb)
 
 		os.chown(self.target_rootfs_img, self.h.uid, self.h.gid)
+
+	def main(self):
+		# for self.target_xml in self.target_xmls:
+
+
+		self.target_xmls = glob.glob(self.mos_path
+					+ '/conf/target/'
+					+ self.target_fam
+					+ '/build/'
+					+ '*.xml')
+
+		for self.target_xml in self.target_xmls:
+
+			self.target_xml_path = self.target_xml.split('/')
+			self.xml_parse = helper.ParseXML(self.target_xml)
+
+			self.target_id = str(self.xml_parse.read_xml_value("build", "id"))
+
+			logging.info('Found target XML %s', self.target_xml)
+			logging.info('Target ID is %s', self.target_id)
+
+			self.target_distro = str(self.xml_parse.read_xml_value("build", "distro"))
+
+			self.distro_rootfs_targz = (self.mos_bootstrap_dir
+								+ "/" + "rootfs"
+								+ "_" + self.target_distro
+								+ "_" + self.arch + ".tar.gz")
+
+			logging.info('Target distro is %s', self.target_distro)
+
+			self.target_chroot_conf_dir = os.path.join(self.target_conf_dir
+									+ '/rootfs/'
+									+ self.target_id
+									+ '/includes.chroot')
+
+			self.target_chroot_dir = os.path.join(self.mos_path
+									+ '/data/build/bootstrap/'
+									+ self.target_fam + '/'
+									+ self.target_id)
+
+			self.target_ssh_dir = os.path.join(self.target_chroot_dir + '/etc/ssh')
+
+			self.target_rootfs_tar = (self.mos_path
+							+ '/data/build/bootstrap/'
+							+ self.target_fam + '/'
+							+ self.target_id + '.tar')
+
+			self.mos_img_dir = self.h.mos_img_dir
+
+			self.target_rootfs_img = (self.mos_img_dir + '/'
+							+ self.target_fam + '-'
+							+ self.target_id + '.img')
+
+
+			logging.info('ECHO %s' ,self.xml_parse.read_xml_value("build", "kernel"))
+			if str(self.xml_parse.read_xml_value("build", "kernel")) == 'bzImage':
+				self.kb = kernel_build.KernelBuild()
+				self.kb.kernel_clone()
+				self.kb.kernel_build()
+			else:
+				pass
+
+			self.rootfs_build()
+			self.chroot_unpack()
+			self.chroot_configure()
+			self.chroot_keyadd()
+			self.rootfs_tar_build()
+			self.rootfs_qcow_build()
 
 class SSHKeys:
 	def __init__(self):
