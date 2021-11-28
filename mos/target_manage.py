@@ -60,7 +60,7 @@ class TargetManage:
 		try:
                 	distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
 		except:
-			logging.info('No common rootfs Configuration found')                       
+			logging.info('No common rootfs Configuration found')
 
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
 		f = os.open("/", os.O_PATH)
@@ -209,7 +209,8 @@ class TargetManage:
 
 
 			logging.info('ECHO %s' ,self.xml_parse.read_xml_value("build", "kernel"))
-			if str(self.xml_parse.read_xml_value("build", "kernel")) == 'bzImage':
+			if str(self.xml_parse.read_xml_value("build", "kernel")) == 'yes':
+				logging.info('Cloning and build the Linux kernel')
 				self.kb = kernel_build.KernelBuild()
 				self.kb.kernel_clone()
 				self.kb.kernel_build()
