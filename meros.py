@@ -65,11 +65,6 @@ def main():
 			kb.kernel_build()
 			sys.exit()
 
-		elif o in ("--get"):
-			target_distro = sys.argv[2]
-			tg = target_get.TargetGet(target_distro)
-			tg.get_rootfs()
-
 		elif o in ("--build"):
 			target_fam = sys.argv[2]
 			tm = target_manage.TargetManage(target_fam)
@@ -108,60 +103,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
-
-
-'''
---net-access)
-
-	root_check
-
-	declare BR_ID=$2.BR
-
-	sys_nftables_net_access $BR_ID
-
-	exit 0
-;;
--c|--connect)
-
-	declare VM_ID=$2
-
-	source_vm_var
-	ssh_connect
-
-	exit 0
-;;
--p|--push)
-
-	declare FILE=$2
-	declare VM_ID=$3
-
-	ssh_push
-
-	exit 0
-;;
---pull)
-
-	declare VM_ID=$2
-
-	ssh_pull
-
-	exit 0
-	;;
---sync)
-
-	declare VM_ID=$2
-
-	ssh_sync
-
-	exit 0
-;;
---clean)
-
-	root_check
-
-	rm -rf $MOS_PATH/etc/build/kernel/*
-	rm -rf $MOS_PATH/etc/build/bootstrap/*
-
-	exit 0
-;;
-'''
