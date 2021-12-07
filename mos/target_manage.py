@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import mos.helper as helper
-import mos.target_get as target_get
+import mos.rootfs_get as rootfs_get
 import mos.kernel_build as kernel_build
 
 import os
@@ -52,7 +52,7 @@ class TargetManage:
 			None
 		else:
 			
-			tg = target_get.TargetGet(self.target_distro)
+			tg = rootfs_get.RootfsGet(self.target_distro)
 			tg.get_rootfs
 			
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
@@ -67,7 +67,7 @@ class TargetManage:
 
 		## Copy Family-Common rootfs base
 		try:
-                distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
+			distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
 		except:
 			logging.info('No common rootfs Configuration found')
 		
