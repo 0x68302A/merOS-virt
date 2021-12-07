@@ -1,6 +1,4 @@
 import mos.helper as helper
-import mos.target_get as target_get
-
 
 import os
 import subprocess
