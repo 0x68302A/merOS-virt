@@ -23,24 +23,6 @@ class HostConf:
 		os.makedirs(self.mos_path + "/conf/target", mode = 0o777, exist_ok = True)
 		logging.info('Created Directory Tree, all data created by us are now found under ./data')
 
-	def grub_conf(self):
-		shutil.copyfile("conf/host/grub", "/etc/default/grub")
-		subprocess.run(["update-grub"])
-		print("grup-update was complete")
-
-
-	def syslink(self):
-		sys_link = "/usr/bin/meros"
-
-		if os.path.islink(sys_link):
-			os.remove(sys_link)
-		else:
-			pass
-
-
-		os.symlink(self.mos_path + "/meros.py", sys_link)
-		logging.info('Created symlink of meros.py. /nMerOS can now be run ( as root ) simply by calling meros')
-
 	def main(self):
 		host_distro = "debian"
 		hc = HostConf()
