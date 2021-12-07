@@ -23,28 +23,6 @@ class HostConf:
 		os.makedirs(self.mos_path + "/conf/target", mode = 0o777, exist_ok = True)
 		logging.info('Created Directory Tree, all data created by us are now found under ./data')
 
-	def apt_conf(self):
-		systemAdmin = ["iproute2", "nftables"]
-		systemQemu = ["qemu-system", "libvirt-clients", "libvirt-daemon-	system"]
-		system_build = ["build-ninja", "libpixman-1-dev", "meson"]
-
-		packageList = systemAdmin + systemQemu
-
-		cache = apt.cache.Cache()
-		cache.update()
-		cache.open()
-
-		for package in packageList:
-
-			pkg_name = package
-			pkg = cache[pkg_name]
-			if pkg.is_installed:
-				print("{pkg_name} already installed".format(pkg_name=pkg_name))
-			else:
-				pkg.mark_install()
-				cache.commit()
-
-
 	def grub_conf(self):
 		shutil.copyfile("conf/host/grub", "/etc/default/grub")
 		subprocess.run(["update-grub"])
