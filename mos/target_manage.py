@@ -17,6 +17,8 @@ import glob
 
 import logging
 
+## We will by initializing 
+## all necessary variables and parameters
 class TargetManage:
 	def __init__(self, family_id):
 		self.family_id = family_id
@@ -33,43 +35,53 @@ class TargetManage:
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
-
+		## The target DNS parameters
+		## for now hardcoded
+		## TODO: Parse them from XML
 		self.DNS1 = "1.1.1.1"
 		self.DNS2 = "1.0.0.1"
 
-	def rootfs_build(self):
+	## Get, Unpack, and Place rootfs
+	def rootfs_manage(self):
 
-		tg = target_get.TargetGet(self.target_distro)
-		tg.get_rootfs()
-
-	def chroot_unpack(self):
-
+		## Check for init, and skip download if found
+		## TODO: add an update flag to --build
+		## As to allow for updating the base rootfs
+		
 		if os.path.exists(self.target_chroot_dir + "/sbin/init"):
 			None
 		else:
+			
+			tg = target_get.TargetGet(self.target_distro)
+			tg.get_rootfs
+			
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
 
 			tar_file = tarfile.open(self.distro_rootfs_targz)
 			tar_file.extractall(self.target_chroot_dir)
 			tar_file.close
 
-
+	## Configure the above rootfs
+	## In a Chroot enviroment
 	def chroot_configure(self):
 
-
+		## Copy Family-Common rootfs base
 		try:
-                	distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
+                distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
 		except:
 			logging.info('No common rootfs Configuration found')
-
+		
+		## Copy Target-Specific rootfs base
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
 		os.chroot(".")
+		
+		## Write DNS settings to Target
 		with open("/etc/resolv.conf", 'w') as file:
 				file.write("nameserver " + self.default_gw + "\n")
 
-		# subprocess.run("id", shell=True)
+		## Execute Target-Specific Configuration script
 		subprocess.run("/root/0100-conf.chroot", shell=True)
 		subprocess.run("/root/0150-packages.chroot", shell=True)
 		os.chdir(f)
@@ -78,8 +90,9 @@ class TargetManage:
 				self.target_id)
 
 
-
-
+	## Create and place SSH-key
+	## Used for Target ssh_host_rsa_key
+	## And Key_based authentication
 	def chroot_keyadd(self):
 		self.host_key = SSHKeys()
 		ssh_private_key_01 = self.host_key.private_key
@@ -97,6 +110,8 @@ class TargetManage:
 		with open(self.target_ssh_dir + "/authorized_keys", 'w') as content_file:
 					content_file.write(ssh_public_key_02)
 
+
+		## Modify permissions of key_size
 		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", 0o0600)
 
@@ -104,6 +119,8 @@ class TargetManage:
 				self.target_id)
 
 
+	## Build Target rootfs tar_file
+	## Used later by GuestFS for the QCOW image build
 	def rootfs_tar_build(self):
 		if os.path.exists(self.target_rootfs_tar):
 			os.remove(self.target_rootfs_tar)
@@ -118,13 +135,14 @@ class TargetManage:
 		tar.close()
 
 
+	## Bild Target rootfs QCOW image
+	## In accordance to build XML build parameters
+	## For now: Size, Free size
 	def rootfs_qcow_build(self):
 		if os.path.exists(self.target_rootfs_img):
 			os.remove(self.target_rootfs_img)
 		else:
 			pass
-
-		# self.xml_parse = helper.ParseXML(self.target_xml)
 
 		self.target_rootfs_size_mb = os.path.getsize(self.target_rootfs_tar) / 1048576
 		self.target_free_space_mb = float(self.xml_parse.read_xml_value("size", "free_space_mb"))
@@ -133,6 +151,7 @@ class TargetManage:
 		g = guestfs.GuestFS(python_return_dict=True)
 
 		g.disk_create(self.target_rootfs_img, "qcow2", self.target_storage_mb * 1024 * 1024 )
+		# Enable for verbosity
 		# g.set_trace(1)
 		g.add_drive_opts(self.target_rootfs_img, format = "qcow2", readonly=0)
 		g.launch()
@@ -155,6 +174,8 @@ class TargetManage:
 
 		os.chown(self.target_rootfs_img, self.h.uid, self.h.gid)
 
+	## Define Target-Specific variables and parameters
+	## Also conntains kernel_build
 	def main(self):
 		# for self.target_xml in self.target_xmls:
 
@@ -217,13 +238,14 @@ class TargetManage:
 			else:
 				pass
 
-			self.rootfs_build()
-			self.chroot_unpack()
+			self.rootfs_manage()
 			self.chroot_configure()
 			self.chroot_keyadd()
 			self.rootfs_tar_build()
 			self.rootfs_qcow_build()
 
+## SSH key generation Class
+## Needed for storing the different pairs Safely
 class SSHKeys:
 	def __init__(self):
 		self.key = rsa.generate_private_key(
