@@ -4,7 +4,6 @@
 import mos.helper as helper
 import mos.kernel_build as kernel_build
 import mos.host_conf as host_conf
-import mos.target_get as target_get
 import mos.target_manage as target_manage
 import mos.libvirt_manage as libvirt_manage
 import mos.ssh_communication as ssh_communication
