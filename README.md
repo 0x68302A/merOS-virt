@@ -39,6 +39,7 @@ Two Family-Templates, currently under development, <br>
 are *mos\_mersec  and mos\_mersec_deb* - <br>
 **As found in our other Repos**
 
+**These can be cloned under ./conf/target/**
 
 
 ### SYSTEM PREPERATION
