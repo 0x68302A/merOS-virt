@@ -23,12 +23,6 @@ class HostConf:
 		os.makedirs(self.mos_path + "/conf/target", mode = 0o777, exist_ok = True)
 		logging.info('Created Directory Tree, all data created by us are now found under ./data')
 
-	def grub_conf(self):
-		shutil.copyfile("conf/host/grub", "/etc/default/grub")
-		subprocess.run(["update-grub"])
-		print("grup-update was complete")
-
-
 	def syslink(self):
 		sys_link = "/usr/bin/meros"
 
@@ -51,5 +45,4 @@ class HostConf:
 		else:
 			pass
 
-		hc.grub_conf()
 		hc.syslink()
