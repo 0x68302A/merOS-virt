@@ -9,7 +9,7 @@ import sys
 import string
 import logging
 
-class TargetGet:
+class RootfsGet:
 	def __init__(self, target_distro):
 		self.target_distro = target_distro
 
@@ -50,16 +50,21 @@ class TargetGet:
 		target_rootfs_url = self.alpine_mirror_releases_url + "/" + target_rootfs_id
 		target_rootfs_url_request = requests.get(target_rootfs_url, allow_redirects=True)
 		open(self.distro_rootfs_targz, 'wb').write(target_rootfs_url_request.content)
+		logging.info('Downloaded alpine Linux rootfs')
 
 
 	## Create a handling Method
 	## For Distro definition
 	## TODO: Add a Debian Option
 	def get_rootfs(self):
-		b = TargetGet(self.target_distro)
+		tg = RootfsGet(self.target_distro)
 		if self.target_distro == "alpine":
-			b.get_alpine()
+			logging.info('Downloading Alpine rootfs')
+			tg.get_alpine()
+
 		else:
+			logging.info('Provided distribution is not supported')
 			pass
+
 
 		logging.info('Downloaded %s - %s rootfs from %s', self.arch, self.target_distro, self.alpine_mirror_releases_url)

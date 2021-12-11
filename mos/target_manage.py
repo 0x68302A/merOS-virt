@@ -50,17 +50,21 @@ class TargetManage:
 		
 		if os.path.exists(self.target_chroot_dir + "/sbin/init"):
 			None
+			logging.info('Chroot is already populated with /sbin/init - Skipping rootfs download')
 		else:
-			
+
+			logging.info('Processing rootfs requirments')
+
 			tg = rootfs_get.RootfsGet(self.target_distro)
-			tg.get_rootfs
-			
+			tg.get_rootfs()
+	
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
 
 			tar_file = tarfile.open(self.distro_rootfs_targz)
 			tar_file.extractall(self.target_chroot_dir)
 			tar_file.close
 
+			logging.info('Downloaded and extracted rootfs')
 	## Configure the above rootfs
 	## In a Chroot enviroment
 	def chroot_configure(self):
