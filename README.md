@@ -1,4 +1,5 @@
-### merOS - Build and interact with a set of virtual machines- Targets
+## merOS - <br>
+### Build and interact with a set of virtual machines- Targets
 
 ### SYNOPSIS
 
@@ -34,10 +35,9 @@ under ./conf/target/[fam-id]/ - containing:
 	properties are modified on runtime.
 	under /libvirt/[target-id]
 
- "*mersec*" is a Family, consisting of two Targets, that we are currently maintaining.
-A VM-set inspired from the Whonix project, but with flexibility,
-minimalist configuration, and light- weightness in mind.
-**This project is under heavy development, and should be used with caution.**
+Two Family-Templates, currently under development, <br>
+are *mos\_mersec  and mos\_mersec_deb* - <br>
+**As found in our other Repos**
 
 
 
