@@ -53,6 +53,7 @@ class SSHCommunication:
 					+ ' '
 					+ self.target_username + '@'
 					+ self.target_ip
-					+ ' -p ' + self.target_ssh_port)
+					+ ' -p ' + self.target_ssh_port
+					+ ' -X')
 
 		subprocess.run([self.ssh_args], shell=True)
