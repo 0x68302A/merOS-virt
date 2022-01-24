@@ -20,6 +20,7 @@ class HostConf:
 		os.makedirs(self.mos_path + "/data/images", mode = 0o777, exist_ok = True)
 		os.makedirs(self.mos_path + "/data/ssh_keys", mode = 0o777, exist_ok = True)
 		os.makedirs(self.mos_path + "/data/proc", mode = 0o777, exist_ok = True)
+		os.makedirs(self.mos_path + "/data/mos-shared", mode = 0o777, exist_ok = True)
 		os.makedirs(self.mos_path + "/conf/target", mode = 0o777, exist_ok = True)
 		logging.info('Created Directory Tree, all data created by us are now found under ./data')
 
