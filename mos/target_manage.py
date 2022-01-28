@@ -85,9 +85,9 @@ class TargetManage:
 		with open("/etc/resolv.conf", 'w') as file:
 				file.write("nameserver " + self.default_gw + "\n")
 
-		## Execute Target-Specific Configuration script
-		subprocess.run("/root/0100-conf.chroot", shell=True)
-		subprocess.run("/root/0150-packages.chroot", shell=True)
+		## Execute Target-Specific Configuration hooks
+		subprocess.run("/tmp/mos/hooks/0100-conf.chroot", shell=True)
+		subprocess.run("/tmp/mos/hooks/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
 		logging.info('Configured Target: %s ',
