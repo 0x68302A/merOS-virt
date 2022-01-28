@@ -36,6 +36,7 @@ def main():
 								"output="
 								])
 
+		logging.info('#### STARTED MerOS ####')
 
 	except getopt.GetoptError as err:
 		print(err)
