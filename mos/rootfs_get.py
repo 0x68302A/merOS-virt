@@ -52,6 +52,21 @@ class RootfsGet:
 		open(self.distro_rootfs_targz, 'wb').write(target_rootfs_url_request.content)
 		logging.info('Downloaded alpine Linux rootfs')
 
+	def get_ubuntu(self):
+
+		if not os.path.isdir(self.target_bootstrap_dir):
+			os.makedirs(self.target_bootstrap_base_dir)
+			os.makedirs(self.target_bootstrap_dir)
+		else:
+			None
+
+		os.chdir(self.target_bootstrap_dir)
+
+		target_rootfs_url = 'https://cdimage.ubuntu.com/ubuntu-base/releases/focal/release/ubuntu-base-20.04.1-base-amd64.tar.gz'
+		target_rootfs_url_request = requests.get(target_rootfs_url, allow_redirects=True)
+		open(self.distro_rootfs_targz, 'wb').write(target_rootfs_url_request.content)
+		logging.info('Downloaded alpine Ubuntu rootfs')
+
 
 	## Create a handling Method
 	## For Distro definition
@@ -61,6 +76,10 @@ class RootfsGet:
 		if self.target_distro == "alpine":
 			logging.info('Downloading Alpine rootfs')
 			tg.get_alpine()
+		elif self.target_distro == "ubuntu":
+			logging.info('Downloading Ubuntu rootfs')
+			tg.get_ubuntu()
+
 
 		else:
 			logging.info('Provided distribution is not supported')
