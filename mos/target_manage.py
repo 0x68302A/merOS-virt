@@ -35,6 +35,8 @@ class TargetManage:
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
+
+		
 		## The target DNS parameters
 		## for now hardcoded
 		## TODO: Parse them from XML
@@ -77,6 +79,8 @@ class TargetManage:
 		
 		## Copy Target-Specific rootfs base
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
+		## Copy Target-Specific hooks
+		distutils.dir_util.copy_tree(self.target_hooks_conf_dir, self.target_hooks_dir)
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
 		os.chroot(".")
@@ -209,16 +213,27 @@ class TargetManage:
 
 			logging.info('Target distro is %s', self.target_distro)
 
+			## Target chroot Template directory
 			self.target_chroot_conf_dir = os.path.join(self.target_conf_dir
 									+ '/rootfs/'
 									+ self.target_id
 									+ '/includes.chroot')
 
+			## Target chroot/ rootfs build directory
 			self.target_chroot_dir = os.path.join(self.mos_path
 									+ '/data/build/bootstrap/'
 									+ self.family_id + '/'
 									+ self.target_id)
 
+			## Target hooks ( Build-Time executed code )
+			self.target_hooks_conf_dir = os.path.join(self.target_conf_dir
+									+ '/rootfs/'
+									+ self.target_id
+									+ '/hooks')
+			## Target hooks location in Target ROOTFS
+			self.target_hooks_dir = self.target_chroot_dir + 'tmp/mos/hooks'
+
+			## Target SSH Configuration directory
 			self.target_ssh_dir = os.path.join(self.target_chroot_dir + '/etc/ssh')
 
 			self.target_rootfs_tar = (self.mos_path
@@ -226,6 +241,7 @@ class TargetManage:
 							+ self.family_id + '/'
 							+ self.target_id + '.tar')
 
+			## Host images ( Built ROOTFS ) directory
 			self.mos_img_dir = self.h.mos_img_dir
 
 			self.target_rootfs_img = (self.mos_img_dir + '/'
