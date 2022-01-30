@@ -57,3 +57,13 @@ class SSHCommunication:
 					+ ' -X')
 
 		subprocess.run([self.ssh_args], shell=True)
+
+
+	def target_push(self):
+		self.ssh_args = ('rsync -aP '
+					+ self.target_ssh_key
+					+ ' '
+					+ self.target_username + '@'
+					+ self.target_ip
+					+ ' -p ' + self.target_ssh_port
+					+ ' -X')
