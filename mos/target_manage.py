@@ -62,11 +62,25 @@ class TargetManage:
 	
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
 
-			tar_file = tarfile.open(self.distro_rootfs_targz)
-			tar_file.extractall(self.target_chroot_dir)
-			tar_file.close
+			## Check whether we're dealing with a
+			## tar.gz ROOTFS of a common Path
 
-			logging.info('Downloaded and extracted rootfs')
+			if os.path.isfile(self.distro_rootfs_targz):
+				tar_file = tarfile.open(self.distro_rootfs_targz)
+				tar_file.extractall(self.target_chroot_dir)
+				tar_file.close
+
+			elif os.path.exists(self.distro_rootfs_dir):
+				self.cp_args = ('cp -rn '
+					+ self.distro_rootfs_dir
+					+ '/* ' + self.target_chroot_dir)
+				subprocess.run([self.cp_args], shell=True)
+				## distutils.dir_util.copy_tree(self.distro_rootfs_dir, self.target_chroot_dir, preserve_symlinks=True)
+
+			else:
+				logging.info('Can not find distro ROOTFS')
+
+
 	## Configure the above rootfs
 	## In a Chroot enviroment
 	def chroot_configure(self):
@@ -211,6 +225,11 @@ class TargetManage:
 								+ "_" + self.target_distro
 								+ "_" + self.arch + ".tar.gz")
 
+			self.distro_rootfs_dir = (self.mos_bootstrap_dir
+								+ "/" + "rootfs"
+								+ "_" + self.target_distro
+								+ "_" + self.arch)
+
 			logging.info('Target distro is %s', self.target_distro)
 
 			## Target chroot Template directory
@@ -231,7 +250,7 @@ class TargetManage:
 									+ self.target_id
 									+ '/hooks')
 			## Target hooks location in Target ROOTFS
-			self.target_hooks_dir = self.target_chroot_dir + 'tmp/mos/hooks'
+			self.target_hooks_dir = self.target_chroot_dir + '/tmp/mos/hooks'
 
 			## Target SSH Configuration directory
 			self.target_ssh_dir = os.path.join(self.target_chroot_dir + '/etc/ssh')

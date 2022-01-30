@@ -8,6 +8,7 @@ import re
 import sys
 import string
 import logging
+import subprocess
 
 class RootfsGet:
 	def __init__(self, target_distro):
@@ -19,6 +20,7 @@ class RootfsGet:
 
 		self.target_bootstrap_dir = h.mos_path + "/data/build/bootstrap"
 		self.distro_rootfs_targz = "rootfs" + "_" + self.target_distro + "_" + self.arch + ".tar.gz"
+		self.distro_rootfs_dir = "rootfs" + "_" + self.target_distro + "_" + self.arch
 
 		## Define Release options
 		## Such as URL and branch
@@ -46,14 +48,25 @@ class RootfsGet:
 
 	def get_ubuntu(self):
 
-		target_rootfs_url = 'https://cdimage.ubuntu.com/ubuntu-base/releases/focal/release/ubuntu-base-20.04.1-base-amd64.tar.gz'
+		target_rootfs_url = ('https://cdimage.ubuntu.com/ubuntu-base/releases/'
+				+ 'focal/release/ubuntu-base-20.04.1-base-amd64.tar.gz')
+
 		target_rootfs_url_request = requests.get(target_rootfs_url, allow_redirects=True)
 		open(self.distro_rootfs_targz, 'wb').write(target_rootfs_url_request.content)
 		logging.info('Downloaded alpine Ubuntu rootfs')
 
 	def get_debian(self):
 
-		
+		os.makedirs(self.distro_rootfs_dir, mode = 0o777, exist_ok = True)
+		self.debootstrap_args = ('debootstrap'
+				+ ' --variant=minbase'
+				+ ' --no-merged-usr'
+				+ ' stable '
+				+ self.distro_rootfs_dir
+				+ ' http://deb.debian.org/debian' )
+
+		subprocess.run([self.debootstrap_args], shell=True)
+
 
 
 	## Create a handling Method
@@ -75,6 +88,9 @@ class RootfsGet:
 		elif self.target_distro == "ubuntu":
 			logging.info('Downloading Ubuntu rootfs')
 			tg.get_ubuntu()
+		elif self.target_distro == "debian":
+			logging.info('Downloading Debian rootfs')
+			tg.get_debian()
 
 
 		else:
