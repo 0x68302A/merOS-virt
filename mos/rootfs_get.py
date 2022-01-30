@@ -98,4 +98,4 @@ class RootfsGet:
 			pass
 
 
-		logging.info('Downloaded %s - %s rootfs from %s', self.arch, self.target_distro, self.alpine_mirror_releases_url)
+		logging.info('Downloaded %s - %s rootfs', self.arch, self.target_distro)
