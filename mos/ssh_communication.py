@@ -54,16 +54,39 @@ class SSHCommunication:
 					+ self.target_username + '@'
 					+ self.target_ip
 					+ ' -p ' + self.target_ssh_port
-					+ ' -X')
+					+ ' -Y')
 
 		subprocess.run([self.ssh_args], shell=True)
 
 
-	def target_push(self):
-		self.ssh_args = ('rsync -aP '
-					+ self.target_ssh_key
-					+ ' '
-					+ self.target_username + '@'
-					+ self.target_ip
-					+ ' -p ' + self.target_ssh_port
-					+ ' -X')
+	def target_push(self, file):
+
+		self.local_file = os.path.abspath(file)
+
+		self.ssh_args = ('" ' + 'ssh'	+ ' -p ' + self.target_ssh_port
+					+ ' -i ' + self.target_ssh_key + ' "')
+
+		self.rsync_args = ('rsync -rzP --append -e '
+					+ self.ssh_args
+					+ ' ' + self.local_file
+					+ ' ' + self.target_username + '@' + self.target_ip
+					+ ':/home/user/mos-shared/')
+
+
+		subprocess.run([self.rsync_args], shell=True)
+		logging.info('Transfered "%s" to "%s"', file, self.target_full_id)
+
+
+	def target_pull(self):
+
+
+		self.ssh_args = ('" ' + 'ssh'	+ ' -p ' + self.target_ssh_port
+					+ ' -i ' + self.target_ssh_key + ' "')
+
+		self.rsync_args = ('rsync -rzP --append -e '
+					+ self.ssh_args
+					+ ' ' + self.target_username + '@' + self.target_ip
+					+ ':/home/user/mos-shared/*'
+					+ ' ' + os.path.join(self.mos_path, "data/mos-shared/", self.target_full_id))
+
+		subprocess.run([self.rsync_args], shell=True)
