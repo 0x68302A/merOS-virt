@@ -82,11 +82,6 @@ vm-full-id = [fam-id + '-' + target-id]
 Pull all files from @[target-id]:~/mos-shared/
 to ./data/mos-shared/[vm-full-id]
 
-> --sync [vm-full-id]
-
-Pull & Push all files from mos-guest:/mos-shared/
-to ./data/mos-shared/[vm-full-id]
-
 
 ### CONTRIBUTING
 
