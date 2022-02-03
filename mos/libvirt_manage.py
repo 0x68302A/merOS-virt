@@ -79,7 +79,7 @@ class LibvirtManage:
 				dom0 = self.conn.networkCreateXML(self.xml)
 				logging.info('Created Network interface from %s', i)
 			except libvirt.libvirtError:
-				logging.error('Network is running, or Failed to Parse XML')
+				logging.error('Network is running, Target Image is missing, or Failed to Parse XML')
 
 
 	## Run Family- specific Hooks
