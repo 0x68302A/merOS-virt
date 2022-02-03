@@ -13,6 +13,7 @@ class HostConf:
 		h = helper.Helper()
 		self.mos_path = h.mos_path
 
+	## Build expected file structure
 	def tree_conf(self):
 		os.makedirs(self.mos_path + "/data/build", mode = 0o777, exist_ok = True)
 		os.makedirs(self.mos_path + "/data/build/kernel", mode = 0o777, exist_ok = True)
@@ -24,6 +25,7 @@ class HostConf:
 		os.makedirs(self.mos_path + "/conf/target", mode = 0o777, exist_ok = True)
 		logging.info('Created Directory Tree, all data created by us are now found under ./data')
 
+	## Link meros.py to system path
 	def syslink(self):
 		sys_link = "/usr/bin/meros"
 
@@ -37,6 +39,9 @@ class HostConf:
 		logging.info('Created symlink of meros.py. /nMerOS can now be run ( as root ) simply by calling meros')
 
 	def main(self):
+
+		## Currently hardcode our distro
+		## To Debian, since there there has not been enough work on that
 		host_distro = "debian"
 		hc = HostConf()
 
