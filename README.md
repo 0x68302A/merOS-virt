@@ -23,24 +23,24 @@
 under conf/target/[fam-id]/ - containing:
 	
 1. **The Target rootfs directory**,
-	under rootfs/[target-id]/includes.chroot/ -
+> 	rootfs/[target-id]/includes.chroot/ - <br>
 	*This is where any custom package configuration, or persistent data, can be placed.*
 
 2. **The Target build-time hooks directory**, 
-	under rootfs/[target-id]/hooks/
+>	rootfs/[target-id]/hooks/ <br>
+
 	*This is where any shell script can be placed- It is run in the Target Chroot, before build.*
 	
 3. **Build XML configuration files**,
-	under build/[target-id].xml
+>	build/[target-id].xml <br>
 	*This is where Target properties are described, such as distro, free size, etc*
 
 4. **Host run-Time hooks**
-	under hooks/
+>	hooks/ <br>
 	*This is where host run-time hooks can be found- These are executed upon Family initialization.* 
 
-5. **Libvirt XML configuration files**, for which some
-	properties are modified on runtime.
-	under libvirt/[target-id].xml
+5. **Libvirt XML configuration files**,
+>	under libvirt/[target-id].xml <br>
 	*The standard libvirt-style XMLs.*
 
 Two Family Templates, currently in beta development,
