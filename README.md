@@ -1,116 +1,126 @@
-### merOS - <br>
-##### Build and interact with a set of Virtual Machines.
+## merOS :: Build and Interact with a Set of Virtual Machines<br>
 
 ### SYNOPSIS
 
 **merOS** can be used to:
 
-- **Bootstrap**, a base installation (**Chroot**) of A) **Alpine** or B) **Debian** Linux.
+- **Bootstrap**, a base installation - **Chroot** of A) **Alpine** or B) **Debian** Linux.
 	
-- **Populate**, the Chroot with a custom set of configuration files and packages.
+- **Populate**, the Chroot with a custom set of configuration Files and Packages.
 
-- **Pack the the Chroot**, under a qemu image.
+- **Pack the the Resulting Filesystem**, under a qemu image.
 
-- **Virtualize** the Chroot- Thereof, Target.
+- **Virtualize** the Final Image- Thereof, **Target**.
 
 - **Network/ Netfilter** a set of Targets with/ without a DNS resolver.
 
+## <br>
+
 ### DESCRIPTION
 
-**Families are used to describe sets of Targets ( *Virtualized Machines* )**
+**Families are used to describe Sets of Targets ( *Virtualized Machines* )**
 
-**Family configuration files** are found, and should be placed,
-under conf/target/[fam-id]/ - containing:
+**Configuration files** are found, and should be placed,
+under `conf/target/[fam-id]/` - containing:
 	
-1. **The Target rootfs directory**,
-> 	rootfs/[target-id]/includes.chroot/ - <br>
-	*This is where any custom package configuration, or persistent data, can be placed.*
+1. **The Target rootfs directory** :: `rootfs/[target-id]/includes.chroot/` <br>
+	Where any custom package configuration file, or persistent data, can be placed.
 
-2. **The Target build-time hooks directory**, 
->	rootfs/[target-id]/hooks/ <br>
 
-	*This is where any shell script can be placed- It is run in the Target Chroot, before build.*
-	
-3. **Build XML configuration files**,
->	build/[target-id].xml <br>
-	*This is where Target properties are described, such as distro, free size, etc*
+1. **The Target build-time hooks directory** :: `rootfs/[target-id]/hooks/ `<br>
+	Where a shell script can be placed and is run in the Target Chroot, before build.
 
-4. **Host run-Time hooks**
->	hooks/ <br>
-	*This is where host run-time hooks can be found- These are executed upon Family initialization.* 
+3. **Build XML configuration files** :: `build/[target-id].xml` <br>
+	Where Target properties are described, such as Distro, Image Free Size, etc.
 
-5. **Libvirt XML configuration files**,
->	under libvirt/[target-id].xml <br>
-	*The standard libvirt-style XMLs.*
+4. **Host run-Time hooks** :: `hooks/` <br>
+	Where Host run-time hooks can be found- These are executed upon Family initialization.
 
-Two Family Templates, currently in beta development,
-are: ***mos\_mersec  and mos\_mersec_deb*** -
-Currently included as submodules in our main Repository
+5. **Libvirt XML configuration files** :: `libvirt/[target-id].xml`<br>
+Describing Virtual Machine Emulation options.
 
+---
+**Two Family Templates, currently in beta development,
+are:**`mos_mersec`  and `mos_mersec_deb`- <br>
+*Currently included as submodules in our main Repository*
+## <br>
+---
 
 ### SYSTEM PREPERATION
 
-You can run setup.sh
+You can run `setup.sh`
 
 Or manually resolve dependencies,
-and create a dir tree, as found inside mos/host_conf.py
+and create a dir tree, as found inside `mos/host_conf.py`
 
 **Custom merOS created data** are found
-under data/
+under `data/`
 
+---
 
 ### BUILD && MANAGE A VM
 	
-> --build [fam-id]
+> --build `[fam-id]`
 
 This creates and populates the rootfs chroot dir,
 builds the qemu compatible .qcow image, which can be found under
 data/images/
 
-> --init [fam-id]
+> --init `[fam-id]`
 
 Initialize Target VMs and Networks.
 
 > --shutdown
 
-Currently **halts **ALL** libvirt guests**.
-	
+Currently **halts *ALL* libvirt guests**.
+
+## <br>
 
 ### COMMUNICATING WITH A VM
 
-**vm-full-id = [fam-id + '-' + target-id]
-**(ex. *mos_mersec_deb-guest*)
+`vm-full-id` = `[fam-id]` + '-' + `[target-id]`:: 
+(ex. `mos_mersec_deb-guest`) 
 
-> --connect [vm-full-id]
+**The following are require an SSH server on the Target Side, along with an active network connection** (*As found in mos_merec*)
+
+> --connect `[vm-full-id]`
 
 SSH into Target.
 
-> --push [vm-full-id] [file/ folder]
+> --push `[vm-full-id]` `[file/ folder]`
 
-Copy file to Target ( Defaults to ~/.mos-shared/* )
+Copy file to Target ( Pastes to ~/.mos-shared/* )
 
-> --pull [vm-full-id]
+> --pull `[vm-full-id]`
 
-Pull all files from Targets' ~/mos-shared/
-to data/mos-shared/[vm-full-id]
+Pull all files from Targets' `~/mos-shared/`
+to `data/mos-shared/[vm-full-id]`
+
+## <br>
 
 
 ### CONTRIBUTING
 
-**I am by no means a professional developer.**
+**I am by no means a professional developer.** <br>
 This is a project in which I hope to learn, and share ideas-
-concepts and practical solutions to development and
+concepts and practical solutions <br> 
+to development and
 modern privacy and management problems.
 
-Any contributions are welcome, you're encouraged to create tickets, pull requests
+Any contributions are welcome, you're encouraged to create tickets, <br>
+pull requests
 or offer any ideas on the project!
 
-You can also donate on: BTC-ADDRESS
+You can also donate on: `BTC-ADDRESS`  
 
-COPYRIGHT
+---
 
-License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
-This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent permitted by law.
+### COPYRIGHT
 
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>. <br>
+This is free software: you are free to change and redistribute it.<br> 
+There is NO WARRANTY, to the extent permitted by law.
+
+---
 #### Note, currently supporting *only Debian-based x86* hosts
 ******
