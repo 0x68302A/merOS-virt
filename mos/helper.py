@@ -62,7 +62,7 @@ class Helper:
 
 
 	def display_help():
-		with open(Helper.mos_path + "/README", "r") as help_file:
+		with open(Helper.mos_path + "/README.md", "r") as help_file:
 			help_data = help_file.read()
 			pydoc.pager(help_data)
 
