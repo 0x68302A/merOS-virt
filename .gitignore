@@ -1,5 +1,6 @@
 __pycache__
 data
+merOS_virt.egg-info
 conf/target
 LOG
 !.gitignore
