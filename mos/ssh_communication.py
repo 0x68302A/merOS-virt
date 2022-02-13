@@ -4,6 +4,8 @@ import os
 import subprocess
 import socket
 import sys
+import paramiko
+from paramiko.py3compat import u
 import termios
 import tty
 import select
