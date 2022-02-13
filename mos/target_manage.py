@@ -6,6 +6,7 @@ import mos.kernel_build as kernel_build
 
 import os
 import sys
+import pwd
 import distutils, distutils.dir_util
 import tarfile
 import subprocess
@@ -95,8 +96,11 @@ class TargetManage:
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
 		## Copy Target-Specific hooks
 		distutils.dir_util.copy_tree(self.target_hooks_conf_dir, self.target_hooks_dir)
+
+		## Chroot to Target
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
+
 		os.chroot(".")
 		
 		## Write DNS settings to Target
@@ -108,9 +112,6 @@ class TargetManage:
 		subprocess.run("/tmp/mos/hooks/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
-		logging.info('Configured Target: %s ',
-				self.target_id)
-
 
 	## Create and place SSH-key
 	## Used for Target ssh_host_rsa_key
@@ -133,13 +134,22 @@ class TargetManage:
 					content_file.write(ssh_public_key_02)
 
 
-		## Modify permissions of key_size
+
+		## Grab runnin user uid
+		user_name = os.getenv("SUDO_USER")
+		pwnam = pwd.getpwnam(user_name)
+
+		## Modify permissions of ssh-key
+		os.chown(self.target_ssh_dir + "/ssh_host_rsa_key", pwnam.pw_uid, pwnam.pw_gid)
+		os.chown(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", pwnam.pw_uid, pwnam.pw_uid)
+
 		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", 0o0600)
 
-		logging.info('Created SSH Keypair for Target: %s',
-				self.target_id)
+		logging.info('Created SSH Keypair for Target: %s', self.target_id)
 
+		logging.info('Configured Target: %s ',
+				self.target_id)
 
 	## Build Target rootfs tar_file
 	## Used later by GuestFS for the QCOW image build
