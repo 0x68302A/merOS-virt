@@ -3,6 +3,7 @@ import mos.helper as helper
 import os
 import socket
 import sys
+import subprocess
 import paramiko
 from paramiko.py3compat import u
 import termios
@@ -105,6 +106,7 @@ class SSHCommunication:
 
 
 	def download_files(self, sftp_client, remote_dir, local_dir):
+
 		if not self.exists_remote(sftp_client, remote_dir):
 			return
 
@@ -123,6 +125,7 @@ class SSHCommunication:
 
 
 	def exists_remote(self, sftp_client, path):
+
 		try:
 			sftp_client.stat(path)
 		except IOError as e:
@@ -147,8 +150,23 @@ class SSHCommunication:
 		logging.info('Transfered "%s" to "%s"', file, self.target_full_id)
 
 	def target_pull(self):
+
 		local_path = os.path.join(self.mos_path, "data/mos-shared/", self.target_full_id)
 		remote_path = "/home/user/mos-shared/"
 		self.download_files(self.sftp, remote_path, local_path)
 
 		logging.info('Pulled data from "%s"', self.target_full_id)
+
+	def target_run(self):
+
+		self.xpra_args = ('xpra start --ssh'
+				+ '="ssh -i '
+				+ self.mos_ssh_key 
+				+ ' -o "StrictHostKeyChecking=no""' ## data/ssh_keys/mos_mersec_deb-guest-id_rsa
+				+ ' ssh://'
+				+ self.target_username
+				+ '@'
+				+ self.target_ip + ':' + self.target_ssh_port
+				+ ' --start=konsole')
+
+		subprocess.Popen(self.xpra_args, shell=True)

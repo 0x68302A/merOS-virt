@@ -31,7 +31,7 @@ def main():
 								"kernel-build",
 								"get", "bootstrap", "build",
 								"init","shutdown",
-								"connect","push", "pull",
+								"connect","push", "pull", "run",
 								"output="
 								])
 
@@ -75,6 +75,11 @@ def main():
 			target_full_id = sys.argv[2]
 			tc = ssh_communication.SSHCommunication(target_full_id)
 			tc.interactive_shell()
+
+		elif o in ("--run"):
+			target_full_id = sys.argv[2]
+			tc = ssh_communication.SSHCommunication(target_full_id)
+			tc.target_run()
 
 		elif o in ("--push"):
 			target_full_id = sys.argv[2]

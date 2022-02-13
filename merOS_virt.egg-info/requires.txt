@@ -1,0 +1,4 @@
+GitPython
+cryptography
+pyroute2.nftables
+requests
