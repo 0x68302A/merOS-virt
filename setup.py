@@ -12,13 +12,13 @@ def read(fname):
 
 setup(
 	name = "merOS-virt",
-	version = "0.6.2",
+	version = "0.8.2",
 	author = "Aaran Ailbne",
 	author_email = "mosp08@protonmail.com",
 
 	description = ("merOS - Build && Interconnect a set of systems."),
 	license = "GPLv3",
-	keywords = "example documentation tutorial",
+	keywords = "meros-virt isolation security",
 	url = "https://github.com/AranAilbhe/merOS-virt/",
 
 	packages=['mos'],
@@ -27,7 +27,7 @@ setup(
 	classifiers=[
 		"Development Status :: 3 - Alpha",
 		"Topic :: Utilities",
-		"License :: OSI Approved :: BSD License",
+		"License :: GPLv3 License",
 	],
 
 	install_requires = [
@@ -43,6 +43,7 @@ setup(
 ## Build expected file structure
 
 def tree_conf():
+
 	os.makedirs("data/build", mode = 0o777, exist_ok = True)
 	os.makedirs("data/build/kernel", mode = 0o777, exist_ok = True)
 	os.makedirs("data/build/bootstrap", mode = 0o777, exist_ok = True)
