@@ -37,16 +37,18 @@ setup(
 				'requests'
 	],
 
-	data_files = [("data/build", []),
-					("data/build/bootstrap", []),
-					("data/build/kernel", []),
-					("data/images", []),
-					("data/ssh_keys", []),
-					("data/proc", []),
-					("data/mos-shared", []),
-					("conf/target", [])
-	],
-
 	scripts=["meros"]
-
 )
+
+## Build expected file structure
+
+def tree_conf():
+	os.makedirs("data/build", mode = 0o777, exist_ok = True)
+	os.makedirs("data/build/kernel", mode = 0o777, exist_ok = True)
+	os.makedirs("data/build/bootstrap", mode = 0o777, exist_ok = True)
+	os.makedirs("data/images", mode = 0o777, exist_ok = True)
+	os.makedirs("data/ssh_keys", mode = 0o777, exist_ok = True)
+	os.makedirs("data/mos-shared", mode = 0o777, exist_ok = True)
+	os.makedirs("conf/target", mode = 0o777, exist_ok = True)
+
+tree_conf()
