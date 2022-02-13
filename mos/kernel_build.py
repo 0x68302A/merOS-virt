@@ -63,22 +63,23 @@ class KernelBuild:
 			## we chdir to build Path
 			os.chdir(self.mos_kernel_git_dir)
 
-			## Simple make preparation calls
+			## make prepare calls
+			subprocess.run(['make clean'], shell=True)
 			subprocess.run(['make mrproper'], shell=True)
 			subprocess.run(['make defconfig'], shell=True)
 
-			## Custom kernel Configuration options
-			## TODO Tranfer custom kernel opts to build XML
+			## Custom kernel options for Virtualization support
 			self.kernelopts = ("CONFIG_TUN=y"
 					+ "\nCONFIG_VIRTIO_PCI=y"
+					+ "\nCONFIG_VIRTIO_BLK=y"
 					+ "\nCONFIG_VIRTIO_MMIO=y")
 
-			with open('.config', 'a') as f:
+			with open('.mos_config', 'w') as f:
 				f.write(self.kernelopts)
 
-			## Final make calls
+			subprocess.run(['./scripts/kconfig/merge_config.sh .config .mos_config'], shell=True)
 
-			subprocess.run(['make olddefconfig'], shell=True)
+			## Final make calls
 			subprocess.run(['make -j $(cat /proc/cpuinfo | grep processor | wc -l)'], shell=True)
 			subprocess.run(['make headers_install'], shell=True)
 			logging.info('Built Linux kernel from source')
