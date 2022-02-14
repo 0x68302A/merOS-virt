@@ -36,6 +36,19 @@ class TargetManage:
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
+		
+		if self.h.euid != 0:
+			print("Script not started as root. Running sudo..")
+			args = ['sudo', sys.executable] + sys.argv + [os.environ]
+			os.execlpe('sudo', *args)
+
+
+		self.user_name = os.getenv("SUDO_USER")
+		self.pwnam = pwd.getpwnam(self.user_name)
+
+		self.uid = self.pwnam.pw_uid
+		self.gid = self.pwnam.pw_gid
+
 		## The target DNS parameters
 		## for now hardcoded
 		## TODO: Parse them from XML
@@ -73,7 +86,7 @@ class TargetManage:
 				self.cp_args = ('cp -rn '
 					+ self.distro_rootfs_dir
 					+ '/* ' + self.target_chroot_dir)
-				subprocess.run([self.cp_args], shell=True)
+				subprocess.run(self.cp_args, shell=True)
 				## distutils.dir_util.copy_tree(self.distro_rootfs_dir, self.target_chroot_dir, preserve_symlinks=True)
 
 			else:
@@ -111,35 +124,34 @@ class TargetManage:
 		os.chdir(f)
 		os.chroot(".")
 
-	## Create and place SSH-key
-	## Used for Target ssh_host_rsa_key
-	## And Key_based authentication
+	## Create and place SSH-keys
 	def chroot_keyadd(self):
+
+		## Used for Target ssh_host_rsa_key
 		self.host_key = SSHKeys()
 		ssh_private_key_01 = self.host_key.private_key
-
-		self.comminication_key = SSHKeys()
-		ssh_private_key_02 = self.comminication_key.private_key
-		ssh_public_key_02 = self.comminication_key.public_key
 
 		with open(self.target_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
 			content_file.write(ssh_private_key_01)
 
+		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
+
+		## Used for Key_based authentication
+		self.comminication_key = SSHKeys()
+
+		ssh_private_key_02 = self.comminication_key.private_key
+		ssh_public_key_02 = self.comminication_key.public_key
+
 		with open(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-' + self.target_id + "-id_rsa", 'w') as content_file:
-			content_file.write(ssh_private_key_02)
+				content_file.write(ssh_private_key_02)
 
 		with open(self.target_ssh_dir + "/authorized_keys", 'w') as content_file:
-					content_file.write(ssh_public_key_02)
+				content_file.write(ssh_public_key_02)
 
-		## Modify permissions of ssh-key
-		# os.chown(self.target_ssh_dir + "/ssh_host_rsa_key", self.pwnam.pw_uid, self.pwnam.pw_gid)
-		# os.chown(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", self.pwnam.pw_uid, self.pwnam.pw_uid)
-
-		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
+		os.chown(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", self.uid, self.gid)
 		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", 0o0600)
 
 		logging.info('Created SSH Keypair for Target: %s', self.target_id)
-
 		logging.info('Configured Target: %s ',
 				self.target_id)
 
@@ -201,9 +213,8 @@ class TargetManage:
 	## Define Target-Specific variables and parameters
 	## Also conntains kernel_build
 	def main(self):
+
 		# for self.target_xml in self.target_xmls:
-
-
 		self.target_xmls = glob.glob(self.mos_path
 					+ '/conf/target/'
 					+ self.family_id
@@ -279,22 +290,9 @@ class TargetManage:
 			else:
 				pass
 
-			## Beocome root for chrooting
-			if self.h.euid != 0:
-				print("We need root privileges for Chroot(ing).")
-				args = ['sudo', sys.executable] + sys.argv + [os.environ]
-				# the next line replaces the currently-running process with the sudo
-				os.execlpe('sudo', *args)
-
-
 			self.rootfs_manage()
 			self.chroot_configure()
 			self.chroot_keyadd()
-
-			## Need root no more!
-			os.setgid(self.h.uid)
-			os.setuid(self.h.gid)
-
 			self.rootfs_tar_build()
 			self.rootfs_qcow_build()
 
