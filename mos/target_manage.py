@@ -36,8 +36,6 @@ class TargetManage:
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
-
-		
 		## The target DNS parameters
 		## for now hardcoded
 		## TODO: Parse them from XML
@@ -50,7 +48,7 @@ class TargetManage:
 		## Check for init, and skip download if found
 		## TODO: add an update flag to --build
 		## As to allow for updating the base rootfs
-		
+
 		if os.path.exists(self.target_chroot_dir + "/sbin/init"):
 			None
 			logging.info('Chroot is already populated with /sbin/init - Skipping rootfs download')
@@ -60,7 +58,7 @@ class TargetManage:
 
 			tg = rootfs_get.RootfsGet(self.target_distro)
 			tg.get_rootfs()
-	
+
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
 
 			## Check whether we're dealing with a
@@ -97,6 +95,13 @@ class TargetManage:
 		## Copy Target-Specific hooks
 		distutils.dir_util.copy_tree(self.target_hooks_conf_dir, self.target_hooks_dir)
 
+		## Beocome root for chrooting
+		if self.h.euid != 0:
+			print("We need root privileges for Chroot(ing).")
+			args = ['sudo', sys.executable] + sys.argv + [os.environ]
+			# the next line replaces the currently-running process with the sudo
+			os.execlpe('sudo', *args)
+
 		## Chroot to Target
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
@@ -112,6 +117,9 @@ class TargetManage:
 		subprocess.run("/tmp/mos/hooks/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
+
+		os.setgid(self.h.uid)
+		os.setuid(self.h.gid)
 
 	## Create and place SSH-key
 	## Used for Target ssh_host_rsa_key
@@ -133,15 +141,9 @@ class TargetManage:
 		with open(self.target_ssh_dir + "/authorized_keys", 'w') as content_file:
 					content_file.write(ssh_public_key_02)
 
-
-
-		## Grab runnin user uid
-		user_name = os.getenv("SUDO_USER")
-		pwnam = pwd.getpwnam(user_name)
-
 		## Modify permissions of ssh-key
-		os.chown(self.target_ssh_dir + "/ssh_host_rsa_key", pwnam.pw_uid, pwnam.pw_gid)
-		os.chown(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", pwnam.pw_uid, pwnam.pw_uid)
+		# os.chown(self.target_ssh_dir + "/ssh_host_rsa_key", self.pwnam.pw_uid, self.pwnam.pw_gid)
+		# os.chown(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", self.pwnam.pw_uid, self.pwnam.pw_uid)
 
 		os.chmod(self.target_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 		os.chmod(self.mos_ssh_priv_key_dir + "/" + self.family_id + '-'+ self.target_id + "-id_rsa", 0o0600)
