@@ -95,13 +95,6 @@ class TargetManage:
 		## Copy Target-Specific hooks
 		distutils.dir_util.copy_tree(self.target_hooks_conf_dir, self.target_hooks_dir)
 
-		## Beocome root for chrooting
-		if self.h.euid != 0:
-			print("We need root privileges for Chroot(ing).")
-			args = ['sudo', sys.executable] + sys.argv + [os.environ]
-			# the next line replaces the currently-running process with the sudo
-			os.execlpe('sudo', *args)
-
 		## Chroot to Target
 		f = os.open("/", os.O_PATH)
 		os.chdir(self.target_chroot_dir)
@@ -117,9 +110,6 @@ class TargetManage:
 		subprocess.run("/tmp/mos/hooks/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
-
-		os.setgid(self.h.uid)
-		os.setuid(self.h.gid)
 
 	## Create and place SSH-key
 	## Used for Target ssh_host_rsa_key
@@ -289,9 +279,22 @@ class TargetManage:
 			else:
 				pass
 
+			## Beocome root for chrooting
+			if self.h.euid != 0:
+				print("We need root privileges for Chroot(ing).")
+				args = ['sudo', sys.executable] + sys.argv + [os.environ]
+				# the next line replaces the currently-running process with the sudo
+				os.execlpe('sudo', *args)
+
+
 			self.rootfs_manage()
 			self.chroot_configure()
 			self.chroot_keyadd()
+
+			## Need root no more!
+			os.setgid(self.h.uid)
+			os.setuid(self.h.gid)
+
 			self.rootfs_tar_build()
 			self.rootfs_qcow_build()
 
