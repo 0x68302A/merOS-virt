@@ -167,6 +167,9 @@ class SSHCommunication:
 				+ self.target_username
 				+ '@'
 				+ self.target_ip + ':' + self.target_ssh_port
+				+ ' --border red,1'
+				+ ' --title="@title@ on merOS - @server-display@"'
+				+ ' --window-close=shutdown'
 				+ ' --start=konsole')
 
 		subprocess.Popen(self.xpra_args, shell=True)
