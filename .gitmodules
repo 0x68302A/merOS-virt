@@ -1,3 +1,3 @@
 [submodule "conf/target/mos_sec"]
 	path = conf/target/mos_sec
-	url = https://github.com/AranAilbhe/mos_sec.git
+	url = git@github.com:AranAilbhe/mos_sec.git
