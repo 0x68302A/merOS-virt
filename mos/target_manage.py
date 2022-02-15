@@ -36,12 +36,6 @@ class TargetManage:
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
-		self.user_name = os.getenv("SUDO_USER")
-		self.pwnam = pwd.getpwnam(self.user_name)
-
-		self.uid = self.pwnam.pw_uid
-		self.gid = self.pwnam.pw_gid
-
 		## The target DNS parameters
 		## for now hardcoded
 		## TODO: Parse them from XML
@@ -211,6 +205,12 @@ class TargetManage:
 			print('We need root access to build.')
 			args = ['sudo', sys.executable] + sys.argv + [os.environ]
 			os.execlpe('sudo', *args)
+
+		self.user_name = os.getenv("SUDO_USER")
+		self.pwnam = pwd.getpwnam(self.user_name)
+
+		self.uid = self.pwnam.pw_uid
+		self.gid = self.pwnam.pw_gid
 
 		# for self.target_xml in self.target_xmls:
 		self.target_xmls = glob.glob(self.mos_path
