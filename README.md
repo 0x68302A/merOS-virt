@@ -48,13 +48,23 @@ are:**`mos_mersec`  and `mos_mersec_deb`- <br>
 
 ### SYSTEM PREPERATION
 
-You can run `setup.sh`
+You can run `./dist-conf.sh` - 
+or <br>
+manually resolve any distro-specific dependencies. <br>
+  
+Clone the project, along with it's submodules- <br>
+`git clone --recursive` <br>
 
-Or manually resolve dependencies,
-and create a dir tree, as found inside `mos/host_conf.py`
+Install the project. <br>
+`pip install -e .` <br>
 
-**Custom merOS created data** are found
-under `data/`
+You can now call `meros` !
+
+The **recommended space** for the project sits at **around 12- 15GB** - <br>
+With the possibility to **free up to 8- 10GB after initial set-up**. <br>
+
+**Custom merOS created data** will be placed
+under `./data/`<br>
 
 ---
 
