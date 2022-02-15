@@ -41,7 +41,7 @@ Describing Virtual Machine Emulation options.
 
 ---
 **Two Family Templates, currently in beta development,
-are:**`mos_mersec`  and `mos_mersec_deb`- <br>
+are:**`mos_sec` (Included as a submodule)  and `mos_mersec` ( The alpine version of mos_sec )- <br>
 *Currently included as submodules in our main Repository*
 ## <br>
 ---
@@ -79,7 +79,7 @@ Currently **halts *ALL* libvirt guests**.
 ### COMMUNICATING WITH A VM
 
 `vm-full-id` = `[fam-id]` + '-' + `[target-id]`:: 
-(ex. `mos_mersec_deb-guest`) 
+(ex. `mos_sec-guest`) 
 
 **The following are require an SSH server on the Target Side, along with an active network connection** (*As found in mos_merec*)
 
