@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
 	name = "merOS-virt",
-	version = "0.8.2",
+	version = "0.8.6",
 	author = "Aaran Ailbne",
 	author_email = "mosp08@protonmail.com",
 
