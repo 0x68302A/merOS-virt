@@ -56,7 +56,7 @@ Clone the project, along with it's submodules- <br>
 `git clone --recursive` <br>
 
 Install the project. <br>
-`pip install -e .` <br>
+`pip3 install -e .` <br>
 
 You can now call `meros` !
 
