@@ -11,8 +11,8 @@ import subprocess
 import logging
 
 class LibvirtManage:
-	def __init__(self, target_full_id):
-		self.target_full_id = target_full_id
+	def __init__(self, target_fam_id):
+		self.target_fam_id = target_fam_id
 
 		## Import Global Variables
 		h = helper.Helper()
@@ -21,7 +21,7 @@ class LibvirtManage:
 		self.arch = h.arch
 
 		self.mos_img_dir = self.h.mos_img_dir
-		self.target_rootfs_img = self.mos_img_dir + self.target_full_id + ".img"
+		self.target_rootfs_img = self.mos_img_dir + self.target_fam_id + ".img"
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.kernel_img = self.mos_img_dir + "bzImage"
 
@@ -30,11 +30,11 @@ class LibvirtManage:
 		## Or just Family
 		## TODO: Manage Identification through Helper()
 		try:
-			self.target_id_split = self.target_full_id.split("-")
+			self.target_id_split = self.target_fam_id.split("-")
 			self.target_fam = self.target_id_split[0]
 			self.target_id = self.target_id_split[1]
 		except:
-			self.target_fam = self.target_full_id
+			self.target_fam = self.target_fam_id
 
 		self.conf_dir = self.mos_path + "/conf/target/" + self.target_fam
 		self.xml_dir = self.conf_dir + "/libvirt/"

@@ -65,8 +65,8 @@ def main():
 			sys.exit()
 
 		elif o in ("-i", "--init"):
-			target_full_id = sys.argv[2]
-			lm = libvirt_manage.LibvirtManage(target_full_id)
+			target_fam_id = sys.argv[2]
+			lm = libvirt_manage.LibvirtManage(target_fam_id)
 			lm.nets_init()
 			lm.doms_init()
 			lm.hooks_init()
