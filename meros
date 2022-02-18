@@ -78,8 +78,9 @@ def main():
 
 		elif o in ("--run"):
 			target_full_id = sys.argv[2]
+			run_args = sys.argv[3]
 			tc = ssh_communication.SSHCommunication(target_full_id)
-			tc.target_run()
+			tc.target_run(run_args)
 
 		elif o in ("--push"):
 			target_full_id = sys.argv[2]

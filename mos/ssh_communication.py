@@ -157,11 +157,11 @@ class SSHCommunication:
 
 		logging.info('Pulled data from "%s"', self.target_full_id)
 
-	def target_run(self):
+	def target_run(self, run_args):
 
 		self.xpra_args = ('xpra start --ssh'
 				+ '="ssh -i '
-				+ self.mos_ssh_key 
+				+ self.mos_ssh_key
 				+ ' -o "StrictHostKeyChecking=no""' ## data/ssh_keys/mos_mersec_deb-guest-id_rsa
 				+ ' ssh://'
 				+ self.target_username
@@ -170,6 +170,7 @@ class SSHCommunication:
 				+ ' --border red,1'
 				+ ' --title="@title@ on merOS - @server-display@"'
 				+ ' --window-close=shutdown'
-				+ ' --start=konsole')
+				+ ' --start=' + run_args)
 
 		subprocess.Popen(self.xpra_args, shell=True)
+		logging.info('HERE')
