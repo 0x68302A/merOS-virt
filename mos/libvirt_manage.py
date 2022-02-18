@@ -23,7 +23,7 @@ class LibvirtManage:
 
 		self.mos_img_dir = self.h.mos_img_dir
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
-		self.kernel_img = self.mos_img_dir + "bzImage"
+		self.kernel_img = self.mos_img_dir + "/bzImage"
 
 		self.conf_dir = self.mos_path + "/conf/target/" + self.target_fam_id
 		self.xml_dir = self.conf_dir + "/libvirt/"
@@ -39,19 +39,26 @@ class LibvirtManage:
 
 	def doms_init(self):
 
+		## For every domain XML found
 		self.doms = glob.glob(self.xml_dir + "dom_*")
 		for i in self.doms:
 			try:
+
+				## Define naming schema
 				self.xml_id = re.split('\/|\_|\.', i)
 				self.target_id = self.xml_id[-2]
+				self.target_full_id = 'mos_' + self.target_id
 
-				self.target_rootfs_img = ( self.mos_img_dir
-							+ self.target_id + ".img" )
+				self.target_rootfs_img = ( self.mos_img_dir + '/'
+							+ self.target_full_id +  ".img" )
 
 				with open(i, 'r') as file :
 					xml_data = file.read()
 
-				xml_data = xml_data.replace('mos_img_dir', self.h.mos_img_dir)
+				## Change custom libvirt options
+				xml_data = xml_data.replace('$TARGET_FULL_ID', self.target_full_id)
+				xml_data = xml_data.replace('$KERNEL_IMG', self.kernel_img)
+				xml_data = xml_data.replace('$TARGET_ROOTFS_IMG', self.target_rootfs_img)
 
 				dom0 = self.conn.createXML(xml_data)
 
