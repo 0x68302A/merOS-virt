@@ -69,40 +69,40 @@ under `./data/`<br>
 ---
 
 ### BUILD && MANAGE A VM
-	
-> --build `[fam-id]`
 
+
+`vm-full-id` = `[fam-id]` + '-' + `[target-id]`:: 
+(ex. `mos_sec-guest`)  <br>
+*Configurations files follow*: `[fam-id]/rootfs|build|libvirt/[target-id]/*`<br>
+
+- `--build` `[fam-id]` <br>
 This creates and populates the rootfs chroot dir,
 builds the qemu compatible .qcow image, which can be found under
 data/images/
 
-> --init `[fam-id]`
-
+- `--init` `[fam-id]` <br>
 Initialize Target VMs and Networks.
 
-> --shutdown
-
+- `--shutdown` <br>
 Currently **halts *ALL* libvirt guests**.
 
 ## <br>
 
 ### COMMUNICATING WITH A VM
 
-`vm-full-id` = `[fam-id]` + '-' + `[target-id]`:: 
-(ex. `mos_sec-guest`) 
+**The following are require an SSH server on the Target Side, along with an active network connection with the host** (*As found in mos_merec*)
 
-**The following are require an SSH server on the Target Side, along with an active network connection** (*As found in mos_merec*)
 
-> --connect `[vm-full-id]`
+-  `--connect` `[vm-full-id]`<br>
+SSH into Targets' defined user ( *As found under /build/[target-id]* )
 
-SSH into Target.
+-  `--run` `[vm-full-id]` `[executable]`<br>
+ex. `mos_sec-guest run firefox`
 
-> --push `[vm-full-id]` `[file/ folder]`
+- `--push` `[vm-full-id]` `[file/ folder]`<br>
+Copy file to Target ( *Defaults pastes to ~/.mos-shared/** )
 
-Copy file to Target ( Pastes to ~/.mos-shared/* )
-
-> --pull `[vm-full-id]`
-
+- `--pull` `[vm-full-id]` <br>
 Pull all files from Targets' `~/mos-shared/`
 to `data/mos-shared/[vm-full-id]`
 
