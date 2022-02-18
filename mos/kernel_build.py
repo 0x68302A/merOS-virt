@@ -41,9 +41,11 @@ class KernelBuild:
 
 	## Kernel Cloning
 	def kernel_clone(self):
-		if os.path.exists(self.mos_kernel_git_dir):
-			logging.info('Kernel is already cloned')
+
+
+		if os.path.isfile(self.target_bzimage):
 			pass
+			logging.info('Kernel is already built')
 		else:
 			print("cloning into %s" % self.mos_kernel_git_dir)
 			git.Repo.clone_from(self.kernel_git_url, self.mos_kernel_git_dir,
