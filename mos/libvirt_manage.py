@@ -44,7 +44,7 @@ class LibvirtManage:
 		for i in self.doms:
 			try:
 
-				## Define naming schema
+				## Grab target_id from libvirt XML filename
 				self.xml_id = re.split('\/|\_|\.', i)
 				self.target_id = self.xml_id[-2]
 				self.target_full_id = 'mos_' + self.target_id
@@ -53,14 +53,14 @@ class LibvirtManage:
 							+ self.target_full_id +  ".img" )
 
 				with open(i, 'r') as file :
-					xml_data = file.read()
+					self.xml_domain_data = file.read()
 
 				## Change custom libvirt options
-				xml_data = xml_data.replace('$TARGET_FULL_ID', self.target_full_id)
-				xml_data = xml_data.replace('$KERNEL_IMG', self.kernel_img)
-				xml_data = xml_data.replace('$TARGET_ROOTFS_IMG', self.target_rootfs_img)
+				self.xml_domain_data = self.xml_domain_data.replace('$TARGET_FULL_ID', self.target_full_id)
+				self.xml_domain_data = self.xml_domain_data.replace('$KERNEL_IMG', self.kernel_img)
+				self.xml_domain_data = self.xml_domain_data.replace('$TARGET_ROOTFS_IMG', self.target_rootfs_img)
 
-				dom0 = self.conn.createXML(xml_data)
+				dom0 = self.conn.createXML(self.xml_domain_data)
 
 			except libvirt.libvirtError:
 				logging.error('Domain is running, or Failed to Parse XML')
@@ -74,9 +74,19 @@ class LibvirtManage:
 		for i in self.nets:
 
 			try:
-				self.xml_parse = helper.ParseXML(i)
-				self.xml = self.xml_parse.read_xml()
-				dom0 = self.conn.networkCreateXML(self.xml)
+
+				## Define naming schema
+				self.xml_id = re.split('\/|\_|\.', i)
+				self.network_id = self.xml_id[-2]
+				self.network_full_id = 'mos_' + self.network_id
+
+				with open(i, 'r') as file :
+					self.xml_network_data = file.read()
+
+				## Change custom libvirt options
+				self.xml_network_data = self.xml_network_data.replace('$NETWORK_FULL_ID', self.network_full_id)
+
+				dom0 = self.conn.networkCreateXML(self.xml_network_data)
 				logging.info('Created Network interface from %s', i)
 
 			except libvirt.libvirtError:
