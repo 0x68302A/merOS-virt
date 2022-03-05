@@ -94,6 +94,8 @@ class TargetManage:
 		distutils.dir_util.copy_tree(self.target_chroot_conf_dir, self.target_chroot_dir)
 		## Copy Target-Specific hooks
 		distutils.dir_util.copy_tree(self.target_hooks_conf_dir, self.target_hooks_dir)
+		## Copy Target-Specific pkgs
+		distutils.dir_util.copy_tree(self.target_pkgs_conf_dir, self.target_pkgs_dir)
 
 		## Chroot to Target
 		f = os.open("/", os.O_PATH)
@@ -260,8 +262,17 @@ class TargetManage:
 									+ '/rootfs/'
 									+ self.target_id
 									+ '/hooks')
+
 			## Target hooks location in Target ROOTFS
 			self.target_hooks_dir = self.target_chroot_dir + '/tmp/mos/hooks'
+
+			## Target pkgs
+			self.target_pkgs_conf_dir = os.path.join(self.target_conf_dir
+									+ '/pkg/')
+
+			## Target pkga location in Target ROOTFS
+			self.target_pkgs_dir = self.target_chroot_dir + '/opt'
+
 
 			## Target SSH Configuration directory
 			self.target_ssh_dir = os.path.join(self.target_chroot_dir + '/etc/ssh')
