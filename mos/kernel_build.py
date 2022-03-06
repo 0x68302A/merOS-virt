@@ -43,9 +43,9 @@ class KernelBuild:
 	def kernel_clone(self):
 
 
-		if os.path.isfile(self.target_bzimage):
+		if os.path.exists(self.mos_kernel_git_dir):
 			pass
-			logging.info('Kernel is already built')
+			logging.info('Kernel is already cloned')
 		else:
 			print("cloning into %s" % self.mos_kernel_git_dir)
 			git.Repo.clone_from(self.kernel_git_url, self.mos_kernel_git_dir,
@@ -54,7 +54,6 @@ class KernelBuild:
 
 	## Kernel Building
 	def kernel_build(self):
-
 
 		if os.path.isfile(self.target_bzimage):
 			pass
@@ -74,6 +73,17 @@ class KernelBuild:
 			self.kernelopts = ("CONFIG_TUN=y"
 					+ "\nCONFIG_VIRTIO_PCI=y"
 					+ "\nCONFIG_VIRTIO_BLK=y"
+					+ "\nCONFIG_OVERLAY_FS=y"
+					+ "\nCONFIG_NET=y"
+					+ "\nCONFIG_NETFILTER=y"
+					+ "\nCONFIG_NETFILTER_ADVANCED=y"
+					+ "\nCONFIG_NF_TABLES=y"
+					+ "\nCONFIG_BRIDGE_NETFILTER=y"
+					+ "\nCONFIG_BRIDGE=y"
+					+ "\nCONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y"
+					+ "\nCONFIG_NETFILTER_XT_TARGET_MASQUERADE=y"
+					+ "\nCONFIG_IP_NF_TARGET_MASQUERADE=y"
+					+ "\nCONFIG_IP_NF_NAT=y"
 					+ "\nCONFIG_VIRTIO_MMIO=y")
 
 			with open('.mos_config', 'w') as f:
