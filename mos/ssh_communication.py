@@ -142,10 +142,17 @@ class SSHCommunication:
 		remote_file  = os.path.join(remote_path, file)
 
 		if os.path.isdir(local_file):
-			pass
+			sftp = SFTPClient_push.from_transport(self.transport)
+			sftp.mkdir(remote_path, ignore_existing=True)
+			sftp.put_dir(local_file, remote_path)
+			sftp.close()
+
 
 		elif os.path.isfile(local_file):
 			self.sftp.put(local_file, remote_file)
+
+
+
 
 		logging.info('Transfered "%s" to "%s"', file, self.target_full_id)
 
@@ -174,3 +181,22 @@ class SSHCommunication:
 
 		subprocess.Popen(self.xpra_args, shell=True)
 		logging.info('HERE')
+
+
+class SFTPClient_push(paramiko.SFTPClient):
+    def put_dir(self, source, target):
+        for item in os.listdir(source):
+            if os.path.isfile(os.path.join(source, item)):
+                self.put(os.path.join(source, item), '%s/%s' % (target, item))
+            else:
+                self.mkdir('%s/%s' % (target, item), ignore_existing=True)
+                self.put_dir(os.path.join(source, item), '%s/%s' % (target, item))
+
+    def mkdir(self, path, mode=511, ignore_existing=False):
+        try:
+            super(SFTPClient_push, self).mkdir(path, mode)
+        except IOError:
+            if ignore_existing:
+                pass
+            else:
+                raise
