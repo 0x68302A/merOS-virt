@@ -105,7 +105,7 @@ class TargetManage:
 		
 		## Write DNS settings to Target
 		with open("/etc/resolv.conf", 'w') as file:
-				file.write("nameserver " + self.default_gw + "\n")
+				file.write("nameserver " + self.DNS1 + "\n")
 
 		## Execute Target-Specific Configuration hooks
 		subprocess.run("/tmp/mos/hooks/0100-conf.chroot", shell=True)
