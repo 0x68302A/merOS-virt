@@ -58,18 +58,32 @@ def main():
 			kb.kernel_build()
 			sys.exit()
 
+		## When building, we will be chrooting in the newly created rootfs
+		## thus needing elevated ( root ) privileges
+		## ( See: mos/target_manage.py:104 )
 		elif o in ("--build"):
 			target_fam = sys.argv[2]
+			h.elevate_privs()
 			tm = target_manage.TargetManage(target_fam)
 			tm.main()
 			sys.exit()
 
+		## When initializing/ halting, we will be accessing the libvirt KVM resourfces
+		## As well as nftables ( kernel ) access
+		## thus needing elevated ( root ) privileges
+		## ( See: mos/libvirt_manage.py:40,72,98 )
 		elif o in ("-i", "--init"):
 			target_fam_id = sys.argv[2]
+			h.elevate_privs()
 			lm = libvirt_manage.LibvirtManage(target_fam_id)
 			lm.nets_init()
 			lm.doms_init()
 			lm.hooks_init()
+
+		## Haltion ( As above )
+		elif o in ("--shutdown"):
+			h.elevate_privs()
+			lm = libvirt_manage.LibvirtTerminate()
 
 		elif o in ("-c", "--connect"):
 			target_full_id = sys.argv[2]
@@ -92,9 +106,6 @@ def main():
 			target_full_id = sys.argv[2]
 			ts = ssh_communication.SSHCommunication(target_full_id)
 			ts.target_pull()
-
-		elif o in ("--shutdown"):
-			lm = libvirt_manage.LibvirtTerminate()
 
 		else:
 			print("Error")
