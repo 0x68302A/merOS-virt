@@ -60,11 +60,11 @@ Install the project. <br>
 
 You can now call `meros` !
 
-The **recommended space** for the project sits at **around 12- 15GB** - <br>
-With the possibility to **free up to 8- 10GB after initial set-up**. <br>
+The **recommended space for the project sits at around 12- 15GB ( For ``mos_lab` )** - <br>
+With the possibility to **free up to ~80% after initial build - <br> By  a simple `rm -rf` of `./data/build/bootstrap[fam_id]`**. <br>
 
-**Custom merOS created data** will be placed
-under `./data/`<br>
+**All merOS created data** will be placed
+under `./data/[fam_id]`<br>
 
 ---
 
