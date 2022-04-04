@@ -66,6 +66,13 @@ class Helper:
 			help_data = help_file.read()
 			pydoc.pager(help_data)
 
+	def elevate_privs():
+		euid = os.geteuid()
+		if euid != 0:
+			print("\033[1;31m--This action requires root access--\n--Read more in the /meros comments--")
+			args = ['sudo', sys.executable] + sys.argv + [os.environ]
+			os.execlpe('sudo', *args)
+
 
 ## Use an XML Parsing class
 ## As we will be utilizing such scripts
