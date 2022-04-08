@@ -1,6 +1,6 @@
 [submodule "conf/target/mos_sec"]
 	path = conf/target/mos_sec
-	url = git@github.com:AranAilbhe/mos_sec.git
+	url = https://github.com/AranAilbhe/mos_sec.git
 [submodule "conf/target/mos_lab"]
 	path = conf/target/mos_lab
-	url = git@github.com:AranAilbhe/mos_lab.git
+	url = https://github.com/AranAilbhe/mos_lab.git
