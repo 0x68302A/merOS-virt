@@ -59,6 +59,7 @@ def main():
 			sys.exit()
 
 		## When building, we will be chrooting in the newly created rootfs
+		## configuring local ( build-time ) packages-
 		## thus needing elevated ( root ) privileges
 		## ( See: mos/target_manage.py:104 )
 		elif o in ("--build"):
@@ -68,7 +69,7 @@ def main():
 			tm.main()
 			sys.exit()
 
-		## When initializing/ halting, we will be accessing the libvirt KVM resourfces
+		## When initializing/ halting, we will be accessing the libvirt daemon resources
 		## As well as nftables ( kernel ) access
 		## thus needing elevated ( root ) privileges
 		## ( See: mos/libvirt_manage.py:40,72,98 )
@@ -80,7 +81,7 @@ def main():
 			lm.doms_init()
 			lm.hooks_init()
 
-		## Haltion ( As above )
+		## Haltign ( See above )
 		elif o in ("--shutdown"):
 			h.elevate_privs()
 			lm = libvirt_manage.LibvirtTerminate()
