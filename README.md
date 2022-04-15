@@ -48,15 +48,15 @@ are:**`mos_sec` (Included as a submodule)  and `mos_mersec` ( The alpine version
 
 ### SYSTEM PREPERATION
 
-You can run `./dist-conf.sh` - 
-or <br>
-manually resolve any distro-specific dependencies. <br>
-  
 Clone the project, along with it's submodules- <br>
 `git clone --recursive` <br>
 
-Install the project. <br>
-`pip3 install -e .` <br>
+You can run `./dist-conf.sh` - 
+or <br>
+manually resolve any distro-specific dependencies. <br>
+
+Install the project, for all users <br>
+`sudo pip3 install -e --system.` <br>
 
 You can now call `meros` !
 
