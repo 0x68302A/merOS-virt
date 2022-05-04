@@ -62,14 +62,14 @@ class Helper:
 
 
 	def display_help():
-		with open(Helper.mos_path + "/README.md", "r") as help_file:
+		with open(Helper.mos_path + "/mos/manpage", "r") as help_file:
 			help_data = help_file.read()
 			pydoc.pager(help_data)
 
 	def elevate_privs():
 		euid = os.geteuid()
 		if euid != 0:
-			print("This action requires root access--\n--Read more in the /meros comments--")
+			print("-- This action requires root access --\n-- Read more in the /meros comments --")
 			args = ['sudo', sys.executable] + sys.argv + [os.environ]
 			os.execlpe('sudo', *args)
 
