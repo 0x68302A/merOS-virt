@@ -12,10 +12,26 @@
 
 - **Virtualize** the Final Image/ VM- <br> Thereof, **Target**.
 
-- **Network/ Netfilter** <br> Resulting Targets.
+- **Network/ Netfilter** resulting Targets.
 
 ---
 ### DESCRIPTION
+
+**merOS:** <br>
+
+Not unlike Debootstrap *(which we also use)*, **allows for fine- grained build control over a structure of a file-system-**<br>
+Not unlike Virtualbox, **allows for ease of access to a number of Virtual Machines-** <br>
+Not unlike Docker,**allows for secure application testing-** <br>
+Not unlike Qubes OS,**allows for secure activity-based compartmentalization of activities.**
+
+**merOS Families:** <br>
+
+Provide **a simple, XML and file-based configuration file-set**. <br>
+From a build **recipe-like structure**, they allow us to set-up a full **set of virtualized machines,<br> 
+with an abstraction layer around Building, Virtualization, Networking and Connection.** <br>
+
+---
+### ARCHITECTURE
 
 **Families are used to describe Sets of Targets ( VMs )**
 
@@ -46,7 +62,7 @@ under: <br> `conf/target/[fam-id]/` - containing:
 **Two Family Templates, currently in beta development, are:** <br>
 
 - `mos_sec` A Whonix- like set of two Targets (VMs) || Firewall & Guest.
-- `mos_lab` A Whonix/ Kali- like set of three Targets (VMs) || Firewall & Tool optimized Guest.
+- `mos_lab` A Whonix/ Kali- like set of three Targets (VMs) || Firewall & Tool  Guest.
 
 ***Both are currently included as sub-modules in our main Repository***
 
@@ -56,7 +72,7 @@ under: <br> `conf/target/[fam-id]/` - containing:
 	(Such an option could/ should nevertheless be implemented )
 
 ---
-### SYSTEM PREPARATION
+### SYSTEM PREPARATIONoptimized
 
 **All merOS created data** are placed
 under: `./data/[fam_id]`<br>
@@ -85,17 +101,23 @@ under: `./data/[fam_id]`<br>
 	Python3 is chosen for its' **wide availability on machines,** <br>
 	**ease of understanding- auditing and contributing.**
 	
-- **Debootstrap** <br>
+- **[Debootstrap](https://wiki.debian.org/Debootstrap)** <br>
 	Is used for the Debian Target **Rootfs building.** <br>
-	Being activelly-maintained, and greatly adopted-
-	( *Just think of Debian-based platforms* ) <br>
+	Being activelly-maintained by the Debian team, <br>
+	and greatly adopted-	( *Just think of Debian-based OSes* ) <br>
 	Along with bringing the **security and stability** of Debian- <br>
 	It was chosen for the **basic flavor for merOS-based Targets.**
 
-- **Libvirt** <br>
+- **[Libvirt](https://libvirt.org/)** <br>
 	Is used as the main virtualization platform. <br>
-	Being [actively-maintained](https://gitlab.com/libvirt), [widely implemented](https://libvirt.org/apps.html) and **documented thoroughly** -<br> 
+	Being actively-maintained, widely implemented and **documented thoroughly** -<br> 
 	It was chosen as most appropriate **Virtualization framework for this project.**
+	
+- **[Xpra](https://www.xpra.org/)** <br>
+	Is used as the main SSH- x11 communication framework, <br>
+	used with `--run` and `--connect|-c`. <br>
+	Being actively maintained, and well documented- it allows for a reliable and faster, <br>
+	more secure way of XForward-like functions.
 
 ---
 ### BUILDING & MANAGING A TARGET ( VM )
@@ -120,7 +142,7 @@ With the possibility to **free up to ~92% after initial build** - <br> **By  a s
 ---
 ### COMMUNICATING WITH A VM
 
-**The following require an SSH server set-up on the Target ( VM ) Side, <br> Along with an active network connection with the host** ( *As found in mos_merec* )
+**The following require an SSH server set-up on the Target ( VM ) Side, <br> Along with an active network connection with the host** ( *As found in mos_mersec* )
 
 
 -  `--connect` `[vm-full-id]`<br>
@@ -159,7 +181,7 @@ There is NO WARRANTY, to the extent permitted by law.
 
 ---
 ### IMPORTANT NOTES:
-	Being a highly experimental, actively maintained project- No security guarantee is provided.
+	Being an actively developed, actively maintained project- No security guarantee is provided.
 	Bugs are to be expected, implementations ( secure-critical or not ) may be broken.
 	And as always, security issues may arise from within the selected frameworks used-
 	no matter how widely adopted, or thoroughly tested they be.
