@@ -20,16 +20,16 @@
 **Families are used to describe Sets of Targets ( VMs )**
 
 **Configuration Files** are found, and should be placed,
-under <br> `conf/target/[fam-id]/` - containing:
+under: <br> `conf/target/[fam-id]/` - containing:
 	
 1. **The Target rootfs directory** : `rootfs/[target-id]/includes.chroot/` <br>
 	Where any custom package configuration file, or persistent data, can be placed. <br>
-	( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-		includes-chroot) Debian-Building architecture. )
+	( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-includes-chroot) Debian-Building architecture. )
 
 
 1. **The Target build-time hooks directory** : `rootfs/[target-id]/hooks/ `<br>
 	Where a shell script can be placed and is run in the Target Chroot, before build. <br>
-	( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-		hooks) Debian-Building architecture. )
+	( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-hooks) Debian-Building architecture. )
 
 3. **Build XML configuration files** : `build/[target-id].xml` <br>
 	Where Target properties are described, <br> such as Distro, Image Free Size, etc.
@@ -37,7 +37,7 @@ under <br> `conf/target/[fam-id]/` - containing:
 4. **Host run-Time hooks** : `hooks/` <br>
 	Where Host run-time hooks can be found- <br >These are executed upon Family initialization.
 
-5. **Libvirt XML configuration files** :: `libvirt/[target-id].xml`<br>
+5. **Libvirt XML configuration files** : `libvirt/[target-id].xml`<br>
 	Describing Virtual Machine Emulation options. <br>
 	(As used by [libvirt-Domains](https://libvirt.org/formatdomain.html) and
 	[libvirt-Networks](https://libvirt.org/formatnetwork.html)
@@ -58,6 +58,9 @@ under <br> `conf/target/[fam-id]/` - containing:
 ---
 ### SYSTEM PREPARATION
 
+**All merOS created data** are placed
+under: `./data/[fam_id]`<br>
+
 - Clone the project, along with it's submodules: <br>
 `git clone --recursive`<br>
 
@@ -70,11 +73,7 @@ under <br> `conf/target/[fam-id]/` - containing:
 
 **You can now call `meros`** !
 
-**All merOS created data** are placed
-under `./data/[fam_id]`<br>
 
-The **recommended free-space for the project sits at around 12- 15GB ( For `mos_lab` )** - <br>
-With the possibility to **free up to ~92% after initial build** - <br> **By  a simple `rm -rf` of `./data/build/bootstrap/[fam_id]`**. <br>
 
 ---
 ### SYSTEM DEPENDENCIES
@@ -106,13 +105,17 @@ With the possibility to **free up to ~92% after initial build** - <br> **By  a s
 - `--build` `[fam-id]` <br>
 This **creates and populates** the rootfs chroot dir, <br>
 and **builds** the qemu compatible .qcow image- <br> 
-Which can be found under `data/images/`
+Which can be found under: `data/images/`
 
 - `--init|-i` `[fam-id]` <br>
 **Initialize** Targets and Networks via Libvirt.
 
 - `--shutdown` <br>
 ( Currently **halts ALL Libvirt guests** )
+
+The **recommended free-space for the project sits at around 12- 15GB ( For `mos_lab` )** - <br>
+With the possibility to **free up to ~92% after initial build** - <br> **By  a simple `rm -rf` of `./data/build/bootstrap/[fam_id]`**. <br>
+**Since the final image** resides under: `./data/images/[target-full-id]`
 
 ---
 ### COMMUNICATING WITH A VM
@@ -121,7 +124,7 @@ Which can be found under `data/images/`
 
 
 -  `--connect` `[vm-full-id]`<br>
-SSH into Targets' defined user ( *As found under* `$CONF/build/[target-id]` )
+SSH into Targets' defined user ( *As found under:* `$CONF/build/[target-id]` )
 
 -  `--run` `[vm-full-id]` `[VMs-executable]`<br>
 ex. `mos_sec-guest --run firefox`
