@@ -14,7 +14,7 @@
 
 - **Network/ Netfilter** <br> Resulting Targets.
 
---
+---
 ### DESCRIPTION
 
 **Families are used to describe Sets of Targets ( VMs )**
@@ -57,7 +57,7 @@ under <br> `conf/target/[fam-id]/` - containing:
 
 ***Both are currently included as sub-modules in our main Repository***
 
---
+---
 ### SYSTEM PREPERATION
 
 - Clone the project, along with it's submodules: <br>
@@ -75,10 +75,10 @@ under <br> `conf/target/[fam-id]/` - containing:
 **All merOS created data** are placed
 under `./data/[fam_id]`<br>
 
-The **recommended free-space for the project sits at around 12- 15GB ( For ``mos_lab` )** - <br>
+The **recommended free-space for the project sits at around 12- 15GB ( For `mos_lab` )** - <br>
 With the possibility to **free up to ~92% after initial build** - <br> **By  a simple `rm -rf` of `./data/build/bootstrap/[fam_id]`**. <br>
 
---
+---
 ### SYSTEM DEPENDENCIES
 
 **Are aquired  through `./dist-conf.sh`** <br>
@@ -100,7 +100,7 @@ With the possibility to **free up to ~92% after initial build** - <br> **By  a s
 	Being [actively-maintained](https://gitlab.com/libvirt), [widely implemented](https://libvirt.org/apps.html) and **documented thoroughly** -<br> 
 	It was chosen as most appropriate **Virtualization framework for this project.**
 
---
+---
 ### BUILDING & MANAGING A TARGET ( VM )
 
 `[fam-id]` - `[target-id]` = `target-full-id`  ( ex. `mos_sec-guest` )  <br>
@@ -116,7 +116,7 @@ Which can be found under `data/images/`
 - `--shutdown` <br>
 ( Currently **halts ALL Libvirt guests** )
 
---
+---
 ### COMMUNICATING WITH A VM
 
 **The following require an SSH server set-up on the Target ( VM ) Side, <br> Along with an active network connection with the host** ( *As found in mos_merec* )
@@ -136,7 +136,7 @@ Pull all files from Targets' `~/mos-shared/` <br>
 to `./data/mos-shared/[vm-full-id]`
 
 
---
+---
 ### CONTRIBUTING
 
 **I am by no means a professional developer.** <br>
@@ -149,15 +149,15 @@ Any contributions are welcome, you're encouraged to create tickets, <br>
 pull requests
 or offer any ideas on the project!
  
---
+---
 ### COPYRIGHT
 
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>. <br>
 This is free software: you are free to change and redistribute it.<br> 
 There is NO WARRANTY, to the extent permitted by law.
 
---
-#### IMPORTANT NOTES:
+---
+### IMPORTANT NOTES:
 	Being a highly experimental, actively maintained project- No security guarantee is provided.
 	Bugs are to be expected, implementations ( secure-critical or not ) may be broken.
 	And as always, security issues may arise from within the selected frameworks used-
