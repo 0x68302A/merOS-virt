@@ -42,13 +42,6 @@ under <br> `conf/target/[fam-id]/` - containing:
 	(As used by [libvirt-Domains](https://libvirt.org/formatdomain.html) and
 	[libvirt-Networks](https://libvirt.org/formatnetwork.html)
 	
-6.  Another transparent step of building a Target (VM)- <br>
-	is the **Linux Kernel Cloning and Building.** <br>
-	This step could as well be skipped, and replaced with <br>
-	a **precompiled kernel-image download, reducing bandwidth/ processing use** <br>
-	but leaving a big part of the running machine out of our control. <br>
-	(Such an option could/ should nevertheless be implemented )
-
 
 **Two Family Templates, currently in beta development, are:** <br>
 
@@ -57,8 +50,13 @@ under <br> `conf/target/[fam-id]/` - containing:
 
 ***Both are currently included as sub-modules in our main Repository***
 
+**A fully transparent, but critical, part of building a Target** (VM)-	is the **Linux Kernel Cloning and Building.** <br>
+	This step could as well be skipped, and replaced with a **precompiled kernel-image download,
+	reducing bandwidth/ processing use-** <br> but leaving a significant part of the running machine out of our control. <br>
+	(Such an option could/ should nevertheless be implemented )
+
 ---
-### SYSTEM PREPERATION
+### SYSTEM PREPARATION
 
 - Clone the project, along with it's submodules: <br>
 `git clone --recursive`<br>
