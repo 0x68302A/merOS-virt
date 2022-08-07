@@ -107,25 +107,24 @@ class LibvirtManage:
 
 ## Terminate All Libvrit Domains
 ## TODO: Create a method to allow for Target-Specific Termination
-class LibvirtTerminate:
+class LibvirtExtra:
 	def __init__(self):
 
 		self.conn = libvirt.open("qemu:///system")
 
-		for i in self.conn.listDomainsID():
-				self.dom = self.conn.lookupByID(i)
-				self.dom.destroy()
-				time.sleep(1)
+	def libvirt_info(self):
 
-		for i in self.conn.listNetworks():
-				self.net = self.conn.networkLookupByName(i)
-				self.net.destroy()
-				time.sleep(1)
-
-		if self.conn.listDomainsID():
-			logging.error('ERROR! There are live domains.')
+		print("Active Targets:")
+		domains = self.conn.listAllDomains(1)
+		if len(domains) != 0:
+			for domain in domains:
+				print('  '+domain.name())
 		else:
-			logging.info('merOS shut down gracefully')
+			print('  None')
+
+		self.conn.close()
+		exit(0)
+
 
 
 	def vm_shutdown(self):
@@ -141,3 +140,21 @@ class LibvirtTerminate:
 
 		logging.info(("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType())))
 		logging.info((dom0.info()))
+
+
+	def shutdown_all(self):
+
+		for i in self.conn.listDomainsID():
+				self.dom = self.conn.lookupByID(i)
+				self.dom.destroy()
+				time.sleep(1)
+
+		for i in self.conn.listNetworks():
+				self.net = self.conn.networkLookupByName(i)
+				self.net.destroy()
+				time.sleep(1)
+
+		if self.conn.listDomainsID():
+			logging.error('ERROR! There are live domains.')
+		else:
+			logging.info('merOS shut down gracefully')

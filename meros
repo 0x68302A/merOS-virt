@@ -32,6 +32,7 @@ def main():
 								"get", "bootstrap", "build",
 								"init","shutdown",
 								"connect","push", "pull", "run",
+								"info",
 								"output="
 								])
 
@@ -84,7 +85,8 @@ def main():
 		## Haltign ( See above )
 		elif o in ("--shutdown"):
 			h.elevate_privs()
-			lm = libvirt_manage.LibvirtTerminate()
+			lm = libvirt_manage.LibvirtExtra()
+			lm.shutdown_all()
 
 		elif o in ("-c", "--connect"):
 			target_full_id = sys.argv[2]
@@ -108,6 +110,12 @@ def main():
 			target_full_id = sys.argv[2]
 			ts = ssh_communication.SSHCommunication(target_full_id)
 			ts.target_pull()
+
+		elif o in ("--info"):
+			h.elevate_privs()
+			lm = libvirt_manage.LibvirtExtra()
+			lm.libvirt_info()
+
 
 		else:
 			print("Error")
