@@ -104,8 +104,9 @@ def main():
 		elif o in ("-c", "--connect"):
 			target_full_id = sys.argv[2]
 			tc = ssh_communication.SSHCommunication(target_full_id)
-			tc.target_run("konsole")
-			## tc.interactive_shell()
+			## tc.target_run("konsole")
+			## tc.interactive_shell_paramiko()
+			tc.interactive_shell_native()
 
 		elif o in ("--run"):
 			target_full_id = sys.argv[2]

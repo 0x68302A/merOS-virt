@@ -16,6 +16,8 @@ import signal
 import errno
 import stat
 
+import subprocess
+
 import logging
 
 class SSHCommunication:
@@ -58,11 +60,16 @@ class SSHCommunication:
 		self.transport.connect(username = self.target_username, pkey = self.k )
 		self.sftp = paramiko.SFTPClient.from_transport(self.transport)
 
+	def interactive_shell_native(self):
+
+		ssh_command = 'ssh -i ' + self.mos_ssh_key + ' ' + self.target_username + '@' + self.target_ip + ' -p ' +self.target_ssh_port
+		subprocess.run(ssh_command, shell=True)
+
 
 	## Grabed from Paramiko Examples
 	## With an addition for Flexibe window size handling
 	# thanks to Mike Looijmans for this code
-	def interactive_shell(self):
+	def interactive_shell_paramiko(self):
 		chan = self.channel
 		oldtty = termios.tcgetattr(sys.stdin)
 		try:
