@@ -9,6 +9,8 @@ import time
 import re
 import subprocess
 import logging
+import os
+
 
 class LibvirtManage:
 	def __init__(self, target_fam_id):
@@ -110,15 +112,44 @@ class LibvirtManage:
 class LibvirtExtra:
 	def __init__(self):
 
+
+		## Import Global Variables
+		h = helper.Helper()
+		self.h = h
+		self.mos_path  =  h.mos_path
+		self.conf_dir = self.mos_path + "/conf/target"
+		self.img_dir = self.mos_path + "/data/images"
+
 		self.conn = libvirt.open("qemu:///system")
 
-	def libvirt_info(self):
+	def libvirt_info(self, Full=True):
+
+		if Full == True:
+
+			print("Available Families:")
+
+			dir_list = os.listdir(self.conf_dir)
+			print('   '+str(dir_list))
+
+			print("Availabe Targets:")
+			Targets_list = []
+
+			for (root, dirs, file) in os.walk(self.img_dir):
+				for f in file:
+					if '.img' in f:
+						f = re.split('\/|\.', f)
+						f = f[-2]
+						print('   '+f)
+
+
+
 
 		print("Active Targets:")
+
 		domains = self.conn.listAllDomains(1)
 		if len(domains) != 0:
 			for domain in domains:
-				print('  '+domain.name())
+				print('   '+domain.name())
 		else:
 			print('  None')
 
@@ -127,19 +158,22 @@ class LibvirtExtra:
 
 
 
-	def vm_shutdown(self):
+	def shutdown_target(self, TargetID):
 
-		xml2str(xml_id)
-		libvirt_conn()
 		try:
-			dom = conn.lookupByID(xml_id)
-			dom0 = conn.destroy(dom)
+			domName = self.conn.lookupByName(TargetID)
+			domID = domName.ID()
+
+			dom = self.conn.lookupByID(domID)
+			dom.destroy()
+			time.sleep(1)
+
+
 		except libvirt.libvirtError:
-			logging.error('Failed to find the main domain')
+			logging.error('Failed to find the Target specified')
 			sys.exit(1)
 
-		logging.info(("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType())))
-		logging.info((dom0.info()))
+		logging.info("Domain %d shut-down" % domName )
 
 
 	def shutdown_all(self):

@@ -30,7 +30,7 @@ def main():
 								"help",
 								"kernel-build",
 								"get", "bootstrap", "build",
-								"init","shutdown",
+								"init","shutdown", "shutdown-all",
 								"connect","push", "pull", "run",
 								"info",
 								"output="
@@ -84,6 +84,12 @@ def main():
 
 		## Haltign ( See above )
 		elif o in ("--shutdown"):
+			TargetID = sys.argv[2]
+			h.elevate_privs()
+			lm = libvirt_manage.LibvirtExtra()
+			lm.shutdown_target(TargetID)
+
+		elif o in ("--shutdown-all"):
 			h.elevate_privs()
 			lm = libvirt_manage.LibvirtExtra()
 			lm.shutdown_all()
