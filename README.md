@@ -132,8 +132,15 @@ Which can be found under: `data/images/`
 - `--init|-i` `[fam-id]` <br>
 **Initialize** Targets and Networks via Libvirt.
 
-- `--shutdown` <br>
-( Currently **halts ALL Libvirt guests** )
+- `--shutdown` `[target-full-id]`<br>
+Shut down selected Target.
+
+- `--shutdown-all` <br>
+Shut down ALL libvirt guests. 
+
+- `--info` <br>
+Show Active Targets, Networks <br>
+and local Available merOS configuration sets.
 
 The **recommended free-space for the project sits at around 12- 15GB ( For `mos_lab` )** - <br>
 With the possibility to **free up to ~92% after initial build** - <br> **By  a simple `rm -rf` of `./data/build/bootstrap/[fam_id]`**. <br>
