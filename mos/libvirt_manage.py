@@ -39,6 +39,46 @@ class LibvirtManage:
 			logging.error('Failed to open connection to the hypervisor')
 			sys.exit(1)
 
+
+	def dom_init(self):
+
+		self.target_id_split = re.split('\/|\-|\.', self.target_fam_id)
+		self.fam_id = self.target_id_split[-2]
+
+		self.no_mos_target_split = re.split('\/|\-|\_', self.fam_id)
+		self.no_mos_target = self.no_mos_target_split[-2]
+
+		self.conf_dir = self.mos_path + "/conf/target/" + self.fam_id + "/libvirt/"
+
+		self.dom = self.conf_dir + self.no_mos_target + ".xml"
+
+		try:
+
+			## Grab target_id from libvirt XML filename
+			self.xml_id = re.split('\/|\_|\.', self.dom)
+			self.target_id = self.xml_id[-2]
+			self.target_full_id = 'mos_' + self.target_id
+
+			self.target_rootfs_img = ( self.mos_img_dir + '/'
+						+ self.target_full_id +  ".img" )
+
+			with open(self.dom, 'r') as file :
+				self.xml_domain_data = file.read()
+
+			## Change custom libvirt options
+			self.xml_domain_data = self.xml_domain_data.replace('$TARGET_FULL_ID', self.target_full_id)
+			self.xml_domain_data = self.xml_domain_data.replace('$KERNEL_IMG', self.kernel_img)
+			self.xml_domain_data = self.xml_domain_data.replace('$TARGET_ROOTFS_IMG', self.target_rootfs_img)
+
+			dom0 = self.conn.createXML(self.xml_domain_data)
+
+		except libvirt.libvirtError:
+			logging.error('Domain is running, or Failed to Parse XML')
+
+		logging.info("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
+		logging.info(dom0.info())
+
+
 	def doms_init(self):
 
 		## For every domain XML found
@@ -153,6 +193,15 @@ class LibvirtExtra:
 		else:
 			print('  None')
 
+
+		print("Active Networks:")
+		networks = self.conn.listAllNetworks(2)
+		if len(networks) != 0:
+			for network in networks:
+				print('   '+network.name())
+		else:
+			print('  None')
+
 		self.conn.close()
 		exit(0)
 
@@ -173,7 +222,7 @@ class LibvirtExtra:
 			logging.error('Failed to find the Target specified')
 			sys.exit(1)
 
-		logging.info("Domain %d shut-down" % domName )
+		logging.info("Target %s shut-down" % TargetID )
 
 
 	def shutdown_all(self):

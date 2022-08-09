@@ -75,12 +75,19 @@ def main():
 		## thus needing elevated ( root ) privileges
 		## ( See: mos/libvirt_manage.py:40,72,98 )
 		elif o in ("-i", "--init"):
-			target_fam_id = sys.argv[2]
 			h.elevate_privs()
-			lm = libvirt_manage.LibvirtManage(target_fam_id)
-			lm.nets_init()
-			lm.doms_init()
-			lm.hooks_init()
+
+			if sys.argv[2] == 'target':
+				target_id = sys.argv[3]
+				lm = libvirt_manage.LibvirtManage(target_id)
+				lm.dom_init()
+			else:
+				target_fam_id = sys.argv[2]
+
+				lm = libvirt_manage.LibvirtManage(target_fam_id)
+				lm.nets_init()
+				lm.doms_init()
+				lm.hooks_init()
 
 		## Haltign ( See above )
 		elif o in ("--shutdown"):
