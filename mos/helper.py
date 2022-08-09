@@ -69,7 +69,7 @@ class Helper:
 	def elevate_privs():
 		euid = os.geteuid()
 		if euid != 0:
-			print("-- This action requires root access --\n-- Read more in the /meros comments --")
+			# print("-- This action requires root access --\n-- Read more in the /meros comments --")
 			args = ['sudo', sys.executable] + sys.argv + [os.environ]
 			os.execlpe('sudo', *args)
 
