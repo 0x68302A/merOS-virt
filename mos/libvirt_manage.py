@@ -104,11 +104,12 @@ class LibvirtManage:
 
 				dom0 = self.conn.createXML(self.xml_domain_data)
 
+				logging.info("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
+				logging.info(dom0.info())
+
 			except libvirt.libvirtError:
 				logging.error('Domain is running, or Failed to Parse XML')
 
-			logging.info("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
-			logging.info(dom0.info())
 
 
 	def nets_init(self):
