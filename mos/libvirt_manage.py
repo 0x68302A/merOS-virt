@@ -143,7 +143,7 @@ class LibvirtManage:
 		for i in self.hooks:
 			try:
 				subprocess.call(i)
-				logging.info('Applied netfilter rules from %s', i)
+				logging.info('Run Host hooks from %s', i)
 
 			except CalledProcessError:
 				logging.error(CalledProcessError)
