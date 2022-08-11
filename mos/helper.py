@@ -66,6 +66,11 @@ class Helper:
 			help_data = help_file.read()
 			pydoc.pager(help_data)
 
+	def display_log():
+		with open(Helper.mos_path + "/LOG", "r") as log_file:
+			log_data = log_file.read()
+			pydoc.pager(log_data)
+
 	def elevate_privs():
 		euid = os.geteuid()
 		if euid != 0:

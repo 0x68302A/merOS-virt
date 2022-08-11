@@ -32,11 +32,9 @@ def main():
 								"get", "bootstrap", "build",
 								"init","shutdown", "shutdown-all",
 								"connect","push", "pull", "run",
-								"info",
+								"info", "log",
 								"output="
 								])
-
-		logging.info('#### STARTED MerOS ####')
 
 	except getopt.GetoptError as err:
 		print(err)
@@ -48,6 +46,10 @@ def main():
 	for o, a in opts:
 		if o == "-v":
 			verbose = True
+
+		elif o in ("--log"):
+			h.display_log()
+			sys.exit()
 
 		elif o in ("-h", "--help"):
 			h.display_help()
