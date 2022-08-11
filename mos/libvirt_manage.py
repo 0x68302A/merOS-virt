@@ -104,8 +104,7 @@ class LibvirtManage:
 
 				dom0 = self.conn.createXML(self.xml_domain_data)
 
-				logging.info("Domain 0: id %d running %s" % (dom0.ID(), dom0.OSType()))
-				logging.info(dom0.info())
+				logging.info("Configured Target '%s'\n--From: '%s'" % (dom0.name(), i))
 
 			except libvirt.libvirtError:
 				logging.error('Domain is running, or Failed to Parse XML')
@@ -127,10 +126,11 @@ class LibvirtManage:
 					self.xml_network_data = file.read()
 
 				## Change custom libvirt options
-				self.xml_network_data = self.xml_network_data.replace('$NETWORK_FULL_ID', self.network_full_id)
+				self.xml_network_data = self.xml_network_data.replace('$NETWORK_FULL_ID',
+											self.network_full_id)
 
 				dom0 = self.conn.networkCreateXML(self.xml_network_data)
-				logging.info('Created Network interface from %s', i)
+				logging.info("Configured Network Interface '%s'\n--From %s" % (self.network_full_id, i))
 
 			except libvirt.libvirtError:
 				logging.error('Network is running, Target Image is missing, or Failed to Parse XML')
@@ -143,7 +143,7 @@ class LibvirtManage:
 		for i in self.hooks:
 			try:
 				subprocess.call(i)
-				logging.info('Run Host hooks from %s', i)
+				logging.info('Executed Host Hooks\n--From %s', i)
 
 			except CalledProcessError:
 				logging.error(CalledProcessError)
@@ -241,4 +241,4 @@ class LibvirtExtra:
 		if self.conn.listDomainsID():
 			logging.error('ERROR! There are live domains.')
 		else:
-			logging.info('merOS shut down gracefully')
+			logging.info('merOS shut down all Libvirt guests gracefully')
