@@ -42,13 +42,16 @@ class LibvirtManage:
 
 	def dom_init(self):
 
-		self.target_id_split = re.split('\/|\-|\.', self.target_fam_id)
+		self.target_id_split = re.split('\/|\-|\.|_', self.target_fam_id)
 		self.fam_id = self.target_id_split[-2]
 
-		self.no_mos_target_split = re.split('\/|\-|\_', self.fam_id)
-		self.no_mos_target = self.no_mos_target_split[-2]
+		self.no_mos_target_split = re.split('\/|\-|\_', self.target_fam_id)
+		print(self.no_mos_target_split)
+		self.no_mos_target = ('dom_' + self.no_mos_target_split[0]
+						+ '-' + self.no_mos_target_split[1]
+						+ '-' + self.no_mos_target_split[2])
 
-		self.conf_dir = self.mos_path + "/conf/target/" + self.fam_id + "/libvirt/"
+		self.conf_dir = self.mos_path + "/conf/target/" + 'mos_' + self.fam_id + "/libvirt/"
 
 		self.dom = self.conf_dir + self.no_mos_target + ".xml"
 
@@ -56,8 +59,9 @@ class LibvirtManage:
 
 			## Grab target_id from libvirt XML filename
 			self.xml_id = re.split('\/|\_|\.', self.dom)
-			self.target_id = self.xml_id[-2]
+			self.target_id = self.xml_id[-1]
 			self.target_full_id = 'mos_' + self.target_id
+			print(self.target_full_id)
 
 			self.target_rootfs_img = ( self.mos_img_dir + '/'
 						+ self.target_full_id +  ".img" )
