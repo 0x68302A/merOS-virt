@@ -32,7 +32,7 @@ class TargetManage:
 
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.default_gw = h.default_gw
-		self.target_conf_dir = self.mos_path + "/conf/target/" + self.family_id
+		self.target_conf_dir = self.mos_path + "/conf/families/" + self.family_id
 		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
@@ -216,7 +216,7 @@ class TargetManage:
 
 		# for self.target_xml in self.target_xmls:
 		self.target_xmls = glob.glob(self.mos_path
-					+ '/conf/target/'
+					+ '/conf/families/'
 					+ self.family_id
 					+ '/build/'
 					+ '*.xml')

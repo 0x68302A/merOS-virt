@@ -33,7 +33,7 @@ class SSHCommunication:
 		self.target_fam = self.target_id_split[0]
 		self.target_id = self.target_id_split[1]
 
-		self.target_id_xml = ( self.mos_path + "/conf/target/"
+		self.target_id_xml = ( self.mos_path + "/conf/families/"
 				+ self.target_fam + "/build/"
 				+ self.target_id + ".xml" )
 

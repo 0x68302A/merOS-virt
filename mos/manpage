@@ -7,7 +7,7 @@ DESCRIPTION
 Families are used to describe Sets of Targets ( Virtualized Machines )
 
 Configuration files are found, and should be placed,
-under conf/target/[fam-id]/ - Containing:
+under conf/families/[fam-id]/ - Containing:
 	
 1. The Target rootfs directory :: rootfs/[target-id]/includes.chroot/ 
    Where any custom package configuration file, or persistent data, can be placed.
