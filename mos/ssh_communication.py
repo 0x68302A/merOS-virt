@@ -187,8 +187,6 @@ class SSHCommunication:
 				+ ' --start=' + run_args)
 
 		subprocess.Popen(self.xpra_args, shell=True)
-		logging.info('HERE')
-
 
 class SFTPClient_push(paramiko.SFTPClient):
     def put_dir(self, source, target):
