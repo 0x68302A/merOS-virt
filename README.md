@@ -36,7 +36,7 @@ with an abstraction layer around Building, Virtualization, Networking and Connec
 **Families are used to describe Sets of Targets ( VMs )**
 
 **Configuration Files** are found, and should be placed,
-under: <br> `conf/target/[fam-id]/` - containing:
+under: <br> `conf/families/[fam-id]/` - containing:
 	
 1. **The Target rootfs directory** : `rootfs/[target-id]/includes.chroot/` <br>
 	Where any custom package configuration file, or persistent data, can be placed. <br>
