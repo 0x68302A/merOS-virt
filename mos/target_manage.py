@@ -18,23 +18,23 @@ import glob
 
 import logging
 
-## We will by initializing 
-## all necessary variables and parameters
+## We begin with initializing
+## all necessary variables and parameters.
 class TargetManage:
 	def __init__(self, family_id):
 		self.family_id = family_id
 		logging.info('Target Family is %s', self.family_id)
 
-		h = helper.Helper()
-		self.h = h
-		self.mos_path  =  h.mos_path
-		self.arch = h.arch
+		self.h = helper.Helper()
+		self.host_arch = self.h.arch
+		self.host_inet_gateway = self.h.default_gw
 
+		self.mos_path  =  self.h.mos_path
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
-		self.default_gw = h.default_gw
-		self.target_conf_dir = self.mos_path + "/conf/families/" + self.family_id
-		self.target_chroot_common_dir =	self.target_conf_dir + "/rootfs/common/includes.chroot"
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
+
+		self.target_conf_dir = self.mos_path + "/conf/families/" + self.family_id
+		self.target_conf_common_dir = self.target_conf_dir + "/rootfs/common/includes.chroot"
 
 		## The target DNS parameters
 		## for now hardcoded
@@ -45,9 +45,9 @@ class TargetManage:
 	## Get, Unpack, and Place rootfs
 	def rootfs_manage(self):
 
-		## Check for init, and skip download if found
-		## TODO: add an update flag to --build
-		## As to allow for updating the base rootfs
+		## Check for Target chroot /sbin/init, and skip rootfs download if found.
+		## TODO: add an update flag to --build,
+		## as to allow for updating the base rootfs
 
 		if os.path.exists(self.target_chroot_dir + "/sbin/init"):
 			None
@@ -61,21 +61,18 @@ class TargetManage:
 
 			os.makedirs(self.target_chroot_dir, mode = 0o777, exist_ok = True)
 
-			## Check whether we're dealing with a
-			## tar.gz ROOTFS of a common Path
-
+			## Check whether we're dealing with a tar.gzip ROOTFS
 			if os.path.isfile(self.distro_rootfs_targz):
 				tar_file = tarfile.open(self.distro_rootfs_targz)
 				tar_file.extractall(self.target_chroot_dir)
 				tar_file.close
 
+			## Or a common path
 			elif os.path.exists(self.distro_rootfs_dir):
 				self.cp_args = ('cp -rn '
 					+ self.distro_rootfs_dir
 					+ '/* ' + self.target_chroot_dir)
 				subprocess.run(self.cp_args, shell=True)
-				## distutils.dir_util.copy_tree(self.distro_rootfs_dir, self.target_chroot_dir, preserve_symlinks=True)
-
 			else:
 				logging.info('Can not find distro ROOTFS')
 
@@ -86,7 +83,7 @@ class TargetManage:
 
 		## Copy Family-Common rootfs base
 		try:
-			distutils.dir_util.copy_tree(self.target_chroot_common_dir, self.target_chroot_dir)
+			distutils.dir_util.copy_tree(self.target_conf_common_dir, self.target_chroot_dir)
 		except:
 			logging.info('No common rootfs Configuration found')
 		
@@ -236,12 +233,12 @@ class TargetManage:
 			self.distro_rootfs_targz = (self.mos_bootstrap_dir
 								+ "/" + "rootfs"
 								+ "_" + self.target_distro
-								+ "_" + self.arch + ".tar.gz")
+								+ "_" + self.host_arch + ".tar.gz")
 
 			self.distro_rootfs_dir = (self.mos_bootstrap_dir
 								+ "/" + "rootfs"
 								+ "_" + self.target_distro
-								+ "_" + self.arch)
+								+ "_" + self.host_arch)
 
 			logging.info('Target distro is %s', self.target_distro)
 
