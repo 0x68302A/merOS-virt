@@ -58,12 +58,11 @@ class RootfsGet:
 	def get_debian(self):
 
 		os.makedirs(self.distro_rootfs_dir, mode = 0o777, exist_ok = True)
-		self.debootstrap_args = ('debootstrap'
-				+ ' --variant=minbase'
-				+ ' --no-merged-usr'
-				+ ' stable '
-				+ self.distro_rootfs_dir
-				+ ' http://deb.debian.org/debian' )
+		self.debootstrap_args = ('debootstrap' ## We use debootstrap, as do most major other debian-based releases
+				+ ' --variant=minbase' ## Limiting final size is vital, we start with the "Required" Debian packages
+				+ ' stable ' ## Always build on stable release
+				+ self.distro_rootfs_dir ## Build path
+				+ ' http://ftp.de.debian.org/debian' ) ## 
 
 		subprocess.run([self.debootstrap_args], shell=True)
 
