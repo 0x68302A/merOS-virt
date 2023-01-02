@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import fromstring, ElementTree
 import random as r
 import pydoc
+import shutil
 
 ## Use a helper class
 ## which we will be calling in all modules

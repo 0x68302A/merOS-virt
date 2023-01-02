@@ -7,7 +7,6 @@ import git
 from git import Repo
 from git import RemoteProgress
 import subprocess
-import shutil
 import logging
 
 class CloneProgress(RemoteProgress):
