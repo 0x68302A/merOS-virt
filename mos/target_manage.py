@@ -297,10 +297,16 @@ class TargetManage:
 				pass
 
 			self.rootfs_manage()
+			logging.info('Executed Succesfully TM_01/05: rootfs_manage')
 			self.chroot_configure()
+			logging.info('Executed Succesfully TM_02/05: chroot_configure')
 			self.chroot_keyadd()
+			logging.info('Executed Succesfully TM_03/05: chroot_keyadd')
 			self.rootfs_tar_build()
+			logging.info('Executed Succesfully TM_04/05: rootfs_tar_build')
 			self.rootfs_qcow_build()
+			logging.info('Executed Succesfully TM_05/05: rootfs_qcow_build')
+
 
 ## SSH key generation Class
 ## Needed for storing the different pairs Safely
