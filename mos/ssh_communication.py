@@ -44,7 +44,7 @@ class SSHCommunication:
 		## Grabing Target- Specific SSH related Options
 		self.xml_parse = helper.ParseXML(self.target_id_xml)
 		self.target_ip = str(self.xml_parse.read_xml_value("network", "ip_addr"))
-		self.target_ssh_port = str(self.xml_parse.read_xml_value("network", "ssh_port"))
+		self.target_ssh_port = str(self.xml_parse.read_xml_value("ssh", "port"))
 		self.target_username = str(self.xml_parse.read_xml_value("details", "username"))
 
 		self.k = paramiko.RSAKey.from_private_key_file(self.mos_ssh_key)
