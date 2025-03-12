@@ -22,7 +22,11 @@ class Helper:
 
 	## Define MerOS path
 	helper_path = os.path.dirname(os.path.realpath(__file__))
-	mos_path = os.path.dirname(helper_path)
+	venv_path = sys.prefix if hasattr(sys, 'real_prefix') or (
+		hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
+	) else None
+
+	mos_path = os.path.dirname(venv_path)
 
 	## Define Host architecture
 	## We shouldn't cross-compile or
@@ -107,8 +111,8 @@ class ParseXML:
 		if "attribute" in kwargs:
 			try:
 				for element in self.xml_root.findall(node):
-				        element.set(kwargs['attribute'],value)
-				        element.set(attr,value)
+					element.set(kwargs['attribute'],value)
+					welement.set(attr,value)
 			except NameError:
 				pass
 			return ET.tostring(self.xml_root, encoding='unicode', method='xml')
