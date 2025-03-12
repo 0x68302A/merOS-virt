@@ -13,4 +13,4 @@ apt install -y \
 
 ## Temp Debian bug fix
 ## https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=623536
-mkdir /var/lib/libvirt/dnsmasq/
+mkdir -p /var/lib/libvirt/dnsmasq/

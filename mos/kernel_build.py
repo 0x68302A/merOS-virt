@@ -3,6 +3,7 @@
 import mos.helper as helper
 
 import os
+import shutil
 import git
 from git import Repo
 from git import RemoteProgress

@@ -1,6 +1,8 @@
 __pycache__
 data
+build
+*.swp
+.meros_venv
 merOS_virt.egg-info
-conf/families
 LOG
 !.gitignore

@@ -85,7 +85,7 @@ under: `./data/[fam_id]`<br>
 	See below.** <br>
 
 - Install the project, for all users: <br>
-	`sudo pip3 install -e --system` <br>
+	`sudo pip3 install . --system-site-packages` <br>
 
 **You can now call `meros`** !
 
@@ -123,6 +123,10 @@ under: `./data/[fam_id]`<br>
 ### BUILDING & MANAGING A TARGET ( VM )
 
 `[fam-id]` - `[target-id]` = `target-full-id`  ( ex. `mos_sec-guest` )  <br>
+
+- `--build-kernel`<br>
+This **clones and builds** the linux kernel, <br>
+Which can be found under: `data/build/kernel/`
 
 - `--build` `[fam-id]` <br>
 This **creates and populates** the rootfs chroot dir, <br>
