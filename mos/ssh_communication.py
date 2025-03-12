@@ -9,6 +9,7 @@ from paramiko.py3compat import u
 import termios
 import tty
 import select
+import time
 
 import struct
 import fcntl
@@ -34,8 +35,8 @@ class SSHCommunication:
 		self.target_id = self.target_id_split[1]
 
 		self.target_id_xml = ( self.mos_path + "/conf/families/"
-				+ self.target_fam + "/build/"
-				+ self.target_id + ".xml" )
+			+ self.target_fam + "/build/"
+			+ self.target_id + ".xml" )
 
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.mos_ssh_key = self.mos_ssh_priv_key_dir + "/" + self.target_full_id + "-id_rsa"
@@ -44,17 +45,17 @@ class SSHCommunication:
 		## Grabing Target- Specific SSH related Options
 		self.xml_parse = helper.ParseXML(self.target_id_xml)
 		self.target_ip = str(self.xml_parse.read_xml_value("network", "ip_addr"))
-		self.target_ssh_port = str(self.xml_parse.read_xml_value("ssh", "port"))
+		self.target_ssh_port = str(self.xml_parse.read_xml_value("network", "ssh_port"))
 		self.target_username = str(self.xml_parse.read_xml_value("details", "username"))
 
 		self.k = paramiko.RSAKey.from_private_key_file(self.mos_ssh_key)
-		self.sshClient = paramiko.SSHClient()
-		self.sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		self.sshClient.connect( hostname = self.target_ip, username = self.target_username, port = self.target_ssh_port, pkey = self.k )
+		# self.sshClient = paramiko.SSHClient()
+		# self.sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		# self.sshClient.connect( hostname = self.target_ip, username = self.target_username, port = self.target_ssh_port, pkey = self.k )
 
-		self.channel = self.sshClient.get_transport().open_session()
-		self.channel.get_pty(term="xterm")
-		self.channel.invoke_shell()
+		# self.channel = self.sshClient.get_transport().open_session()
+		# self.channel.get_pty(term="xterm")
+		# self.channel.invoke_shell()
 
 		self.transport = paramiko.Transport((self.target_ip, int(self.target_ssh_port)))
 		self.transport.connect(username = self.target_username, pkey = self.k )
@@ -62,7 +63,7 @@ class SSHCommunication:
 
 	def interactive_shell_native(self):
 
-		ssh_command = 'ssh -i ' + self.mos_ssh_key + ' ' + self.target_username + '@' + self.target_ip + ' -p ' +self.target_ssh_port
+		ssh_command = 'ssh -i ' + self.mos_ssh_key + ' ' + self.target_username + '@' + self.target_ip + ' -p ' + self.target_ssh_port
 		subprocess.run(ssh_command, shell=True)
 
 
@@ -122,10 +123,10 @@ class SSHCommunication:
 
 		for filename in sftp_client.listdir(remote_dir):
 			if stat.S_ISDIR(sftp_client.stat(remote_dir + filename).st_mode):
-			# uses '/' path delimiter for remote server
+				# uses '/' path delimiter for remote server
 				self.download_files(sftp_client, remote_dir
-						+ filename
-						+ '/', os.path.join(local_dir, filename))
+									+ filename
+									+ '/', os.path.join(local_dir, filename))
 			else:
 				if not os.path.isfile(os.path.join(local_dir, filename)):
 					sftp_client.get(remote_dir + filename, os.path.join(local_dir, filename))
@@ -173,35 +174,63 @@ class SSHCommunication:
 
 	def target_run(self, run_args):
 
-		self.xpra_args = ('xpra start --ssh'
-				+ '="ssh -i '
-				+ self.mos_ssh_key
-				+ ' -o "StrictHostKeyChecking=no""' ## data/ssh_keys/mos_mersec_deb-guest-id_rsa
-				+ ' ssh://'
-				+ self.target_username
-				+ '@'
-				+ self.target_ip + ':' + self.target_ssh_port
-				+ ' --border red,1'
-				+ ' --title="@title@ on merOS' + '::'  + self.target_full_id + '"'
-				+ ' --window-close=auto'
-				+ ' --start=' + run_args)
+		shell_waypipe_clean_local = ['rm', '-rf', '/tmp/socket_local']
 
-		subprocess.Popen(self.xpra_args, shell=True)
+		shell_waypipe_clean_remote = [
+			'ssh',
+			'-i', self.mos_ssh_key,
+			f"{self.target_username}@{self.target_ip}",
+			'-p', self.target_ssh_port,
+			'rm -rf /tmp/socket_remote'
+		]
+
+		shell_waypipe_listen = ['/usr/bin/waypipe', '-s', '/tmp/socket_local', 'client']
+
+		shell_waypipe_bind = [
+			'ssh',
+			'-R', '/tmp/socket_remote:/tmp/socket_local',
+			'-i', self.mos_ssh_key,
+			f"{self.target_username}@{self.target_ip}",
+			'-p', self.target_ssh_port,
+			'/usr/bin/waypipe', '-s', '/tmp/socket_remote', 'server',
+			'--',
+			run_args
+		]
+
+		process_cleanup_local = subprocess.Popen(shell_waypipe_clean_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		process_cleanup_remote = subprocess.Popen(shell_waypipe_clean_remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		process_waypipe_listen = subprocess.Popen(shell_waypipe_listen, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		time.sleep(2)
+		process_waypipe_bind = subprocess.Popen(shell_waypipe_bind, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		print(f"Started Local Waypipe with PID: {process_waypipe_listen.pid}")
+
+		# Debug Waypipe
+		## with open('output.log', 'w') as outfile:
+		##	   # Start the command and redirect stdout and stderr to the file
+		##	   # process = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
+		##	   process_waypipe_bind = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
+
+
+
+		##	   # Optionally, wait for the process to complete
+		##	   process_waypipe_bind.wait()
+
+		##	   print("Process completed. Output written to output.log.")
 
 class SFTPClient_push(paramiko.SFTPClient):
-    def put_dir(self, source, target):
-        for item in os.listdir(source):
-            if os.path.isfile(os.path.join(source, item)):
-                self.put(os.path.join(source, item), '%s/%s' % (target, item))
-            else:
-                self.mkdir('%s/%s' % (target, item), ignore_existing=True)
-                self.put_dir(os.path.join(source, item), '%s/%s' % (target, item))
+	def put_dir(self, source, target):
+		for item in os.listdir(source):
+			if os.path.isfile(os.path.join(source, item)):
+				self.put(os.path.join(source, item), '%s/%s' % (target, item))
+			else:
+				self.mkdir('%s/%s' % (target, item), ignore_existing=True)
+				self.put_dir(os.path.join(source, item), '%s/%s' % (target, item))
 
-    def mkdir(self, path, mode=511, ignore_existing=False):
-        try:
-            super(SFTPClient_push, self).mkdir(path, mode)
-        except IOError:
-            if ignore_existing:
-                pass
-            else:
-                raise
+	def mkdir(self, path, mode=511, ignore_existing=False):
+		try:
+			super(SFTPClient_push, self).mkdir(path, mode)
+		except IOError:
+			if ignore_existing:
+				pass
+			else:
+				raise
