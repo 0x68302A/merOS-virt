@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 
-import mos.helper as helper
-import mos.kernel_build as kernel_build
-import mos.target_manage as target_manage
-import mos.libvirt_manage as libvirt_manage
-import mos.ssh_communication as ssh_communication
+import src.config as config
+import src.kernel_build as kernel_build
+import src.target_manage as target_manage
+import src.libvirt_manage as libvirt_manage
+import src.ssh_communication as ssh_communication
 import subprocess
 import logging
 
@@ -14,7 +14,7 @@ import sys
 
 
 def main():
-	h = helper.Helper
+	h = config.Config
 	mos_path = h.mos_path
 
 	logging.basicConfig(

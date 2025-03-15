@@ -1,4 +1,4 @@
-import mos.helper as helper
+import src.config as config
 
 import os
 import socket
@@ -26,7 +26,7 @@ class SSHCommunication:
 		self.target_full_id = target_full_id
 
 		## Import Gloval Variables
-		h = helper.Helper()
+		h = config.Config()
 		self.h = h
 		self.mos_path  =  h.mos_path
 
@@ -34,7 +34,7 @@ class SSHCommunication:
 		self.target_fam = self.target_id_split[0]
 		self.target_id = self.target_id_split[1]
 
-		self.target_id_xml = ( self.mos_path + "/conf/families/"
+		self.target_id_xml = ( self.mos_path + "/conf/"
 			+ self.target_fam + "/build/"
 			+ self.target_id + ".xml" )
 
@@ -43,7 +43,7 @@ class SSHCommunication:
 
 		## Parse XML
 		## Grabing Target- Specific SSH related Options
-		self.xml_parse = helper.ParseXML(self.target_id_xml)
+		self.xml_parse = config.ParseXML(self.target_id_xml)
 		self.target_ip = str(self.xml_parse.read_xml_value("network", "ip_addr"))
 		self.target_ssh_port = str(self.xml_parse.read_xml_value("network", "ssh_port"))
 		self.target_username = str(self.xml_parse.read_xml_value("details", "username"))

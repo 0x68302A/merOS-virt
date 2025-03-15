@@ -1,6 +1,6 @@
 #!/usb/bin/python3
 
-import mos.helper as helper
+import src.config as config
 
 import os
 import requests
@@ -15,7 +15,7 @@ class RootfsGet:
 		self.target_distro = target_distro
 
 		## Import Global Variables
-		h = helper.Helper()
+		h = config.Config()
 		self.arch = h.arch
 
 		self.target_bootstrap_dir = h.mos_path + "/data/build/bootstrap"

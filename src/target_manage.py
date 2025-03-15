@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-import mos.helper as helper
-import mos.rootfs_get as rootfs_get
-import mos.kernel_build as kernel_build
+import src.config as config
+import src.rootfs_get as rootfs_get
+import src.kernel_build as kernel_build
 
 import os
 import sys
@@ -25,7 +25,7 @@ class TargetManage:
 		self.family_id = family_id
 		logging.info('Target Family is %s', self.family_id)
 
-		self.h = helper.Helper()
+		self.h = config.Config()
 		self.host_arch = self.h.arch
 		self.host_inet_gateway = self.h.default_gw
 
@@ -33,7 +33,7 @@ class TargetManage:
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
 
-		self.target_conf_dir = self.mos_path + "/conf/families/" + self.family_id
+		self.target_conf_dir = self.mos_path + "/conf/" + self.family_id
 		self.target_conf_common_dir = self.target_conf_dir + "/rootfs/common/includes.chroot"
 
 		## The target DNS parameters
@@ -105,8 +105,8 @@ class TargetManage:
 				file.write("nameserver " + self.DNS1 + "\n")
 
 		## Execute Target-Specific Configuration hooks
-		subprocess.run("/tmp/mos/hooks/0100-conf.chroot", shell=True)
-		subprocess.run("/tmp/mos/hooks/0150-packages.chroot", shell=True)
+		subprocess.run("/tmp/src/hooks/0100-conf.chroot", shell=True)
+		subprocess.run("/tmp/src/hooks/0150-packages.chroot", shell=True)
 		os.chdir(f)
 		os.chroot(".")
 
@@ -213,7 +213,7 @@ class TargetManage:
 
 		# for self.target_xml in self.target_xmls:
 		self.target_xmls = glob.glob(self.mos_path
-					+ '/conf/families/'
+					+ '/conf/'
 					+ self.family_id
 					+ '/build/'
 					+ '*.xml')
@@ -221,7 +221,7 @@ class TargetManage:
 		for self.target_xml in self.target_xmls:
 
 			self.target_xml_path = self.target_xml.split('/')
-			self.xml_parse = helper.ParseXML(self.target_xml)
+			self.xml_parse = config.ParseXML(self.target_xml)
 
 			self.target_id = str(self.xml_parse.read_xml_value("build", "id"))
 
@@ -261,7 +261,7 @@ class TargetManage:
 									+ '/hooks')
 
 			## Target hooks location in Target ROOTFS
-			self.target_hooks_dir = self.target_chroot_dir + '/tmp/mos/hooks'
+			self.target_hooks_dir = self.target_chroot_dir + '/tmp/src/hooks'
 
 			## Target pkgs
 			self.target_pkgs_conf_dir = os.path.join(self.target_conf_dir

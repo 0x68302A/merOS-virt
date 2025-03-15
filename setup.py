@@ -21,7 +21,7 @@ setup(
 	keywords = "meros-virt isolation security",
 	url = "https://github.com/AranAilbhe/merOS-virt/",
 
-	packages=['mos'],
+	packages=['src'],
 	long_description=read('README.md'),
 
 	classifiers=[

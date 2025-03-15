@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import mos.helper as helper
+import src.config as config
 
 import glob
 import libvirt
@@ -18,7 +18,7 @@ class LibvirtManage:
 		self.target_fam_id = target_fam_id
 
 		## Import Global Variables
-		h = helper.Helper()
+		h = config.Config()
 		self.h = h
 		self.mos_path  =  h.mos_path
 		self.arch = h.arch
@@ -27,7 +27,7 @@ class LibvirtManage:
 		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
 		self.kernel_img = self.mos_img_dir + "/bzImage"
 
-		self.conf_dir = self.mos_path + "/conf/families/" + self.target_fam_id
+		self.conf_dir = self.mos_path + "/conf/" + self.target_fam_id
 		self.xml_dir = self.conf_dir + "/libvirt/"
 		self.hooks_dir = self.conf_dir + "/hooks/"
 
@@ -51,7 +51,7 @@ class LibvirtManage:
 						+ '-' + self.no_mos_target_split[1]
 						+ '-' + self.no_mos_target_split[2])
 
-		self.conf_dir = self.mos_path + "/conf/families/" + 'mos_' + self.fam_id + "/libvirt/"
+		self.conf_dir = self.mos_path + "/conf/" + 'mos_' + self.fam_id + "/libvirt/"
 
 		self.dom = self.conf_dir + self.no_mos_target + ".xml"
 
@@ -159,10 +159,10 @@ class LibvirtExtra:
 
 
 		## Import Global Variables
-		h = helper.Helper()
+		h = config.Config()
 		self.h = h
 		self.mos_path  =  h.mos_path
-		self.conf_dir = self.mos_path + "/conf/families"
+		self.conf_dir = self.mos_path + "/conf"
 		self.img_dir = self.mos_path + "/data/images"
 
 		self.conn = libvirt.open("qemu:///system")

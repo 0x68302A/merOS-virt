@@ -15,13 +15,13 @@ import random as r
 import pydoc
 import shutil
 
-## Use a helper class
+## Use a config class
 ## which we will be calling in all modules
-class Helper:
+class Config:
 
 
 	## Define MerOS path
-	helper_path = os.path.dirname(os.path.realpath(__file__))
+	config_path = os.path.dirname(os.path.realpath(__file__))
 	venv_path = sys.prefix if hasattr(sys, 'real_prefix') or (
 		hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
 	) else None
@@ -67,12 +67,12 @@ class Helper:
 
 
 	def display_help():
-		with open(Helper.mos_path + "/mos/manpage", "r") as help_file:
+		with open(Config.mos_path + "/src/manpage", "r") as help_file:
 			help_data = help_file.read()
 			pydoc.pager(help_data)
 
 	def display_log():
-		with open(Helper.mos_path + "/LOG", "r") as log_file:
+		with open(Config.mos_path + "/LOG", "r") as log_file:
 			log_data = log_file.read()
 			pydoc.pager(log_data)
 

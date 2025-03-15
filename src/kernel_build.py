@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import mos.helper as helper
+import src.config as config
 
 import os
 import shutil
@@ -21,8 +21,8 @@ class KernelBuild:
 	def __init__(self):
 
 		## Universal Paths import
-		## From Helper
-		self.h = helper.Helper()
+		## From Config
+		self.h = config.Config()
 		self.mos_path = self.h.mos_path
 		self.mos_img_dir = self.h.mos_img_dir
 		self.arch = self.h.arch
