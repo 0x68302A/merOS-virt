@@ -4,7 +4,6 @@
 import src.config as config
 import src.kernel_build as kernel_build
 import src.target_manage as target_manage
-import src.libvirt_manage as libvirt_manage
 import src.ssh_communication as ssh_communication
 import subprocess
 import logging
@@ -12,130 +11,138 @@ import logging
 import getopt
 import sys
 
+import os
+
+from src.config import Config
+
+from pathlib import Path
+from src.vm_manager import VMManager
+from src.vm_models import VMConfigLoader
+
 
 def main():
-	h = config.Config
-	mos_path = h.mos_path
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hic:v", [
+                                "help",
+                                "kernel-build",
+                                "get", "bootstrap", "build",
+                                "init","shutdown", 
+                                "connect","push", "pull", "run",
+                                "info", "log",
+                                "output="
+                                ])
 
-	logging.basicConfig(
-			filename = mos_path + '/LOG',
-			format = '%(asctime)s::MerOS::%(levelname)s::%(message)s',
-			datefmt = '%H:%M:%S',
-			encoding = 'utf-8',
-			level = logging.INFO)
+    except getopt.GetoptError as err:
+        print(err)
+        Config.display_help()
+        sys.exit(2)
+    output = None
+    verbose = False
 
+    logging.basicConfig(
+            # filename = Config.mos_path + '/LOG',
+            format = '%(asctime)s::MerOS::%(levelname)s::%(message)s',
+            datefmt = '%H:%M:%S',
+            level=logging.DEBUG if verbose else logging.INFO,
+            encoding = 'utf-8')
 
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], "hic:v", [
-								"help",
-								"kernel-build",
-								"get", "bootstrap", "build",
-								"init","shutdown", "shutdown-all",
-								"connect","push", "pull", "run",
-								"info", "log",
-								"output="
-								])
+    for o, a in opts:
+        if o == "-v":
+            verbose = True
 
-	except getopt.GetoptError as err:
-		print(err)
-		h.display_help()
-		sys.exit(2)
-	output = None
-	verbose = False
+        elif o in ("--log"):
+            Config.display_log()
+            sys.exit()
 
-	for o, a in opts:
-		if o == "-v":
-			verbose = True
+        elif o in ("-h", "--help"):
+            Config.display_help()
+            sys.exit()
 
-		elif o in ("--log"):
-			h.display_log()
-			sys.exit()
+        elif o in ("--kernel-build"):
+            kb = kernel_build.KernelBuild()
+            kb.kernel_clone()
+            kb.kernel_build()
+            sys.exit()
 
-		elif o in ("-h", "--help"):
-			h.display_help()
-			sys.exit()
+        ## When building, we will be chrooting in the newly created rootfs
+        ## configuring local ( build-time ) packages-
+        ## thus needing elevated ( root ) privileges
+        ## ( See: mos/target_manage.py:104 )
+        elif o in ("--build"):
+            target_fam = sys.argv[2]
+            Config.elevate_privs()
+            tm = target_manage.TargetManage(target_fam)
+            tm.main()
+            sys.exit()
 
-		elif o in ("--kernel-build"):
-			kb = kernel_build.KernelBuild()
-			kb.kernel_clone()
-			kb.kernel_build()
-			sys.exit()
+        ## TODO Fix, currently needs full path
+        ## When initializing/ halting, we will be accessing the libvirt daemon resources
+        ## As well as nftables ( kernel ) access
+        ## thus needing elevated ( root ) privileges
+        ## ( See: mos/libvirt_manage.py:40,72,98 )
+        elif o in ("-i", "--init"):
+            Config.elevate_privs()
+            config_file = sys.argv[2]
+            vm_manager = VMManager()
+            configs = VMConfigLoader.load_config(Path(config_file))
+            vms_to_start = args[1:] or configs.keys()
+            
+            for vm_name in vms_to_start:
+                if vm_name in configs:
+                    vm_manager.start_vm(configs[vm_name])
+                    logging.info(f"Started {vm_name}")
+                else:
+                    logging.warning(f"VM {vm_name} not found in config")
 
-		## When building, we will be chrooting in the newly created rootfs
-		## configuring local ( build-time ) packages-
-		## thus needing elevated ( root ) privileges
-		## ( See: mos/target_manage.py:104 )
-		elif o in ("--build"):
-			target_fam = sys.argv[2]
-			h.elevate_privs()
-			tm = target_manage.TargetManage(target_fam)
-			tm.main()
-			sys.exit()
+        elif o in ("--shutdown"):
+            TargetID = sys.argv[2]
+            Config.elevate_privs()
+            vm_manager = VMManager()
+            if not args[0:]:
+                logging.error("Specify VMs to stop or 'all'")
+                sys.exit(1)
+                
+            if args[0] == "all":
+                for vm_name in vm_manager.list_vms():
+                    vm_manager.stop_vm(vm_name)
+            else:
+                for vm_name in args[0:]:
+                    vm_manager.stop_vm(vm_name)
 
-		## When initializing/ halting, we will be accessing the libvirt daemon resources
-		## As well as nftables ( kernel ) access
-		## thus needing elevated ( root ) privileges
-		## ( See: mos/libvirt_manage.py:40,72,98 )
-		elif o in ("-i", "--init"):
-			h.elevate_privs()
+        elif o in ("-c", "--connect"):
+            target_full_id = sys.argv[2]
+            tc = ssh_communication.SSHCommunication(target_full_id)
+            ## tc.target_run("konsole")
+            ## tc.interactive_shell_paramiko()
+            tc.interactive_shell_native()
 
-			if sys.argv[2] == 'target':
-				target_id = sys.argv[3]
-				lm = libvirt_manage.LibvirtManage(target_id)
-				lm.dom_init()
-			else:
-				target_fam_id = sys.argv[2]
+        elif o in ("--run"):
+            target_full_id = sys.argv[2]
+            run_args = sys.argv[3]
+            tc = ssh_communication.SSHCommunication(target_full_id)
+            tc.target_run(run_args)
 
-				lm = libvirt_manage.LibvirtManage(target_fam_id)
-				lm.nets_init()
-				lm.doms_init()
-				lm.hooks_init()
+        elif o in ("--push"):
+            target_full_id = sys.argv[2]
+            file = sys.argv[3]
+            ts = ssh_communication.SSHCommunication(target_full_id)
+            ts.target_push(file)
 
-		## Haltign ( See above )
-		elif o in ("--shutdown"):
-			TargetID = sys.argv[2]
-			h.elevate_privs()
-			lm = libvirt_manage.LibvirtExtra()
-			lm.shutdown_target(TargetID)
+        elif o in ("--pull"):
+            target_full_id = sys.argv[2]
+            ts = ssh_communication.SSHCommunication(target_full_id)
+            ts.target_pull()
 
-		elif o in ("--shutdown-all"):
-			h.elevate_privs()
-			lm = libvirt_manage.LibvirtExtra()
-			lm.shutdown_all()
+        ## TODO Fix, currently displays on VMs, no bridges
+        elif o in ("--info"):
+            Config.elevate_privs()
+            vm_manager = VMManager()
+            for vm_name, status in vm_manager.get_all_statuses().items():
+                print(f"{vm_name}: {'Running' if status else 'Stopped'}")
 
-		elif o in ("-c", "--connect"):
-			target_full_id = sys.argv[2]
-			tc = ssh_communication.SSHCommunication(target_full_id)
-			## tc.target_run("konsole")
-			## tc.interactive_shell_paramiko()
-			tc.interactive_shell_native()
-
-		elif o in ("--run"):
-			target_full_id = sys.argv[2]
-			run_args = sys.argv[3]
-			tc = ssh_communication.SSHCommunication(target_full_id)
-			tc.target_run(run_args)
-
-		elif o in ("--push"):
-			target_full_id = sys.argv[2]
-			file = sys.argv[3]
-			ts = ssh_communication.SSHCommunication(target_full_id)
-			ts.target_push(file)
-
-		elif o in ("--pull"):
-			target_full_id = sys.argv[2]
-			ts = ssh_communication.SSHCommunication(target_full_id)
-			ts.target_pull()
-
-		elif o in ("--info"):
-			h.elevate_privs()
-			lm = libvirt_manage.LibvirtExtra()
-			lm.libvirt_info()
-
-
-		else:
-			print("Error")
-			assert False, "unhandled option"
+        else:
+            print("Error")
+            assert False, "unhandled option"
 
 if __name__ == "__main__":
-	main()
+    main()

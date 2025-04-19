@@ -18,6 +18,8 @@ import glob
 
 import logging
 
+from src.config import Config
+
 ## We begin with initializing
 ## all necessary variables and parameters.
 class TargetManage:
@@ -25,15 +27,14 @@ class TargetManage:
 		self.family_id = family_id
 		logging.info('Target Family is %s', self.family_id)
 
-		self.h = config.Config()
-		self.host_arch = self.h.arch
-		self.host_inet_gateway = self.h.default_gw
+		self.host_arch = Config.arch
+		self.host_inet_gateway = Config.default_gw
 
-		self.mos_path  =  self.h.mos_path
-		self.mos_ssh_priv_key_dir = self.h.mos_ssh_priv_key_dir
-		self.mos_bootstrap_dir = self.mos_path + "/data/build/bootstrap"
+		self.mos_path  =  Config.mos_path
+		self.mos_ssh_priv_key_dir = Config.mos_ssh_priv_key_dir
+		self.mos_bootstrap_dir = Config.mos_path + "/data/build/bootstrap"
 
-		self.target_conf_dir = self.mos_path + "/conf/" + self.family_id
+		self.target_conf_dir = Config.mos_path + "/conf/" + self.family_id
 		self.target_conf_common_dir = self.target_conf_dir + "/rootfs/common/includes.chroot"
 
 		## The target DNS parameters
@@ -200,7 +201,7 @@ class TargetManage:
 	## Also conntains kernel_build
 	def main(self):
 
-		if self.h.euid != 0:
+		if Config.euid != 0:
 			print('We need root access to build.')
 			args = ['sudo', sys.executable] + sys.argv + [os.environ]
 			os.execlpe('sudo', *args)
