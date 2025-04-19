@@ -18,13 +18,15 @@ class VirtualDisk:
 
 @dataclass
 class NetworkInterface:
+    label: str
     bridge: str = "br0"
     subnet: str = "10.10.10.255"
     model: str = "virtio"
+    ip_addr: str = None
     mac: Optional[str] = None
 
     def __str__(self):
-        return f"Network(bridge={self.bridge},subnet={self.subnet}, model={self.model}, mac={self.mac})"
+        return f"Network(label={self.label}, bridge={self.bridge}, subnet={self.subnet}, model={self.model}, mac={self.mac})"
 
 @dataclass
 class VMConfig:
@@ -33,13 +35,13 @@ class VMConfig:
     kernel: str = None
     cpus: int = 2
     disks: List[VirtualDisk] = field(default_factory=list)
-    network: NetworkInterface = field(default_factory=NetworkInterface)
+    networks: List[NetworkInterface] = field(default_factory=list)
     template: str = "default"
     extra_args: List[str] = field(default_factory=list)
 
     def __str__(self):
         return (f"VM(name={self.name}, memory={self.memory}, cpus={self.cpus}, "
-                f"disks={len(self.disks)}, network={self.network}), kernel={self.kernel})")
+                f"disks={len(self.disks)}, networks={len(self.networks)}, kernel={self.kernel})")
 
 class VMConfigLoader:
     @staticmethod
@@ -58,9 +60,13 @@ class VMConfigLoader:
                 VirtualDisk(**disk) 
                 for disk in vm_data.get('disks', [])
             ]
+            networks = [
+                NetworkInterface(**network)
+                for network in vm_data.get('networks', [])
+            ]
             
-            network = NetworkInterface(
-                **vm_data.get('network', template.get('network', {})))
+            # network = NetworkInterface(
+            #     **vm_data.get('network', template.get('network', {})))
             
             vms[vm_name] = VMConfig(
                 name=vm_name,
@@ -68,7 +74,7 @@ class VMConfigLoader:
                 cpus=vm_data.get('cpus', template.get('cpus', 2)),
                 kernel=vm_data.get('kernel', template.get('kernel', None)),
                 disks=disks,
-                network=network,
+                networks=networks,
                 extra_args=vm_data.get('extra_args', [])
             )
             logger.debug(f"Loaded VM config: {vms[vm_name]}")

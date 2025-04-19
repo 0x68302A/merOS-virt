@@ -32,16 +32,6 @@ class VMManager:
             pid_file.unlink(missing_ok=True)
         
         try:
-            self.network_manager.create_bridge(config.network.bridge, config.network.subnet)
-        except Exception as e:
-            logger.debug(f"Bridge {config.network.bridge} is already present")
-            pass
-
-            
-        try:
-            # Setup networking
-            logger.debug(f"Configuring network: {config.network}")
-            
             # Prepare disks
             disk_info = {}
             for disk in config.disks:
@@ -49,6 +39,12 @@ class VMManager:
                 disk_data = self.disk_manager.create_disk(config.name, disk)
                 # self.disk_manager.mount_disk(disk)
                 disk_info[disk.label] = disk_data
+
+            # Prepare networks
+            network_info = {}
+            for network in config.networks:
+                logger.debug(f"Preparing network: {network}")
+                self.network_manager.create_bridge(network.bridge, network.subnet)
             
             # Build QEMU command
             cmd = [
@@ -57,10 +53,9 @@ class VMManager:
                 "-m", config.memory,
                 "-smp", str(config.cpus),
                 "-daemonize",
-                "-netdev", f"bridge,br={config.network.bridge},id=net0",
-                "-device", f"{config.network.model},netdev=net0",
                 "-pidfile", str(pid_file)
             ]
+
 
             # Add disks
             for disk in config.disks:
@@ -69,6 +64,19 @@ class VMManager:
                     f"file={disk_info[disk.label]['path']},format={disk.fs_type},if=virtio"
                 ]
 
+            # Add networks
+            for network in config.networks:
+                cmd += [
+                    "-netdev", f"bridge,id=net_{network.label},br={network.bridge}",
+                    "-device", f"{network.model},netdev=net_{network.label}",
+                ]
+
+                self._save_state(config.name, {
+                    "bridge": network.bridge,
+                    "model": network.model 
+                })
+
+            # Add kernel Parameter for custom kernels
             if config.kernel:
                 cmd += [
                     "-kernel", 
@@ -94,10 +102,6 @@ class VMManager:
                 text=True
             )
 
-            self._save_state(config.name, {
-                "bridge": config.network.bridge,
-                "model": config.network.model 
-            })
 
             elapsed = time.time() - start_time
             logger.info(f"VM started successfully in {elapsed:.2f}s")

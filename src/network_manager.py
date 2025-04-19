@@ -33,8 +33,8 @@ class NetworkManager:
 
             logger.debug(f"Bridge {bridge_name} activated")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Bridge creation failed: {e.stderr}")
-            raise
+            logger.error(f"Bridge status: {e.stderr}")
+            pass
     
     @classmethod
     def delete_bridge(cls, bridge_name: str):

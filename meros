@@ -43,7 +43,8 @@ def main():
             # filename = Config.mos_path + '/LOG',
             format = '%(asctime)s::MerOS::%(levelname)s::%(message)s',
             datefmt = '%H:%M:%S',
-            level=logging.DEBUG if verbose else logging.INFO,
+            # level=logging.DEBUG if verbose else logging.INFO,
+            level=logging.DEBUG,
             encoding = 'utf-8')
 
     for o, a in opts:
