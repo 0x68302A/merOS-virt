@@ -9,6 +9,7 @@ from typing import Dict, Optional, Tuple
 from .vm_models import VMConfig
 from .disk_manager import DiskManager
 from .network_manager import NetworkManager
+from .nft_manager import NFTManager
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ class VMManager:
     STATE_DIR = Path("state")
     
     def __init__(self, verbose: bool = False):
+        self.nft = NFTManager()
         self.disk_manager = DiskManager(verbose)
         self.network_manager = NetworkManager(verbose)
         self.STATE_DIR.mkdir(exist_ok=True)
@@ -67,6 +69,8 @@ class VMManager:
                     "-device", f"{network.model},netdev=net_{network.label}",
                 ]
 
+                self.nft.create_bridge_rules(network.bridge, network.policy)
+
             # Add kernel Parameter for custom kernels
             if config.kernel:
                 cmd += ["-kernel", f"{config.kernel}"]
@@ -109,6 +113,7 @@ class VMManager:
             for network in config.networks:
                 logger.debug(f"Deleting {network} bridges")
                 self.network_manager.delete_bridge(network.bridge)
+                self.nft.remove_bridge_rules(network.bridge)
         except Exception as e:
             logger.debug(f"TAP is already deleted")
             pass
@@ -182,3 +187,8 @@ class VMManager:
             return int(pid_file.read_text().strip())
         except (FileNotFoundError, ValueError):
             return None
+
+    def _cleanup_networks(self, config: VMConfig):
+        """Rollback network rules on failure"""
+        for net in config.networks:
+            self.nft.remove_bridge_rules(net.bridge)

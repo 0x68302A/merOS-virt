@@ -17,6 +17,14 @@ class VirtualDisk:
         return f"Disk(label={self.label}, size={self.size_gb}GB, fs={self.fs_type})"
 
 @dataclass
+class BridgePolicy:
+    name: str
+    policy_type: str = "host-access"  # Modified with default value
+    allowed_ports: Optional[List[int]] = None
+    allowed_subnets: Optional[List[str]] = None
+    allow_icmp: bool = False
+
+@dataclass
 class NetworkInterface:
     label: str
     bridge: str = "br0"
@@ -24,9 +32,11 @@ class NetworkInterface:
     model: str = "virtio"
     ip_addr: str = None
     mac: Optional[str] = None
+    policy: BridgePolicy = field(default_factory=BridgePolicy)  # New field
 
     def __str__(self):
-        return f"Network(label={self.label}, bridge={self.bridge}, subnet={self.subnet}, model={self.model}, mac={self.mac})"
+        return (f"Network(label={self.label}, bridge={self.bridge}, "
+                f"policy={self.policy.policy_type}, model={self.model})")
 
 @dataclass
 class VMConfig:
@@ -41,7 +51,7 @@ class VMConfig:
 
     def __str__(self):
         return (f"VM(name={self.name}, memory={self.memory}, cpus={self.cpus}, "
-                f"disks={len(self.disks)}, networks={len(self.networks)}, kernel={self.kernel})")
+                f"networks={[n.policy.policy_type for n in self.networks]})")
 
 class VMConfigLoader:
     @staticmethod
@@ -51,33 +61,33 @@ class VMConfigLoader:
             data = yaml.safe_load(f)
         
         templates = data.get('templates', {})
-        vms = {}
+        bridge_policies = data.get('bridges', {})  # New: Load bridge policies
         
+        vms = {}
         for vm_name, vm_data in data['virtual_machines'].items():
             template = templates.get(vm_data.get('template', 'default'), {})
             
-            disks = [
-                VirtualDisk(**disk) 
-                for disk in vm_data.get('disks', [])
-            ]
-            networks = [
-                NetworkInterface(**network)
-                for network in vm_data.get('networks', [])
-            ]
-            
-            # network = NetworkInterface(
-            #     **vm_data.get('network', template.get('network', {})))
+            networks = []
+            for network in vm_data.get('networks', []):
+                # Merge bridge policy with network config
+                policy_data = bridge_policies.get(network.get('bridge'), {})
+                networks.append(NetworkInterface(
+                    **network,
+                    policy=BridgePolicy(
+                        name=network.get('bridge', 'br0'),
+                        **policy_data
+                    )
+                ))
             
             vms[vm_name] = VMConfig(
                 name=vm_name,
                 memory=vm_data.get('memory', template.get('memory', "2G")),
                 cpus=vm_data.get('cpus', template.get('cpus', 2)),
                 kernel=vm_data.get('kernel', template.get('kernel', None)),
-                disks=disks,
+                disks=[VirtualDisk(**d) for d in vm_data.get('disks', [])],
                 networks=networks,
                 extra_args=vm_data.get('extra_args', [])
             )
-            logger.debug(f"Loaded VM config: {vms[vm_name]}")
         
-        logger.info(f"Loaded {len(vms)} VMs from configuration")
+        logger.info(f"Loaded {len(vms)} VMs with bridge policies")
         return vms
