@@ -109,19 +109,17 @@ class VMManager:
     def stop_vm(self, vm_name: str):
         pid = self._read_pid_file(vm_name)
         state = self._load_state(vm_name)
-
         try:
             self.network_manager.delete_bridge(state["network"]["bridge"])
         except Exception as e:
             logger.debug(f"Bridge is already deleted")
             pass
 
-
         if pid is None:
             raise RuntimeError(f"No running PID found for {vm_name}")
-        
         try:
             os.kill(pid, signal.SIGTERM)
+            self.remove_state(vm_name)
         except ProcessLookupError:
             pass  # Process already dead
         finally:
@@ -217,7 +215,7 @@ class VMManager:
         with open(state_path) as f:
             return json.load(f)
     
-    def _remove_state(self, vm_name: str):
+    def remove_state(self, vm_name: str):
         state_path = self.STATE_DIR / f"{vm_name}.json"
         if state_path.exists():
             logger.debug(f"Removing state file {state_path}")
