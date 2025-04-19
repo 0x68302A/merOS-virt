@@ -96,19 +96,18 @@ def main():
                     logging.warning(f"VM {vm_name} not found in config")
 
         elif o in ("--shutdown"):
-            TargetID = sys.argv[2]
             Config.elevate_privs()
+            config_file = sys.argv[2]
             vm_manager = VMManager()
-            if not args[0:]:
-                logging.error("Specify VMs to stop or 'all'")
-                sys.exit(1)
-                
-            if args[0] == "all":
-                for vm_name in vm_manager.list_vms():
-                    vm_manager.stop_vm(vm_name)
-            else:
-                for vm_name in args[0:]:
-                    vm_manager.stop_vm(vm_name)
+            configs = VMConfigLoader.load_config(Path(config_file))
+            vms_to_stop = args[1:] or configs.keys()
+
+            for vm_name in vms_to_stop:
+                if vm_name in configs:
+                    vm_manager.stop_vm(configs[vm_name])
+                    logging.info(f"Stopped {vm_name}")
+                else:
+                    logging.warning(f"VM {vm_name} not found in config")
 
         elif o in ("-c", "--connect"):
             target_full_id = sys.argv[2]

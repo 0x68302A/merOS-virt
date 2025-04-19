@@ -26,10 +26,6 @@ class VMManager:
         start_time = time.time()
         logger.info(f"Starting VM: {config.name}")
         pid_file = self._get_pid_file(config.name)
-        pid_file.unlink(missing_ok=True)
-
-        if pid_file.exists():
-            pid_file.unlink(missing_ok=True)
         
         try:
             # Prepare disks
@@ -40,11 +36,12 @@ class VMManager:
                 # self.disk_manager.mount_disk(disk)
                 disk_info[disk.label] = disk_data
 
-            # Prepare networks
+            # Prepare networks Bridges 
             network_info = {}
             for network in config.networks:
                 logger.debug(f"Preparing network: {network}")
                 self.network_manager.create_bridge(network.bridge, network.subnet)
+                self.network_manager.create_tap(network.label, network.ip_addr, network.bridge)
             
             # Build QEMU command
             cmd = [
@@ -56,7 +53,6 @@ class VMManager:
                 "-pidfile", str(pid_file)
             ]
 
-
             # Add disks
             for disk in config.disks:
                 cmd += [
@@ -67,28 +63,15 @@ class VMManager:
             # Add networks
             for network in config.networks:
                 cmd += [
-                    "-netdev", f"bridge,id=net_{network.label},br={network.bridge}",
+                    "-netdev", f"tap,id=net_{network.label},ifname={network.label}",
                     "-device", f"{network.model},netdev=net_{network.label}",
                 ]
 
-                self._save_state(config.name, {
-                    "bridge": network.bridge,
-                    "model": network.model 
-                })
-
             # Add kernel Parameter for custom kernels
             if config.kernel:
-                cmd += [
-                    "-kernel", 
-                    f"{config.kernel}"
-                ]
-
-                cmd += [
-                    "-append", 
-                    f"root=/dev/vda1"
-                ]
+                cmd += ["-kernel", f"{config.kernel}"]
+                cmd += ["-append", f"root=/dev/vda1"]
              
- 
             # Add extra arguments
             cmd.extend(config.extra_args)
             
@@ -101,7 +84,7 @@ class VMManager:
                 stderr=subprocess.PIPE,
                 text=True
             )
-
+            time.sleep(0.5)
 
             elapsed = time.time() - start_time
             logger.info(f"VM started successfully in {elapsed:.2f}s")
@@ -110,24 +93,30 @@ class VMManager:
             logger.error(f"Failed to start VM: {e}")
             raise
 
-    def stop_vm(self, vm_name: str):
-        pid = self._read_pid_file(vm_name)
-        state = self._load_state(vm_name)
+    def stop_vm(self, config: VMConfig):
+        pid = self._read_pid_file(config.name)
+        network_info = {}
+
         try:
-            self.network_manager.delete_bridge(state["network"]["bridge"])
+            for network in config.networks:
+                logger.debug(f"Deleting {network} TAPs")
+                self.network_manager.delete_tap(network.label)
         except Exception as e:
             logger.debug(f"Bridge is already deleted")
             pass
 
-        if pid is None:
-            raise RuntimeError(f"No running PID found for {vm_name}")
+        try:
+            for network in config.networks:
+                logger.debug(f"Deleting {network} bridges")
+                self.network_manager.delete_bridge(network.bridge)
+        except Exception as e:
+            logger.debug(f"TAP is already deleted")
+            pass
+
         try:
             os.kill(pid, signal.SIGTERM)
-            self.remove_state(vm_name)
-        except ProcessLookupError:
+        except:
             pass  # Process already dead
-        finally:
-            self._get_pid_file(vm_name).unlink(missing_ok=True)
 
     def get_status(self, vm_name: str) -> Tuple[bool, Optional[str]]:
         """
@@ -145,20 +134,6 @@ class VMManager:
             self._get_pid_file(vm_name).unlink(missing_ok=True)
             return (False, None)
         
-        # Get bridge from state file
-        state_file = self.STATE_DIR / f"{vm_name}.json"
-        try:
-            with open(state_file) as f:
-                state = json.load(f)
-            bridge = state.get("network", {}).get("bridge")
-        except (FileNotFoundError, json.JSONDecodeError):
-            bridge = None
-        
-        # Verify bridge exists
-        if bridge and self._is_bridge_active(bridge):
-            return (True, bridge)
-        return (True, None)  # Running but no bridge/bridge dead
-
     def _is_bridge_active(self, bridge_name: str) -> bool:
         """Check if bridge interface exists and is up"""
         try:
@@ -182,20 +157,15 @@ class VMManager:
             }
         return statuses
             
-    def _save_state(self, vm_name: str, network_config: dict):
-        """Save network configuration to state file"""
-        with open(self.STATE_DIR / f"{vm_name}.json", "w") as f:
-            json.dump({"network": network_config}, f)  # Directly use the input dict
 
     def list_vms(self) -> list:
         """Return names of all VMs with state files"""
-        return [f.stem for f in self.STATE_DIR.glob("*.json")]
+        return [f.stem for f in self.STATE_DIR.glob("*.pid")]
 
     def is_running(self, vm_name: str) -> bool:
         pid = self._read_pid_file(vm_name)
         if pid is None:
             return False
-        
         try:
             os.kill(pid, 0)  # Check if process exists
             return True
@@ -212,15 +182,3 @@ class VMManager:
             return int(pid_file.read_text().strip())
         except (FileNotFoundError, ValueError):
             return None
-
-    def _load_state(self, vm_name: str) -> Dict:
-        state_path = self.STATE_DIR / f"{vm_name}.json"
-        logger.debug(f"Loading state from {state_path}")
-        with open(state_path) as f:
-            return json.load(f)
-    
-    def remove_state(self, vm_name: str):
-        state_path = self.STATE_DIR / f"{vm_name}.json"
-        if state_path.exists():
-            logger.debug(f"Removing state file {state_path}")
-            state_path.unlink()
