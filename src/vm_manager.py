@@ -41,7 +41,7 @@ class VMManager:
             for network in config.networks:
                 logger.debug(f"Preparing network: {network}")
                 self.network_manager.create_bridge(network.bridge, network.subnet)
-                self.network_manager.create_tap(network.label, network.ip_addr, network.bridge)
+                self.network_manager.create_tap(network.label, network.subnet, network.bridge)
             
             # Build QEMU command
             cmd = [

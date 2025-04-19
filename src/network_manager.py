@@ -10,11 +10,17 @@ class NetworkManager:
             logger.setLevel(logging.DEBUG)
     
     @classmethod
-    def create_tap(cls, tap_name: str, ip_addr: str, bridge_master: str):
+    def create_tap(cls, tap_name: str, subnet: str, bridge_master: str):
         logger.info(f"Creating TAP device : {tap_name}")
         try:
             subprocess.run(
                 ["sudo", "ip", "tuntap", "add", "name", tap_name, "mode", "tap"],
+                check=True,
+                capture_output=True
+            )
+
+            subprocess.run(
+                ["sudo", "ip", "addr", "add", subnet, "dev", tap_name],
                 check=True,
                 capture_output=True
             )
