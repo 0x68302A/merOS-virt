@@ -20,12 +20,6 @@ class NetworkManager:
             )
 
             subprocess.run(
-                ["sudo", "ip", "addr", "add", ip_addr, "dev", tap_name],
-                check=True,
-                capture_output=True
-            )
-
-            subprocess.run(
                 ["sudo", "ip", "link", "set", tap_name, "master", bridge_master],
                 check=True,
                 capture_output=True
