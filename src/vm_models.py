@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import yaml
 
 logger = logging.getLogger(__name__)
@@ -17,26 +17,22 @@ class VirtualDisk:
         return f"Disk(label={self.label}, size={self.size_gb}GB, fs={self.fs_type})"
 
 @dataclass
-class BridgePolicy:
+class BridgeConfig:
     name: str
-    policy_type: str = "host-access"  # Modified with default value
-    allowed_ports: Optional[List[int]] = None
-    allowed_subnets: Optional[List[str]] = None
-    allow_icmp: bool = False
+    subnet: str = "10.10.10.0/24"
+    policy_type: str = "host-access"  # host-access/isolated
+    allowed_ports: List[int] = field(default_factory=lambda: [22, 80, 443])
+    allowed_ips: str = "172.0.0.1"
+    allow_icmp: bool = True
+    auto_create: bool = True  # Create bridge if missing
 
 @dataclass
 class NetworkInterface:
     label: str
-    bridge: str = "br0"
-    subnet: str = "10.10.10.255"
+    bridge: str  # Reference to BridgeConfig.name
     model: str = "virtio"
-    ip_addr: str = None
+    ip_addr: Optional[str] = None
     mac: Optional[str] = None
-    policy: BridgePolicy = field(default_factory=BridgePolicy)  # New field
-
-    def __str__(self):
-        return (f"Network(label={self.label}, bridge={self.bridge}, "
-                f"policy={self.policy.policy_type}, model={self.model})")
 
 @dataclass
 class VMConfig:
@@ -46,48 +42,50 @@ class VMConfig:
     cpus: int = 2
     disks: List[VirtualDisk] = field(default_factory=list)
     networks: List[NetworkInterface] = field(default_factory=list)
-    template: str = "default"
     extra_args: List[str] = field(default_factory=list)
 
     def __str__(self):
         return (f"VM(name={self.name}, memory={self.memory}, cpus={self.cpus}, "
-                f"networks={[n.policy.policy_type for n in self.networks]})")
+                f"networks={[n.bridge for n in self.networks]})")  # Changed here
+
+@dataclass
+class Config:
+    bridges: Dict[str, BridgeConfig]
+    virtual_machines: Dict[str, VMConfig]
 
 class VMConfigLoader:
     @staticmethod
-    def load_config(path: Path) -> Dict[str, VMConfig]:
-        logger.info(f"Loading VM configuration from {path}")
+    def load_config(path: Path) -> Config:
         with open(path) as f:
             data = yaml.safe_load(f)
         
-        templates = data.get('templates', {})
-        bridge_policies = data.get('bridges', {})  # New: Load bridge policies
+        # Load bridges first
+        bridges = {
+            name: BridgeConfig(name=name, **cfg)
+            for name, cfg in data.get('bridges', {}).items()
+        }
         
-        vms = {}
+        # Load VMs with bridge validation
+        virtual_machines = {}
         for vm_name, vm_data in data['virtual_machines'].items():
-            template = templates.get(vm_data.get('template', 'default'), {})
-            
             networks = []
-            for network in vm_data.get('networks', []):
-                # Merge bridge policy with network config
-                policy_data = bridge_policies.get(network.get('bridge'), {})
-                networks.append(NetworkInterface(
-                    **network,
-                    policy=BridgePolicy(
-                        name=network.get('bridge', 'br0'),
-                        **policy_data
-                    )
-                ))
+            for net in vm_data.get('networks', []):
+                bridge_name = net['bridge']
+                if bridge_name not in bridges:
+                    raise ValueError(f"Undefined bridge {bridge_name} for {vm_name}")
+                networks.append(NetworkInterface(**net))
             
-            vms[vm_name] = VMConfig(
+            virtual_machines[vm_name] = VMConfig(
                 name=vm_name,
-                memory=vm_data.get('memory', template.get('memory', "2G")),
-                cpus=vm_data.get('cpus', template.get('cpus', 2)),
-                kernel=vm_data.get('kernel', template.get('kernel', None)),
-                disks=[VirtualDisk(**d) for d in vm_data.get('disks', [])],
                 networks=networks,
+                memory=vm_data.get('memory', "2G"),
+                cpus=vm_data.get('cpus', 2),
+                kernel=vm_data.get('kernel', None),
+                disks=[VirtualDisk(**d) for d in vm_data.get('disks', [])],
                 extra_args=vm_data.get('extra_args', [])
             )
         
-        logger.info(f"Loaded {len(vms)} VMs with bridge policies")
-        return vms
+        return Config(
+            bridges=bridges,
+            virtual_machines=virtual_machines
+        )

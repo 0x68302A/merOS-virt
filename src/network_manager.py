@@ -10,7 +10,7 @@ class NetworkManager:
             logger.setLevel(logging.DEBUG)
     
     @classmethod
-    def create_tap(cls, tap_name: str, subnet: str, bridge_master: str):
+    def create_tap(cls, tap_name: str, ip_addr: str, bridge_master: str):
         logger.info(f"Creating TAP device : {tap_name}")
         try:
             subprocess.run(
@@ -20,7 +20,7 @@ class NetworkManager:
             )
 
             subprocess.run(
-                ["sudo", "ip", "addr", "add", subnet, "dev", tap_name],
+                ["sudo", "ip", "addr", "add", ip_addr, "dev", tap_name],
                 check=True,
                 capture_output=True
             )
@@ -71,7 +71,7 @@ class NetworkManager:
     
     @classmethod
     def delete_tap(cls, tap_name: str):
-        logger.info(f"Deleting TAP device : {tap_name}")
+        logger.info(f"Deleting TAP device: {tap_name}")
         try:
             subprocess.run(
                 ["sudo", "ip", "link", "del", tap_name],

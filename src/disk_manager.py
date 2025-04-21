@@ -20,7 +20,7 @@ class DiskManager:
             logger.setLevel(logging.DEBUG)
     
     def create_disk(self, vm_name: str, disk: VirtualDisk) -> Dict:
-        disk_path = self.DISK_ROOT / f"{vm_name}_{disk.label}.img"
+        disk_path = self.DISK_ROOT / f"{vm_name}.{disk.label}.img"
         disk.mount_point = self.MOUNT_ROOT / vm_name / disk.label
         
         logger.info(f"Creating disk: {disk} for VM {vm_name}")

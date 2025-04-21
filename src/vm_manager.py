@@ -6,7 +6,7 @@ import os
 import signal
 from pathlib import Path
 from typing import Dict, Optional, Tuple
-from .vm_models import VMConfig
+from .vm_models import VMConfig, Config
 from .disk_manager import DiskManager
 from .network_manager import NetworkManager
 from .nft_manager import NFTManager
@@ -16,68 +16,89 @@ logger = logging.getLogger(__name__)
 class VMManager:
     STATE_DIR = Path("state")
     
-    def __init__(self, verbose: bool = False):
+    def __init__(self, config: Config, verbose: bool = False):
+        self.config = config
         self.nft = NFTManager()
         self.disk_manager = DiskManager(verbose)
         self.network_manager = NetworkManager(verbose)
         self.STATE_DIR.mkdir(exist_ok=True)
+
         if verbose:
             logger.setLevel(logging.DEBUG)
     
-    def start_vm(self, config: VMConfig):
+    def configure_bridge(self, bridge_name: str):
+        if bridge_name not in self.config.bridges:
+            logger.error(f"Bridge {bridge_name} not found in config")
+            return
+    
+        bridge_config = self.config.bridges[bridge_name]
+        logger.info(f"Configuring bridge: {bridge_name} ({bridge_config.subnet})")
+        
+        # Configure bridge
+        try:
+            self.network_manager.create_bridge(bridge_name, bridge_config.subnet)
+            logger.debug(f"Successfully configured {bridge_name}")
+        except Exception as e:
+            logger.error(f"Failed to configure {bridge_name}: {str(e)}")
+
+        # Configure associated nftables rules
+        try:
+            self.nft.create_bridge_rules(bridge_name, bridge_config)
+            logger.debug(f"Successfully set netfilter rules for {bridge_name}")
+        except Exception as e:
+            logger.error(f"Failed to set netfilter rules for: {bridge_name}: {str(e)}")
+
+    def start_vm(self, vm_name: str):
+        vm = self.config.virtual_machines[vm_name]
         start_time = time.time()
-        logger.info(f"Starting VM: {config.name}")
-        pid_file = self._get_pid_file(config.name)
+        logger.info(f"Starting VM: {vm_name}")
+        pid_file = self._get_pid_file(vm_name)
         
         try:
             # Prepare disks
             disk_info = {}
-            for disk in config.disks:
-                logger.debug(f"Preparing disk: {disk}")
-                disk_data = self.disk_manager.create_disk(config.name, disk)
+            for disk in vm.disks:
+                logger.debug(f"Preparing disk: {disk.label}")
+                disk_data = self.disk_manager.create_disk(vm.name, disk)
                 # self.disk_manager.mount_disk(disk)
                 disk_info[disk.label] = disk_data
 
-            # Prepare networks Bridges 
-            network_info = {}
-            for network in config.networks:
-                logger.debug(f"Preparing network: {network}")
-                self.network_manager.create_bridge(network.bridge, network.subnet)
-                self.network_manager.create_tap(network.label, network.subnet, network.bridge)
-            
+            for tap_interface in vm.networks:
+                logger.debug(f"Preparing TAP Interface: {tap_interface.label}")
+                self.network_manager.create_tap(tap_interface.label, tap_interface.ip_addr, tap_interface.bridge)
+
             # Build QEMU command
             cmd = [
                 "qemu-system-x86_64",
-                "-name", config.name,
-                "-m", config.memory,
-                "-smp", str(config.cpus),
+                "-name", vm.name,
+                "-m", vm.memory,
+                "-smp", str(vm.cpus),
                 "-daemonize",
                 "-pidfile", str(pid_file)
             ]
 
             # Add disks
-            for disk in config.disks:
+            for disk in vm.disks:
                 cmd += [
                     "-drive", 
                     f"file={disk_info[disk.label]['path']},format={disk.fs_type},if=virtio"
                 ]
 
             # Add networks
-            for network in config.networks:
+            for network in vm.networks:
                 cmd += [
                     "-netdev", f"tap,id=net_{network.label},ifname={network.label}",
                     "-device", f"{network.model},netdev=net_{network.label}",
                 ]
 
-                self.nft.create_bridge_rules(network.bridge, network.policy)
 
             # Add kernel Parameter for custom kernels
-            if config.kernel:
-                cmd += ["-kernel", f"{config.kernel}"]
+            if vm.kernel:
+                cmd += ["-kernel", f"{vm.kernel}"]
                 cmd += ["-append", f"root=/dev/vda1"]
              
             # Add extra arguments
-            cmd.extend(config.extra_args)
+            cmd.extend(vm.extra_args)
             
             logger.debug(f"QEMU command: {' '.join(cmd)}")
             
@@ -97,23 +118,51 @@ class VMManager:
             logger.error(f"Failed to start VM: {e}")
             raise
 
-    def stop_vm(self, config: VMConfig):
-        pid = self._read_pid_file(config.name)
-        network_info = {}
-
+    def delete_bridge(self, bridge_name: str):
+        if bridge_name not in self.config.bridges:
+            logger.error(f"Bridge {bridge_name} not found in config")
+            return
+    
+        bridge_config = self.config.bridges[bridge_name]
+        logger.info(f"Configuring bridge: {bridge_name} ({bridge_config.subnet})")
+        
+        # Deconfigure bridge
         try:
-            for network in config.networks:
-                logger.debug(f"Deleting {network} TAPs")
+            self.network_manager.delete_bridge(bridge_name)
+
+        except Exception as e:
+            logger.error(f"Failed to configure {bridge_name}: {str(e)}")
+
+        # Deconfigure assoaciated nftables rules
+        try:
+
+            self.nft.remove_bridge_rules(bridge_name)
+            logger.debug(f"Successfully deleted {bridge_name}")
+        except Exception as e:
+            logger.error(f"Failed to delete nft rules for: {bridge_name}: {str(e)}")
+
+    def stop_vm(self, vm_name: str):
+        vm = self.config.virtual_machines[vm_name]
+        pid = self._read_pid_file(vm.name)
+        start_time = time.time()
+        logger.info(f"Starting VM: {vm_name}")
+        pid_file = self._get_pid_file(vm_name)
+
+        # Delete TAP interfaces
+        network_info = {}
+        try:
+            for network in vm.networks:
+                logger.debug(f"Deleting {vm.name} TAPs")
                 self.network_manager.delete_tap(network.label)
         except Exception as e:
-            logger.debug(f"Bridge is already deleted")
+            logger.debug(f"TAP interface is already deleted")
             pass
 
+        # Delete network bridges
         try:
-            for network in config.networks:
-                logger.debug(f"Deleting {network} bridges")
+            for network in vm.networks:
+                logger.debug(f"Deleting {network.label} bridges")
                 self.network_manager.delete_bridge(network.bridge)
-                self.nft.remove_bridge_rules(network.bridge)
         except Exception as e:
             logger.debug(f"TAP is already deleted")
             pass
@@ -191,4 +240,4 @@ class VMManager:
     def _cleanup_networks(self, config: VMConfig):
         """Rollback network rules on failure"""
         for net in config.networks:
-            self.nft.remove_bridge_rules(net.bridge)
+            self.nft.remove_bridge_rules(bridge.name)
