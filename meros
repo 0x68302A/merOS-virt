@@ -1,21 +1,16 @@
 #!/usr/bin/python3
 
-
-import src.config as config
-import src.kernel_build as kernel_build
-import src.target_manage as target_manage
-import src.ssh_communication as ssh_communication
+# import src.kernel_build as kernel_build
+# import src.target_manage as target_manage
+# import src.ssh_communication as ssh_communication
 import subprocess
 import logging
-
+from pathlib import Path
 import getopt
 import sys
-
 import os
 
-from src.config import Config
-
-from pathlib import Path
+from src.app_config import AppConfig
 from src.vm_manager import VMManager
 from src.vm_models import VMConfigLoader
 
@@ -34,13 +29,13 @@ def main():
 
     except getopt.GetoptError as err:
         print(err)
-        Config.display_help()
+        AppConfig.display_help()
         sys.exit(2)
     output = None
     verbose = False
 
     logging.basicConfig(
-            # filename = Config.mos_path + '/LOG',
+            # filename = AppConfig.mos_path + '/LOG',
             format = '%(asctime)s::MerOS::%(levelname)s::%(message)s',
             datefmt = '%H:%M:%S',
             # level=logging.DEBUG if verbose else logging.INFO,
@@ -52,11 +47,11 @@ def main():
             verbose = True
 
         elif o in ("--log"):
-            Config.display_log()
+            AppConfig.display_log()
             sys.exit()
 
         elif o in ("-h", "--help"):
-            Config.display_help()
+            AppConfig.display_help()
             sys.exit()
 
         elif o in ("--kernel-build"):
@@ -71,7 +66,7 @@ def main():
         ## ( See: mos/target_manage.py:104 )
         elif o in ("--build"):
             target_fam = sys.argv[2]
-            Config.elevate_privs()
+            AppConfig.elevate_privs()
             tm = target_manage.TargetManage(target_fam)
             tm.main()
             sys.exit()
@@ -82,29 +77,70 @@ def main():
         ## thus needing elevated ( root ) privileges
         ## ( See: mos/libvirt_manage.py:40,72,98 )
         elif o in ("-i", "--init"):
-            Config.elevate_privs()
+            AppConfig.elevate_privs()
             config_file = sys.argv[2]
-            vm_manager = VMManager()
-            configs = VMConfigLoader.load_config(Path(config_file))
-            vms_to_start = args[1:] or configs.keys()
+            config_path = Path(config_file)
+
+            # Load full config (bridges + VMs)
+            # Initialize manager with full config
+            config = VMConfigLoader.load_config(config_path)
+            vm_manager = VMManager(config)
             
+            # Determine Bridges to configure 
+            bridges_to_configure = list(config.bridges.keys())
+            if not bridges_to_configure:
+                logging.warning("No bridges defined in config")
+                return
+            
+            for bridge_name in bridges_to_configure:
+                vm_manager.configure_bridge(bridge_name)
+                logging.info(f"Processed bridge: {bridge_name}")
+
+            # Determine VMs to start
+            vms_to_start = config.virtual_machines.keys()
+            
+            if not vms_to_start:
+                logging.warning("No VMs specified and none found in config")
+                return
+
             for vm_name in vms_to_start:
-                if vm_name in configs:
-                    vm_manager.start_vm(configs[vm_name])
+                if vm_name in config.virtual_machines:
+                    vm_manager.start_vm(vm_name)
                     logging.info(f"Started {vm_name}")
                 else:
                     logging.warning(f"VM {vm_name} not found in config")
 
+
         elif o in ("--shutdown"):
-            Config.elevate_privs()
+            AppConfig.elevate_privs()
             config_file = sys.argv[2]
-            vm_manager = VMManager()
-            configs = VMConfigLoader.load_config(Path(config_file))
-            vms_to_stop = args[1:] or configs.keys()
+            config_path = Path(config_file)
+
+            # Load full config (bridges + VMs)
+            # Initialize manager with full config
+            config = VMConfigLoader.load_config(config_path)
+            vm_manager = VMManager(config)
+            
+            # Determine Bridges to delete
+            bridges_to_delete = list(config.bridges.keys())
+            if not bridges_to_delete:
+                logging.warning("No bridges defined in config")
+                return
+            
+            for bridge_name in bridges_to_delete:
+                vm_manager.delete_bridge(bridge_name)
+                logging.info(f"Deleted bridge: {bridge_name}")
+
+            # Determine VMs to stop 
+            vms_to_stop = config.virtual_machines.keys()
+            
+            if not vms_to_stop:
+                logging.warning("No VMs specified and none found in config")
+                return
 
             for vm_name in vms_to_stop:
-                if vm_name in configs:
-                    vm_manager.stop_vm(configs[vm_name])
+                if vm_name in config.virtual_machines:
+                    vm_manager.stop_vm(vm_name)
                     logging.info(f"Stopped {vm_name}")
                 else:
                     logging.warning(f"VM {vm_name} not found in config")
@@ -135,7 +171,7 @@ def main():
 
         ## TODO Fix, currently displays on VMs, no bridges
         elif o in ("--info"):
-            Config.elevate_privs()
+            AppConfig.elevate_privs()
             vm_manager = VMManager()
             for vm_name, status in vm_manager.get_all_statuses().items():
                 print(f"{vm_name}: {'Running' if status else 'Stopped'}")

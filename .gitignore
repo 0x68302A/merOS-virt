@@ -1,8 +1,8 @@
 __pycache__
 data
 build
+.venv_meros
 *.swp
-*.*
 .meros_venv
 merOS_virt.egg-info
 LOG

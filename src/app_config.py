@@ -15,7 +15,7 @@ import random as r
 import pydoc
 import shutil
 
-class Config:
+class AppConfig:
     ## Define MerOS path
     config_path = os.path.dirname(os.path.realpath(__file__))
     venv_path = sys.prefix if hasattr(sys, 'real_prefix') or (
@@ -39,12 +39,12 @@ class Config:
     target_distro = "alpine"
 
     def display_help():
-        with open(Config.mos_path + "/src/manpage", "r") as help_file:
+        with open(AppConfig.mos_path + "/src/manpage", "r") as help_file:
             help_data = help_file.read()
             pydoc.pager(help_data)
 
     def display_log():
-        with open(Config.mos_path + "/LOG", "r") as log_file:
+        with open(AppConfig.mos_path + "/LOG", "r") as log_file:
             log_data = log_file.read()
             pydoc.pager(log_data)
 
