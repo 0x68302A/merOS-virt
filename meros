@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 # import src.kernel_build as kernel_build
-# import src.target_manage as target_manage
 # import src.ssh_communication as ssh_communication
 import subprocess
 import logging
@@ -13,6 +12,7 @@ import os
 from src.app_config import AppConfig
 from src.vm_manager import VMManager
 from src.vm_models import VMConfigLoader
+from src.vm_build import VMBuilder
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
                                 "help",
                                 "kernel-build",
                                 "get", "bootstrap", "build",
-                                "init","shutdown", 
+                                "init","shutdown",
                                 "connect","push", "pull", "run",
                                 "info", "log",
                                 "output="
@@ -78,27 +78,28 @@ def main():
         ## ( See: mos/libvirt_manage.py:40,72,98 )
         elif o in ("-i", "--init"):
             AppConfig.elevate_privs()
-            config_file = sys.argv[2]
-            config_path = Path(config_file)
+            template = sys.argv[2]
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+            print(config_path)
 
             # Load full config (bridges + VMs)
             # Initialize manager with full config
             config = VMConfigLoader.load_config(config_path)
             vm_manager = VMManager(config)
-            
-            # Determine Bridges to configure 
+
+            # Determine Bridges to configure
             bridges_to_configure = list(config.bridges.keys())
             if not bridges_to_configure:
                 logging.warning("No bridges defined in config")
                 return
-            
+
             for bridge_name in bridges_to_configure:
                 vm_manager.configure_bridge(bridge_name)
                 logging.info(f"Processed bridge: {bridge_name}")
 
             # Determine VMs to start
             vms_to_start = config.virtual_machines.keys()
-            
+
             if not vms_to_start:
                 logging.warning("No VMs specified and none found in config")
                 return
@@ -113,27 +114,27 @@ def main():
 
         elif o in ("--shutdown"):
             AppConfig.elevate_privs()
-            config_file = sys.argv[2]
-            config_path = Path(config_file)
+            template = sys.argv[2]
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
 
             # Load full config (bridges + VMs)
             # Initialize manager with full config
             config = VMConfigLoader.load_config(config_path)
             vm_manager = VMManager(config)
-            
+
             # Determine Bridges to delete
             bridges_to_delete = list(config.bridges.keys())
             if not bridges_to_delete:
                 logging.warning("No bridges defined in config")
                 return
-            
+
             for bridge_name in bridges_to_delete:
                 vm_manager.delete_bridge(bridge_name)
                 logging.info(f"Deleted bridge: {bridge_name}")
 
-            # Determine VMs to stop 
+            # Determine VMs to stop
             vms_to_stop = config.virtual_machines.keys()
-            
+
             if not vms_to_stop:
                 logging.warning("No VMs specified and none found in config")
                 return
