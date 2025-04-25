@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-# import src.kernel_build as kernel_build
-# import src.ssh_communication as ssh_communication
 import subprocess
 import logging
 from pathlib import Path
@@ -65,22 +63,30 @@ def main():
         ## thus needing elevated ( root ) privileges
         ## ( See: mos/target_manage.py:104 )
         elif o in ("--build"):
-            target_fam = sys.argv[2]
             AppConfig.elevate_privs()
-            tm = target_manage.TargetManage(target_fam)
-            tm.main()
-            sys.exit()
+            template = sys.argv[2]
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
 
-        ## TODO Fix, currently needs full path
-        ## When initializing/ halting, we will be accessing the libvirt daemon resources
-        ## As well as nftables ( kernel ) access
-        ## thus needing elevated ( root ) privileges
-        ## ( See: mos/libvirt_manage.py:40,72,98 )
+            config = VMConfigLoader.load_config(config_path)
+            vm_builder = VMBuilder(config, template)
+
+            vms_to_build = config.virtual_machines.keys()
+
+            if not vms_to_build:
+                logging.warning("No VMs specified and none found in config")
+                return
+
+            for vm_name in vms_to_build:
+                if vm_name in config.virtual_machines:
+                    vm_builder.build_vm(vm_name)
+                    logging.info(f"Built {vm_name}")
+                else:
+                    logging.warning(f"VM {vm_name} not found in config")
+
         elif o in ("-i", "--init"):
             AppConfig.elevate_privs()
             template = sys.argv[2]
             config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-            print(config_path)
 
             # Load full config (bridges + VMs)
             # Initialize manager with full config

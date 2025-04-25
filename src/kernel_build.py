@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import src.config as config
+from src.app_config import AppConfig
 
 import os
 import shutil

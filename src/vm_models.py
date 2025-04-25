@@ -37,15 +37,20 @@ class NetworkInterface:
 @dataclass
 class VMConfig:
     name: str
-    memory: str = "2G"
     kernel: str = None
+    distribution: Optional[str] = None
+    arch: Optional[str] = None
+    memory: str = "2G"
     cpus: int = 2
+    build_free_mb: Optional[str] = None
     disks: List[VirtualDisk] = field(default_factory=list)
     networks: List[NetworkInterface] = field(default_factory=list)
     extra_args: List[str] = field(default_factory=list)
 
     def __str__(self):
         return (f"VM(name={self.name}, memory={self.memory}, cpus={self.cpus}, "
+                f"distribution={self.distribution}, arch={self.arch}, "
+                f"build_free_mb={self.build_free_mb}, "
                 f"networks={[n.bridge for n in self.networks]})")  # Changed here
 
 @dataclass
@@ -58,13 +63,13 @@ class VMConfigLoader:
     def load_config(path: Path) -> Config:
         with open(path) as f:
             data = yaml.safe_load(f)
-        
+
         # Load bridges first
         bridges = {
             name: BridgeConfig(name=name, **cfg)
             for name, cfg in data.get('bridges', {}).items()
         }
-        
+
         # Load VMs with bridge validation
         virtual_machines = {}
         for vm_name, vm_data in data['virtual_machines'].items():
@@ -74,17 +79,20 @@ class VMConfigLoader:
                 if bridge_name not in bridges:
                     raise ValueError(f"Undefined bridge {bridge_name} for {vm_name}")
                 networks.append(NetworkInterface(**net))
-            
+
             virtual_machines[vm_name] = VMConfig(
                 name=vm_name,
                 networks=networks,
                 memory=vm_data.get('memory', "2G"),
+                distribution=vm_data.get('distribution', "None"),
+                build_free_mb=vm_data.get('build_free_mb', "None"),
+                arch=vm_data.get('arch', "None"),
                 cpus=vm_data.get('cpus', 2),
                 kernel=vm_data.get('kernel', None),
                 disks=[VirtualDisk(**d) for d in vm_data.get('disks', [])],
                 extra_args=vm_data.get('extra_args', [])
             )
-        
+
         return Config(
             bridges=bridges,
             virtual_machines=virtual_machines
