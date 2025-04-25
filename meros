@@ -8,6 +8,7 @@ import sys
 import os
 
 from src.app_config import AppConfig
+from src.kernel_builder import KernelBuilder
 from src.vm_manager import VMManager
 from src.vm_models import VMConfigLoader
 from src.vm_build import VMBuilder
@@ -53,9 +54,10 @@ def main():
             sys.exit()
 
         elif o in ("--kernel-build"):
-            kb = kernel_build.KernelBuild()
-            kb.kernel_clone()
-            kb.kernel_build()
+            kernel_builder = KernelBuilder()
+            kernel_builder.kernel_clone()
+            kernel_builder.kernel_build()
+
             sys.exit()
 
         ## When building, we will be chrooting in the newly created rootfs
