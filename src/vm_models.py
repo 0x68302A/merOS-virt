@@ -42,7 +42,7 @@ class VMConfig:
     arch: Optional[str] = None
     memory: str = "2G"
     cpus: int = 2
-    build_free_mb: Optional[str] = None
+    build_free_mb: Optional[int] = None
     disks: List[VirtualDisk] = field(default_factory=list)
     networks: List[NetworkInterface] = field(default_factory=list)
     extra_args: List[str] = field(default_factory=list)

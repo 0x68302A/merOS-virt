@@ -66,5 +66,5 @@ class AppConfig:
                     # If not default route or not RTF_GATEWAY, skip it
                                                     continue
                             return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
-    
+
     default_gw = str(get_default_gateway())

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-import src.kernel_build as kernel_build
-
 import os
 import sys
 import pwd
@@ -55,7 +53,7 @@ class VMBuilder:
         ## Build files
         self.mos_img_dir = AppConfig.mos_img_dir
         self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
-        self.rootfs_img = f"{AppConfig.mos_img_dir}/{self.template}-{vm_name}.img"
+        self.rootfs_img = f"{AppConfig.mos_img_dir}/{self.template}-{vm_name}.qcow2"
 
         try:
             # Prepare rootfs

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class VMManager:
     STATE_DIR = Path("state")
-    
+
     def __init__(self, config: Config, verbose: bool = False):
         self.config = config
         self.nft = NFTManager()
@@ -25,15 +25,15 @@ class VMManager:
 
         if verbose:
             logger.setLevel(logging.DEBUG)
-    
+
     def configure_bridge(self, bridge_name: str):
         if bridge_name not in self.config.bridges:
             logger.error(f"Bridge {bridge_name} not found in config")
             return
-    
+
         bridge_config = self.config.bridges[bridge_name]
         logger.info(f"Configuring bridge: {bridge_name} ({bridge_config.subnet})")
-        
+
         # Configure bridge
         try:
             self.network_manager.create_bridge(bridge_name, bridge_config.subnet)
@@ -53,7 +53,7 @@ class VMManager:
         start_time = time.time()
         logger.info(f"Starting VM: {vm_name}")
         pid_file = self._get_pid_file(vm_name)
-        
+
         try:
             # Prepare disks
             disk_info = {}
@@ -80,7 +80,7 @@ class VMManager:
             # Add disks
             for disk in vm.disks:
                 cmd += [
-                    "-drive", 
+                    "-drive",
                     f"file={disk_info[disk.label]['path']},format={disk.fs_type},if=virtio"
                 ]
 
@@ -96,12 +96,12 @@ class VMManager:
             if vm.kernel:
                 cmd += ["-kernel", f"{vm.kernel}"]
                 cmd += ["-append", f"root=/dev/vda1"]
-             
+
             # Add extra arguments
             cmd.extend(vm.extra_args)
-            
+
             logger.debug(f"QEMU command: {' '.join(cmd)}")
-            
+
             # Start VM
             process = subprocess.Popen(
                 cmd,
@@ -113,7 +113,7 @@ class VMManager:
 
             elapsed = time.time() - start_time
             logger.info(f"VM started successfully in {elapsed:.2f}s")
-                
+
         except Exception as e:
             logger.error(f"Failed to start VM: {e}")
             raise
@@ -122,10 +122,10 @@ class VMManager:
         if bridge_name not in self.config.bridges:
             logger.error(f"Bridge {bridge_name} not found in config")
             return
-    
+
         bridge_config = self.config.bridges[bridge_name]
         logger.info(f"Configuring bridge: {bridge_name} ({bridge_config.subnet})")
-        
+
         # Deconfigure bridge
         try:
             self.network_manager.delete_bridge(bridge_name)
@@ -174,20 +174,20 @@ class VMManager:
 
     def get_status(self, vm_name: str) -> Tuple[bool, Optional[str]]:
         """
-        Returns: 
+        Returns:
             Tuple of (is_running: bool, bridge: Optional[str])
         """
         # Check PID status first
         pid = self._read_pid_file(vm_name)
         if pid is None:
             return (False, None)
-        
+
         try:
             os.kill(pid, 0)  # Check if process exists
         except ProcessLookupError:
             self._get_pid_file(vm_name).unlink(missing_ok=True)
             return (False, None)
-        
+
     def _is_bridge_active(self, bridge_name: str) -> bool:
         """Check if bridge interface exists and is up"""
         try:
@@ -210,7 +210,7 @@ class VMManager:
                 "bridge": bridge if bridge else "N/A"
             }
         return statuses
-            
+
 
     def list_vms(self) -> list:
         """Return names of all VMs with state files"""
@@ -229,7 +229,7 @@ class VMManager:
 
     def _get_pid_file(self, vm_name: str) -> Path:
         return self.STATE_DIR / f"{vm_name}.pid"
-    
+
     def _read_pid_file(self, vm_name: str) -> Optional[int]:
         pid_file = self._get_pid_file(vm_name)
         try:
