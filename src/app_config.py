@@ -28,15 +28,9 @@ class AppConfig:
     uname = os.uname()
     arch = str(uname[4])
 
-    euid = os.geteuid()
-    uid = os.getuid()
-    gid = os.getgid()
-
     ## Define some misc, basic Paths.
     mos_img_dir = mos_path + "/data/images"
     mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
-
-    target_distro = "alpine"
 
     def display_help():
         with open(AppConfig.mos_path + "/src/manpage", "r") as help_file:

@@ -36,21 +36,27 @@ class VMBuilder:
         vm = self.config.virtual_machines[vm_name]
         logger.info(f"Building VM: {vm_name}")
         start_time = time.time()
+        app_config = AppConfig()
 
-        ## Source files
+        self.running_uid_str = os.getenv('SUDO_UID')
+        self.running_gid_str = os.getenv('SUDO_GID')
+        self.running_uid = int(self.running_uid_str)
+        self.running_gid = int(self.running_gid_str)
+
+        ## Template ( source ) files
         self.source_conf_dir = f"{AppConfig.mos_path}/templates/{self.template}"
         self.source_conf_rootfs_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/includes.chroot"
         self.source_conf_rootfs_common_dir = f"{self.source_conf_dir}/rootfs/common/includes.chroot"
         self.source_hooks_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/hooks"
         self.source_pkgs_dir = f"{self.source_conf_dir}/pkg/"
 
-        ## End ( chroot ) files
+        ## Chroot ( final ) files
         self.chroot_dir = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}/"
         self.chroot_hooks_dir = f"{self.chroot_dir}/tmp/src/hooks"
         self.chroot_pkgs_dir = f"{self.chroot_dir}/opt"
-        self.ssh_dir = f"{self.chroot_dir}/etc/ssh"
+        self.chroot_ssh_dir = f"{self.chroot_dir}/etc/ssh"
 
-        ## Build files
+        ## Build ( host ) files
         self.mos_img_dir = AppConfig.mos_img_dir
         self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
         self.rootfs_img = f"{AppConfig.mos_img_dir}/{self.template}-{vm_name}.qcow2"
@@ -60,7 +66,9 @@ class VMBuilder:
             self._rootfs_manage(vm_name, vm.distribution, vm.arch)
             self._chroot_configure(vm_name)
             self._chroot_keyadd(vm_name)
+            logger.debug(f"Building tar for: {vm_name}")
             self._rootfs_tar_build(vm_name)
+            logger.debug(f"Building qcow2 for: {vm_name}")
             self._rootfs_qcow_build(vm_name)
 
         except Exception as e:
@@ -108,7 +116,7 @@ class VMBuilder:
     def _chroot_configure(self, vm_name: str):
 
         try:
-            distutils.dir_util.copy_tree(self.source_conf_rootfs_common, self.chroot_dir)
+            distutils.dir_util.copy_tree(self.source_conf_rootfs_common_dir, self.chroot_dir)
         except:
             logging.info('No common rootfs Configuration found')
 
@@ -138,10 +146,10 @@ class VMBuilder:
         self.host_key = SSHKeys()
         ssh_private_key_01 = self.host_key.private_key
 
-        with open(self.ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
+        with open(self.chroot_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
             content_file.write(ssh_private_key_01)
 
-        os.chmod(self.ssh_dir + "/ssh_host_rsa_key", 0o0600)
+        os.chmod(self.chroot_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 
         ## Used for Key_based authentication
         self.comminication_key = SSHKeys()
@@ -152,10 +160,10 @@ class VMBuilder:
         with open(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-' + vm_name + "-id_rsa", 'w') as content_file:
                 content_file.write(ssh_private_key_02)
 
-        with open(self.ssh_dir + "/authorized_keys", 'w') as content_file:
+        with open(self.chroot_ssh_dir + "/authorized_keys", 'w') as content_file:
                 content_file.write(ssh_public_key_02)
 
-        os.chown(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-'+ vm_name + "-id_rsa", AppConfig.uid, AppConfig.gid)
+        os.chown(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-'+ vm_name + "-id_rsa", self.running_uid, self.running_gid)
         os.chmod(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-'+ vm_name + "-id_rsa", 0o0600)
 
         logging.info('Created SSH Keypair for VM: %s', vm_name)

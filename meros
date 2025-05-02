@@ -12,6 +12,7 @@ from src.kernel_builder import KernelBuilder
 from src.vm_manager import VMManager
 from src.vm_models import VMConfigLoader
 from src.vm_build import VMBuilder
+from src.ssh_manager import SSHManager
 
 
 def main():
@@ -65,7 +66,6 @@ def main():
         ## thus needing elevated ( root ) privileges
         ## ( See: mos/target_manage.py:104 )
         elif o in ("--build"):
-            AppConfig.elevate_privs()
             template = sys.argv[2]
             config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
 
@@ -80,6 +80,7 @@ def main():
 
             for vm_name in vms_to_build:
                 if vm_name in config.virtual_machines:
+                    AppConfig.elevate_privs()
                     vm_builder.build_vm(vm_name)
                     logging.info(f"Built {vm_name}")
                 else:
@@ -155,11 +156,17 @@ def main():
                     logging.warning(f"VM {vm_name} not found in config")
 
         elif o in ("-c", "--connect"):
-            target_full_id = sys.argv[2]
-            tc = ssh_communication.SSHCommunication(target_full_id)
-            ## tc.target_run("konsole")
-            ## tc.interactive_shell_paramiko()
-            tc.interactive_shell_native()
+            template = sys.argv[2]
+            vm_name = sys.argv[3]
+
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+            config = VMConfigLoader.load_config(config_path)
+
+            vm_config = config.virtual_machines[vm_name]
+            vm_ip_addr = vm_config.networks[0].ip_addr
+
+            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
+            ssh_manager.interactive_shell()
 
         elif o in ("--run"):
             target_full_id = sys.argv[2]
@@ -167,18 +174,20 @@ def main():
             tc = ssh_communication.SSHCommunication(target_full_id)
             tc.target_run(run_args)
 
-        elif o in ("--push"):
-            target_full_id = sys.argv[2]
-            file = sys.argv[3]
-            ts = ssh_communication.SSHCommunication(target_full_id)
-            ts.target_push(file)
-
         elif o in ("--pull"):
-            target_full_id = sys.argv[2]
-            ts = ssh_communication.SSHCommunication(target_full_id)
-            ts.target_pull()
+            template = sys.argv[2]
+            vm_name = sys.argv[3]
 
-        ## TODO Fix, currently displays on VMs, no bridges
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+            config = VMConfigLoader.load_config(config_path)
+
+            vm_config = config.virtual_machines[vm_name]
+            vm_ip_addr = vm_config.networks[0].ip_addr
+
+            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
+            ssh_manager.pull_files()
+
+        ## TODO Fix
         elif o in ("--info"):
             AppConfig.elevate_privs()
             vm_manager = VMManager()
