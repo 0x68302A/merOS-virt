@@ -58,54 +58,66 @@ class SSHManager:
                 f"data/mos-shared/{self.template}-{self.vm_name}",
             ]
 
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+            subprocess.run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
 
-    def virtual_machine_run(self, run_args):
+    def push_file(self, file_path: str):
+
+            cmd = [
+                "rsync",
+                "-av",
+                f"-e ssh -i {self.mos_ssh_key}",
+                "--ignore-existing",
+                "--progress",
+                "--stats",
+                "--human-readable",
+                f"{file}",
+                f"{self.vm_username}@{self.vm_ip_addr}:/home/{self.vm_username}/mos-shared/",
+            ]
+
+            subprocess.run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+    def vm_run(self, application: str):
 
         shell_waypipe_clean_local = ['rm', '-rf', '/tmp/socket_local']
 
         shell_waypipe_clean_remote = [
             'ssh',
             '-i', self.mos_ssh_key,
-            f"{self.virtua_machine_username}@{self.virtua_machine_ip}",
-            '-p', self.virtua_machine_ssh_port,
+            f"{self.vm_username}@{self.vm_ip_addr}",
             'rm -rf /tmp/socket_remote'
         ]
 
-        shell_waypipe_listen = ['/usr/bin/waypipe', '-s', '/tmp/socket_local', 'client']
+        shell_waypipe_listen = ['/usr/bin/waypipe',
+            '-s', '/tmp/socket_local',
+            'client']
 
         shell_waypipe_bind = [
             'ssh',
             '-R', '/tmp/socket_remote:/tmp/socket_local',
             '-i', self.mos_ssh_key,
-            f"{self.virtua_machine_username}@{self.virtua_machine_ip}",
-            '-p', self.virtua_machine_ssh_port,
+            f"{self.vm_username}@{self.vm_ip_addr}",
             '/usr/bin/waypipe', '-s', '/tmp/socket_remote', 'server',
             '--',
-            run_args
+            application
         ]
 
-        process_cleanup_local = subprocess.Popen(shell_waypipe_clean_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process_cleanup_remote = subprocess.Popen(shell_waypipe_clean_remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process_waypipe_listen = subprocess.Popen(shell_waypipe_listen, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process_cleanup_lo = subprocess.Popen(shell_waypipe_clean_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process_cleanup_vm = subprocess.Popen(shell_waypipe_clean_remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        process_listen = subprocess.Popen(shell_waypipe_listen, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         time.sleep(2)
-        process_waypipe_bind = subprocess.Popen(shell_waypipe_bind, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(f"Started Local Waypipe with PID: {process_waypipe_listen.pid}")
+        process_bind = subprocess.Popen(shell_waypipe_bind, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # Debug Waypipe
-        ## with open('output.log', 'w') as outfile:
-        ##     # Start the command and redirect stdout and stderr to the file
-        ##     # process = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
-        ##     process_waypipe_bind = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
+        print(f"Started Local Waypipe with PID: {process_listen.pid}")
+
+        ## Debug Waypipe
+        # with open('output.log', 'w') as outfile:
+        #     # Start the command and redirect stdout and stderr to the file
+        #     process = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
+        #     process_waypipe_bind = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
 
 
 
-        ##     # Optionally, wait for the process to complete
-        ##     process_waypipe_bind.wait()
+        #     # Optionally, wait for the process to complete
+        #     process_waypipe_bind.wait()
 
-        ##     print("Process completed. Output written to output.log.")
+        #     print("Process completed. Output written to output.log.")

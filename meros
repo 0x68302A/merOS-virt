@@ -168,11 +168,6 @@ def main():
             ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
             ssh_manager.interactive_shell()
 
-        elif o in ("--run"):
-            target_full_id = sys.argv[2]
-            run_args = sys.argv[3]
-            tc = ssh_communication.SSHCommunication(target_full_id)
-            tc.target_run(run_args)
 
         elif o in ("--pull"):
             template = sys.argv[2]
@@ -186,6 +181,35 @@ def main():
 
             ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
             ssh_manager.pull_files()
+
+        elif o in ("--push"):
+            template = sys.argv[2]
+            vm_name = sys.argv[3]
+            input_path = Path(sys.argv[4])
+            absolute_path = (Path.cwd() / input_path).resolve()
+
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+            config = VMConfigLoader.load_config(config_path)
+
+            vm_config = config.virtual_machines[vm_name]
+            vm_ip_addr = vm_config.networks[0].ip_addr
+
+            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
+            ssh_manager.push_file(absolute_path)
+
+        elif o in ("--run"):
+            template = sys.argv[2]
+            vm_name = sys.argv[3]
+            application = Path(sys.argv[4])
+
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+            config = VMConfigLoader.load_config(config_path)
+
+            vm_config = config.virtual_machines[vm_name]
+            vm_ip_addr = vm_config.networks[0].ip_addr
+
+            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
+            ssh_manager.vm_run(application)
 
         ## TODO Fix
         elif o in ("--info"):
