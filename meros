@@ -8,12 +8,11 @@ import sys
 import os
 
 from src.app_config import AppConfig
+from src.vm_models import VMConfigLoader
 from src.kernel_builder import KernelBuilder
 from src.vm_manager import VMManager
-from src.vm_models import VMConfigLoader
 from src.vm_build import VMBuilder
 from src.ssh_manager import SSHManager
-
 
 def main():
     try:
@@ -87,7 +86,6 @@ def main():
                     logging.warning(f"VM {vm_name} not found in config")
 
         elif o in ("-i", "--init"):
-            AppConfig.elevate_privs()
             template = sys.argv[2]
             config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
 
@@ -103,6 +101,7 @@ def main():
                 return
 
             for bridge_name in bridges_to_configure:
+                AppConfig.elevate_privs()
                 vm_manager.configure_bridge(bridge_name)
                 logging.info(f"Processed bridge: {bridge_name}")
 
@@ -115,6 +114,7 @@ def main():
 
             for vm_name in vms_to_start:
                 if vm_name in config.virtual_machines:
+                    AppConfig.elevate_privs()
                     vm_manager.start_vm(vm_name)
                     logging.info(f"Started {vm_name}")
                 else:
@@ -213,10 +213,16 @@ def main():
 
         ## TODO Fix
         elif o in ("--info"):
+            template = sys.argv[2]
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+
+            # Load full config (bridges + VMs)
+            # Initialize manager with full config
             AppConfig.elevate_privs()
-            vm_manager = VMManager()
+            config = VMConfigLoader.load_config(config_path)
+            vm_manager = VMManager(config)
             for vm_name, status in vm_manager.get_all_statuses().items():
-                print(f"{vm_name}: {'Running' if status else 'Stopped'}")
+                print(f"{template}_{vm_name}: {'Running' if status else 'Stopped'}")
 
         else:
             print("Error")
