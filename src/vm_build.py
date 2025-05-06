@@ -1,26 +1,22 @@
 #!/usr/bin/python3
 
 import os
-import sys
-import pwd
 import distutils, distutils.dir_util
 import tarfile
 import subprocess
+import glob
+import time
+import logging
+import guestfs
+from typing import Dict, Optional, Tuple
+
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
-import guestfs
-import glob
-
-import logging
-import time
-import logging
-
-from typing import Dict, Optional, Tuple
 
 from src.vm_models import VMConfig, Config, VirtualDisk
 from src.app_config import AppConfig
-from src.rootfs_get import RootfsGet
+from src.rootfs_manager import RootfsManager
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +34,8 @@ class VMBuilder:
         start_time = time.time()
         app_config = AppConfig()
 
-        self.running_uid_str = os.getenv('SUDO_UID')
-        self.running_gid_str = os.getenv('SUDO_GID')
-        self.running_uid = int(self.running_uid_str)
-        self.running_gid = int(self.running_gid_str)
+        self.running_uid = int(os.getenv('SUDO_UID'))
+        self.running_gid = int(os.getenv('SUDO_GID'))
 
         ## Template ( source ) files
         self.source_conf_dir = f"{AppConfig.mos_path}/templates/{self.template}"
@@ -57,9 +51,8 @@ class VMBuilder:
         self.chroot_ssh_dir = f"{self.chroot_dir}/etc/ssh"
 
         ## Build ( host ) files
-        self.mos_img_dir = AppConfig.mos_img_dir
         self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
-        self.rootfs_img = f"{AppConfig.mos_img_dir}/{self.template}-{vm_name}.qcow2"
+        self.rootfs_img = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
 
         try:
             # Prepare rootfs
@@ -84,7 +77,7 @@ class VMBuilder:
         self.vm_name = vm_name
         self.vm_distribution = vm_distribution
         self.vm_arch = vm_arch
-        self.rootfs_get = RootfsGet(vm_distribution, vm_arch)
+        self.rootfs_manager = RootfsManager(vm_distribution, vm_arch)
         if os.path.exists(self.chroot_dir + "/usr/bin/"):
             None
             logging.info('Chroot is already populated with /usr/bin/ - Skipping rootfs download')
@@ -92,19 +85,19 @@ class VMBuilder:
 
             logging.info('Processing rootfs requirments')
 
-            self.rootfs_get.get_rootfs()
+            self.rootfs_manager.get_rootfs()
             os.makedirs(self.chroot_dir, mode = 0o777, exist_ok = True)
 
             ## Check whether we're dealing with a tar.gzip ROOTFS
-            if os.path.isfile(self.rootfs_get.distribution_rootfs_targz):
-                tar_file = tarfile.open(self.rootfs_get.distribution_rootfs_targz)
+            if os.path.isfile(self.rootfs_manager.distribution_rootfs_targz):
+                tar_file = tarfile.open(self.rootfs_manager.distribution_rootfs_targz)
                 tar_file.extractall(self.chroot_dir)
                 tar_file.close
 
             ## Or a common path
-            elif os.path.exists(self.rootfs_get.distribution_rootfs_dir):
+            elif os.path.exists(self.rootfs_manager.distribution_rootfs_dir):
                 self.cp_args = ('cp -rn '
-                    + self.rootfs_get.distribution_rootfs_dir
+                    + self.rootfs_manager.distribution_rootfs_dir
                     + '/* ' + self.chroot_dir)
                 subprocess.run(self.cp_args, shell=True)
             else:
@@ -225,7 +218,7 @@ class VMBuilder:
         logging.info('Created QCOW image for VM: %s with %i MB size',
                 vm_name, self.storage_mb)
 
-        os.chown(self.rootfs_img, AppConfig.uid, AppConfig.gid)
+        os.chown(self.rootfs_img, self.running_uid, self.running_gid)
 
 class SSHKeys:
     def __init__(self):

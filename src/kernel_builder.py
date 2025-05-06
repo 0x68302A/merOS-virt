@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 
-from src.app_config import AppConfig
-
 import os
 import shutil
 import git
-from git import Repo
-from git import RemoteProgress
 import subprocess
 import logging
+
+from git import Repo
+from git import RemoteProgress
+
+from src.app_config import AppConfig
 
 class CloneProgress(RemoteProgress):
     def update(self, op_code, cur_count, max_count=None, message=''):
@@ -22,21 +23,18 @@ class KernelBuilder:
 
         ## Universal Paths import
         ## From Config
-        self.mos_path = AppConfig.mos_path
-        self.mos_img_dir = AppConfig.mos_img_dir
-        self.arch = "x86_64"
-        logging.info('System Architecture is %s', self.arch)
+        logging.info('System Architecture is %s', AppConfig.arch)
 
         ## Kernel Git URL
         ## And build path
         self.kernel_git_url = "https://github.com/torvalds/linux"
-        self.mos_kernel_build_dir = self.mos_path + "/data/build/kernel"
-        self.mos_kernel_git_dir = self.mos_path + "/data/build/kernel/linux"
+        self.mos_kernel_build_dir = AppConfig.mos_path + "/data/build/kernel"
+        self.mos_kernel_git_dir = AppConfig.mos_path + "/data/build/kernel/linux"
 
         ## bzimage build path
-        self.bzimage = self.mos_kernel_git_dir + "/arch/" + self.arch + "/boot/bzImage"
+        self.bzimage = self.mos_kernel_git_dir + "/arch/" + AppConfig.arch + "/boot/bzImage"
         ## bzimage Target path
-        self.target_bzimage = self.mos_img_dir + '/bzImage'
+        self.target_bzimage = AppConfig.mos_disk_dir + '/bzImage'
 
     ## Kernel Cloning
     def kernel_clone(self):

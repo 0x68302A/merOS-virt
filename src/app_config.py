@@ -4,16 +4,9 @@ import os
 import os.path
 import sys
 import socket, struct
-import getpass
 import subprocess
-import getopt
-import datetime
-import tarfile
-import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import fromstring, ElementTree
 import random as r
 import pydoc
-import shutil
 
 class AppConfig:
     ## Define MerOS path
@@ -29,8 +22,9 @@ class AppConfig:
     arch = str(uname[4])
 
     ## Define some misc, basic Paths.
-    mos_img_dir = mos_path + "/data/images"
-    mos_ssh_priv_key_dir = mos_path + "/data/ssh_keys"
+    mos_disk_dir = f"{mos_path}/data/disks"
+    mos_ssh_priv_key_dir = f"{mos_path}/data/ssh_keys"
+    mos_state_dir = f"{mos_path}/state"
 
     def display_help():
         with open(AppConfig.mos_path + "/src/manpage", "r") as help_file:
@@ -48,17 +42,3 @@ class AppConfig:
             # print("-- This action requires root access --\n-- Read more in the /meros comments --")
             args = ['sudo', sys.executable] + sys.argv + [os.environ]
             os.execlpe('sudo', *args)
-
-    ## We will be using that in our networked Targets
-    ## As to resolve addresses seamlessely
-    def get_default_gateway():
-            """Read the default gateway directly from /proc."""
-            with open("/proc/net/route") as fh:
-                    for line in fh:
-                            fields = line.strip().split()
-                            if fields[1] != '00000000' or not int(fields[3], 16) & 2:
-                    # If not default route or not RTF_GATEWAY, skip it
-                                                    continue
-                            return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
-
-    default_gw = str(get_default_gateway())

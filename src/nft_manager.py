@@ -2,7 +2,7 @@ import subprocess
 import logging
 from pathlib import Path
 from typing import Dict
-from .vm_models import BridgeConfig # Your existing model
+from .vm_models import BridgeConfig
 
 class NFTManager:
     def _exec_nft(self, command: str):

@@ -1,11 +1,13 @@
 import subprocess
-import json
 import logging
 import time
 import os
 import signal
+
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+
+from .app_config import AppConfig
 from .vm_models import VMConfig, Config
 from .disk_manager import DiskManager
 from .network_manager import NetworkManager
@@ -14,14 +16,14 @@ from .nft_manager import NFTManager
 logger = logging.getLogger(__name__)
 
 class VMManager:
-    STATE_DIR = Path("state")
 
     def __init__(self, config: Config, verbose: bool = False):
+        self.state_dir = Path(AppConfig.mos_state_dir)
         self.config = config
         self.nft = NFTManager()
         self.disk_manager = DiskManager(verbose)
         self.network_manager = NetworkManager(verbose)
-        self.STATE_DIR.mkdir(exist_ok=True)
+        self.state_dir.mkdir(exist_ok=True)
 
         if verbose:
             logger.setLevel(logging.DEBUG)
@@ -60,7 +62,6 @@ class VMManager:
             for disk in vm.disks:
                 logger.debug(f"Preparing disk: {disk.label}")
                 disk_data = self.disk_manager.create_disk(vm.name, disk)
-                # self.disk_manager.mount_disk(disk)
                 disk_info[disk.label] = disk_data
 
             for tap_interface in vm.networks:
@@ -73,7 +74,7 @@ class VMManager:
                 "-name", vm.name,
                 "-m", vm.memory,
                 "-smp", str(vm.cpus),
-                "-daemonize",
+                "-nographic",
                 "-pidfile", str(pid_file)
             ]
 
@@ -94,7 +95,7 @@ class VMManager:
 
             # Add kernel Parameter for custom kernels
             if vm.kernel:
-                cmd += ["-kernel", f"{vm.kernel}"]
+                cmd += ["-kernel", f"{AppConfig.mos_path}/{vm.kernel}"]
                 cmd += ["-append", f"root=/dev/vda1"]
 
             # Add extra arguments
@@ -204,17 +205,16 @@ class VMManager:
         """Returns detailed status for all VMs"""
         statuses = {}
         for vm_name in self.list_vms():
-            is_running, bridge = self.get_status(vm_name)
+            is_running = self.get_status(vm_name)
             statuses[vm_name] = {
                 "running": is_running,
-                "bridge": bridge if bridge else "N/A"
             }
         return statuses
 
 
     def list_vms(self) -> list:
         """Return names of all VMs with state files"""
-        return [f.stem for f in self.STATE_DIR.glob("*.pid")]
+        return [f.stem for f in self.state_dir.glob("*.pid")]
 
     def is_running(self, vm_name: str) -> bool:
         pid = self._read_pid_file(vm_name)
@@ -228,7 +228,7 @@ class VMManager:
             return False
 
     def _get_pid_file(self, vm_name: str) -> Path:
-        return self.STATE_DIR / f"{vm_name}.pid"
+        return self.state_dir / f"{vm_name}.pid"
 
     def _read_pid_file(self, vm_name: str) -> Optional[int]:
         pid_file = self._get_pid_file(vm_name)

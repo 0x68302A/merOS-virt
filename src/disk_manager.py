@@ -2,26 +2,25 @@ import subprocess
 import json
 import logging
 import time
+
 from pathlib import Path
 from typing import Dict
+
+from .app_config import AppConfig
 from .vm_models import VirtualDisk
 
 logger = logging.getLogger(__name__)
 
 class DiskManager:
-    MOUNT_ROOT = Path("current_mounts")
-    DISK_ROOT = Path("data/images")
-
     def __init__(self, verbose: bool = False):
         self.verbose = verbose
-        self.DISK_ROOT.mkdir(exist_ok=True)
-        self.MOUNT_ROOT.mkdir(exist_ok=True)
+        self.disk_dir = Path(AppConfig.mos_disk_dir)
+        self.disk_dir.mkdir(exist_ok=True)
         if self.verbose:
             logger.setLevel(logging.DEBUG)
 
     def create_disk(self, vm_name: str, disk: VirtualDisk) -> Dict:
-        disk_path = self.DISK_ROOT / f"{disk.label}"
-        disk.mount_point = self.MOUNT_ROOT / vm_name / disk.label
+        disk_path = self.disk_dir / f"{disk.label}"
 
         logger.info(f"Creating disk: {disk} for VM {vm_name}")
 
@@ -72,7 +71,6 @@ class DiskManager:
 
         return {
             "path": disk_path,
-            "mount_point": disk.mount_point,
             "loop_device": self._attach_loop(disk_path)
         }
 
@@ -90,20 +88,6 @@ class DiskManager:
             return loop_dev
         except subprocess.CalledProcessError as e:
             logger.error(f"Loop device attachment failed: {e.stderr}")
-            raise
-
-    def mount_disk(self, disk: VirtualDisk):
-        logger.info(f"Mounting disk to {disk.mount_point}")
-        disk.mount_point.mkdir(parents=True, exist_ok=True)
-        try:
-            subprocess.run(
-                ["mount", str(disk.mount_point)],
-                check=True,
-                capture_output=True
-            )
-            logger.debug("Mount successful")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Mount failed: {e.stderr}")
             raise
 
     def unmount_all(self, vm_name: str):

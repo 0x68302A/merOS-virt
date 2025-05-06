@@ -8,7 +8,7 @@ class NetworkManager:
     def __init__(self, verbose: bool = False):
         if verbose:
             logger.setLevel(logging.DEBUG)
-    
+
     @classmethod
     def create_tap(cls, tap_name: str, ip_addr: str, bridge_master: str):
         logger.info(f"Creating TAP device : {tap_name}")
@@ -58,11 +58,17 @@ class NetworkManager:
                 capture_output=True
             )
 
+            subprocess.run(
+                ["sudo", "sysctl", "-w", "net.ipv4.ip_forward=1"],
+                check=True,
+                capture_output=True
+            )
+
             logger.debug(f"Bridge {bridge_name} configured")
         except subprocess.CalledProcessError as e:
             logger.error(f"Bridge status: {e.stderr}")
             pass
-    
+
     @classmethod
     def delete_tap(cls, tap_name: str):
         logger.info(f"Deleting TAP device: {tap_name}")

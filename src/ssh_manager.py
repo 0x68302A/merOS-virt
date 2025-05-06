@@ -70,7 +70,7 @@ class SSHManager:
                 "--progress",
                 "--stats",
                 "--human-readable",
-                f"{file}",
+                f"{file_path}",
                 f"{self.vm_username}@{self.vm_ip_addr}:/home/{self.vm_username}/mos-shared/",
             ]
 
