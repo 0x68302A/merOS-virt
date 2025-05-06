@@ -1,7 +1,5 @@
 #!/usb/bin/python3
 
-from src.app_config import AppConfig
-
 import os
 import requests
 import re
@@ -10,7 +8,9 @@ import string
 import logging
 import subprocess
 
-class RootfsGet:
+from src.app_config import AppConfig
+
+class RootfsManager:
     def __init__(self, distribution: str, arch: str):
         self.distribution = distribution
         self.arch = arch
