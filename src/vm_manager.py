@@ -98,7 +98,14 @@ class VMManager:
                 cmd += ["-append", f"root=/dev/vda1"]
 
             # Add extra arguments
-            cmd.extend(vm.extra_args)
+            extra_args = []
+            for arg in vm.extra_args:
+                # Split if the argument contains spaces but doesn't start with a quote
+                if " " in arg and not (arg.startswith('"') or arg.startswith("'")):
+                    extra_args.extend(arg.split())
+                else:
+                    extra_args.append(arg)
+            cmd.extend(extra_args)
 
             logger.debug(f"QEMU command: {' '.join(cmd)}")
 
