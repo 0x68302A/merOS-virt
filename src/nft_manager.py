@@ -27,13 +27,13 @@ class NFTManager:
         """Safe rule removal with reference counting"""
         logging.debug(f"Bridge {bridge} still in use")
 
-        self._exec_nft(f"delete table ip bridge_{bridge}")
+        self._exec_nft(f"delete table ip {bridge}")
         logging.info(f"Removed rules for {bridge}")
 
     def _generate_rules(self, bridge: str, policy: BridgeConfig) -> str:
         default_gw = self._get_default_gateway()
         base = f"""
-        table ip bridge_{bridge} {{
+        table ip {bridge} {{
             chain input {{
                 type filter hook input priority 0; policy drop;
                 ct state established,related accept;

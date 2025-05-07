@@ -70,11 +70,10 @@ class VMManager:
 
             # Build QEMU command
             cmd = [
-                "qemu-system-x86_64",
+                f"qemu-system-{vm.arch}",
                 "-name", vm.name,
                 "-m", vm.memory,
                 "-smp", str(vm.cpus),
-                "-nographic",
                 "-pidfile", str(pid_file)
             ]
 
@@ -110,10 +109,20 @@ class VMManager:
                 stderr=subprocess.PIPE,
                 text=True
             )
+            stdout, stderr = process.communicate()
+
             time.sleep(0.5)
 
             elapsed = time.time() - start_time
-            logger.info(f"VM started successfully in {elapsed:.2f}s")
+
+            if process.returncode != 0:
+                logger.error(f"VM failed to start after {elapsed:.2f}s. Error:\n{stderr.strip()}")
+            else:
+                logger.info(f"VM started successfully in {elapsed:.2f}s")
+                if stderr.strip():
+                    logger.warning(f"VM started with warnings:\n{stderr.strip()}")
+                if stdout.strip():
+                    logger.info(f"VM output:\n{stdout.strip()}")
 
         except Exception as e:
             logger.error(f"Failed to start VM: {e}")
