@@ -127,8 +127,7 @@ class VMBuilder:
         with open("/etc/resolv.conf", 'w') as file:
                 file.write("nameserver 1.1.1.1")
 
-        subprocess.run("/tmp/src/hooks/0100-conf.chroot", shell=True)
-        subprocess.run("/tmp/src/hooks/0150-packages.chroot", shell=True)
+        subprocess.run("/tmp/src/hooks/*.chroot", shell=True)
         os.chdir(f)
         os.chroot(".")
 
