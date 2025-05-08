@@ -75,49 +75,43 @@ class SSHManager:
             ]
 
             subprocess.run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+
     def vm_run(self, application: str):
 
-        shell_waypipe_clean_local = ['rm', '-rf', '/tmp/socket_local']
+        cmd_waypipe_clean_local = ['rm', '-rf', '/tmp/socket']
 
-        shell_waypipe_clean_remote = [
-            'ssh',
-            '-i', self.mos_ssh_key,
-            f"{self.vm_username}@{self.vm_ip_addr}",
-            'rm -rf /tmp/socket_remote'
+        cmd_waypipe_clean_remote = [
+            'ssh', '-i', self.mos_ssh_key, f"{self.vm_username}@{self.vm_ip_addr}",
+            'rm -rf /tmp/socket'
         ]
 
-        shell_waypipe_listen = ['/usr/bin/waypipe',
-            '-s', '/tmp/socket_local',
-            'client']
-
-        shell_waypipe_bind = [
-            'ssh',
-            '-R', '/tmp/socket_remote:/tmp/socket_local',
-            '-i', self.mos_ssh_key,
-            f"{self.vm_username}@{self.vm_ip_addr}",
-            '/usr/bin/waypipe', '-s', '/tmp/socket_remote', 'server',
-            '--',
-            application
+        cmd_waypipe_listen_local = [
+            '/usr/bin/waypipe',
+            '--socket', '/tmp/socket', 'client'
         ]
 
-        process_cleanup_lo = subprocess.Popen(shell_waypipe_clean_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process_cleanup_vm = subprocess.Popen(shell_waypipe_clean_remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd_waypipe_bind_remote = [
+            'ssh', '-i', self.mos_ssh_key, f"{self.vm_username}@{self.vm_ip_addr}",
+            '-R', '/tmp/socket:/tmp/socket',
+            '/usr/bin/waypipe', '--socket', '/tmp/socket', 'server',
+            '--', f"{application}"
+        ]
 
-        process_listen = subprocess.Popen(shell_waypipe_listen, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process_cleanup_local = subprocess.Popen(cmd_waypipe_clean_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process_cleanup_remote = subprocess.Popen(cmd_waypipe_clean_remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        process_listen_local = subprocess.Popen(cmd_waypipe_listen_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         time.sleep(2)
-        process_bind = subprocess.Popen(shell_waypipe_bind, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # process_bind_remote = subprocess.Popen(cmd_waypipe_bind_rmote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        print(f"Started Local Waypipe with PID: {process_listen.pid}")
+        print(f"Started Local Waypipe with PID: {process_listen_local.pid}")
 
         ## Debug Waypipe
-        # with open('output.log', 'w') as outfile:
-        #     # Start the command and redirect stdout and stderr to the file
-        #     process = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
-        #     process_waypipe_bind = subprocess.Popen(shell_waypipe_bind, stdout=outfile, stderr=subprocess.STDOUT)
+        with open('output.log', 'w') as outfile:
+            # Start the command and redirect stdout and stderr to the file
+            process_waypipe_bind_remote = subprocess.Popen(cmd_waypipe_bind_remote, stdout=outfile, stderr=subprocess.STDOUT)
 
+            # Optionally, wait for the process to complete
+            process_waypipe_bind_remote.wait()
 
-
-        #     # Optionally, wait for the process to complete
-        #     process_waypipe_bind.wait()
-
-        #     print("Process completed. Output written to output.log.")
+            print("Process completed. Output written to output.log.")
