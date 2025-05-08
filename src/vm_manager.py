@@ -74,7 +74,8 @@ class VMManager:
                 "-name", vm.name,
                 "-m", vm.memory,
                 "-smp", str(vm.cpus),
-                "-pidfile", str(pid_file)
+                "-pidfile", str(pid_file),
+                "-daemonize"
             ]
 
             # Add disks
@@ -119,7 +120,6 @@ class VMManager:
             stdout, stderr = process.communicate()
 
             time.sleep(0.5)
-
             elapsed = time.time() - start_time
 
             if process.returncode != 0:
