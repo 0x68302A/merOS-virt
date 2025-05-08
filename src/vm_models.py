@@ -39,7 +39,7 @@ class VMConfig:
     name: str
     kernel: str = None
     distribution: Optional[str] = None
-    arch: Optional[str] = None
+    arch: Optional[str] = "x86_64"
     memory: str = "2G"
     cpus: int = 2
     build_free_mb: Optional[int] = None
@@ -86,7 +86,7 @@ class VMConfigLoader:
                 memory=vm_data.get('memory', "2G"),
                 distribution=vm_data.get('distribution', "None"),
                 build_free_mb=vm_data.get('build_free_mb', "None"),
-                arch=vm_data.get('arch', "None"),
+                arch=vm_data.get('arch', "x86_64"),
                 cpus=vm_data.get('cpus', 2),
                 kernel=vm_data.get('kernel', None),
                 disks=[VirtualDisk(**d) for d in vm_data.get('disks', [])],
