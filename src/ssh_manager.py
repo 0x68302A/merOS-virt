@@ -78,23 +78,23 @@ class SSHManager:
 
     def vm_run(self, application: str):
 
-        cmd_waypipe_clean_local = ['rm', '-rf', '/tmp/socket']
+        cmd_waypipe_clean_local = ['rm', '-rf', '/tmp/socket-local']
 
         cmd_waypipe_clean_remote = [
             'ssh', '-i', self.mos_ssh_key, f"{self.vm_username}@{self.vm_ip_addr}",
-            'rm -rf /tmp/socket'
+            'rm -rf /tmp/socket-remote'
         ]
 
         cmd_waypipe_listen_local = [
             '/usr/bin/waypipe',
-            '--socket', '/tmp/socket', 'client'
+            '--socket', '/tmp/socket-local', 'client'
         ]
 
         cmd_waypipe_bind_remote = [
             'ssh', '-i', self.mos_ssh_key, f"{self.vm_username}@{self.vm_ip_addr}",
-            '-R', '/tmp/socket:/tmp/socket',
-            '/usr/bin/waypipe', '--socket', '/tmp/socket', 'server',
-            '--', f"{application}"
+            '-R', '/tmp/socket-remote:/tmp/socket-local',
+            '/usr/bin/waypipe', '--socket', '/tmp/socket-remote', 'server',
+            'cage', f"{application}"
         ]
 
         process_cleanup_local = subprocess.Popen(cmd_waypipe_clean_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
