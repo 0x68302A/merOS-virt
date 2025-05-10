@@ -55,7 +55,7 @@ class SSHManager:
                 "--progress",
                 "--stats",
                 "--human-readable",
-                f"data/mos-shared/{self.template}-{self.vm_name}",
+                f"{AppConfig.mos_path}/data/mos-shared/{self.template}-{self.vm_name}",
             ]
 
             subprocess.run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
