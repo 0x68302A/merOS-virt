@@ -19,9 +19,7 @@ class RootfsManager:
         self.distribution_rootfs_targz = f"{self.vm_bootstrap_dir}/rootfs_{self.distribution}_{self.arch}.tar.gz"
         self.distribution_rootfs_dir = f"{self.vm_bootstrap_dir}/rootfs_{self.distribution}_{self.arch}"
 
-        self.alpine_mirror = "http://dl-cdn.alpinelinux.org/alpine/"
-        self.alpine_mirror_releases_url = f"{self.alpine_mirror}latest-stable/releases/{self.arch}"
-        self.alpine_mirror_release = f"{self.alpine_mirror}/latest-stable/releases/{self.arch}/latest-releases.yaml"
+
     def get_rootfs(self):
         if not os.path.isdir(self.vm_bootstrap_dir):
             os.makedirs(self.vm_bootstrap_dir)
@@ -48,7 +46,11 @@ class RootfsManager:
 
     def _get_alpine(self):
 
-        alpine_latest_release = requests.get(self.alpine_mirror_release, allow_redirects=True)
+        alpine_mirror = "http://dl-cdn.alpinelinux.org/alpine/"
+        alpine_mirror_releases_url = f"{alpine_mirror}latest-stable/releases/{self.arch}"
+        alpine_mirror_release = f"{alpine_mirror}/latest-stable/releases/{self.arch}/latest-releases.yaml"
+        alpine_latest_release = requests.get(alpine_mirror_release, allow_redirects=True)
+
         open("latest-releases.yaml", 'wb').write(alpine_latest_release.content)
 
         with open("latest-releases.yaml", "r") as file:
@@ -58,7 +60,7 @@ class RootfsManager:
                     vm_rootfs_id_split = vm_rootfs_id_full.split()
                     vm_rootfs_id = vm_rootfs_id_split[1]
 
-        vm_rootfs_url = self.alpine_mirror_releases_url + "/" + vm_rootfs_id
+        vm_rootfs_url = alpine_mirror_releases_url + "/" + vm_rootfs_id
         vm_rootfs_url_request = requests.get(vm_rootfs_url, allow_redirects=True)
         open(self.distribution_rootfs_targz, 'wb').write(vm_rootfs_url_request.content)
         logging.info('Downloaded alpine Linux rootfs')
