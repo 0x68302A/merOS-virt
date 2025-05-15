@@ -36,14 +36,14 @@ class VMManager:
         bridge_config = self.config.bridges[bridge_name]
         logger.info(f"Configuring bridge: {bridge_name} ({bridge_config.subnet})")
 
-        # Configure bridge
+        ## Configure bridge
         try:
             self.network_manager.create_bridge(bridge_name, bridge_config.subnet)
             logger.debug(f"Successfully configured {bridge_name}")
         except Exception as e:
             logger.error(f"Failed to configure {bridge_name}: {str(e)}")
 
-        # Configure associated nftables rules
+        ## Configure associated nftables rules
         try:
             self.nft.create_bridge_rules(bridge_name, bridge_config)
             logger.debug(f"Successfully set netfilter rules for {bridge_name}")
@@ -57,7 +57,7 @@ class VMManager:
         pid_file = self._get_pid_file(vm_name)
 
         try:
-            # Prepare disks
+            ## Prepare disks
             disk_info = {}
             for disk in vm.disks:
                 logger.debug(f"Preparing disk: {disk.label}")
@@ -68,7 +68,7 @@ class VMManager:
                 logger.debug(f"Preparing TAP Interface: {tap_interface.label}")
                 self.network_manager.create_tap(tap_interface.label, tap_interface.ip_addr, tap_interface.bridge)
 
-            # Build QEMU command
+            ## Build QEMU command
             cmd = [
                 f"qemu-system-{vm.arch}",
                 "-name", vm.name,
@@ -78,39 +78,48 @@ class VMManager:
                 "-daemonize"
             ]
 
-            # Add disks
+            ## Add disks
             for disk in vm.disks:
                 cmd += [
                     "-drive",
                     f"file={disk_info[disk.label]['path']},format={disk.fs_type},if=virtio"
                 ]
 
-            # Add networks
+            ## Add networks
             for network in vm.networks:
                 cmd += [
                     "-netdev", f"tap,id=net_{network.label},ifname={network.label}",
                     "-device", f"{network.model},netdev=net_{network.label}",
                 ]
 
+            ## Handle KVM
+            if vm.kvm == True:
+                cmd += ["--enable-kvm"]
 
-            # Add kernel Parameter for custom kernels
+            ## Handle display
+            if vm.display == False:
+                cmd += ["-display", "none"]
+
+            ## Add kernel Parameter for custom kernels
             if vm.kernel:
                 cmd += ["-kernel", f"{AppConfig.mos_path}/{vm.kernel}"]
                 cmd += ["-append", f"root=/dev/vda1"]
 
-            # Add extra arguments
+            ## Add extra arguments
             extra_args = []
+
             for arg in vm.extra_args:
                 # Split if the argument contains spaces but doesn't start with a quote
                 if " " in arg and not (arg.startswith('"') or arg.startswith("'")):
                     extra_args.extend(arg.split())
                 else:
                     extra_args.append(arg)
+
             cmd.extend(extra_args)
 
             logger.debug(f"QEMU command: {' '.join(cmd)}")
 
-            # Start VM
+            ## Start VM
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -143,7 +152,7 @@ class VMManager:
         bridge_config = self.config.bridges[bridge_name]
         logger.info(f"Configuring bridge: {bridge_name} ({bridge_config.subnet})")
 
-        # Deconfigure bridge
+        ## Deconfigure bridge
         try:
             self.network_manager.delete_bridge(bridge_name)
 

@@ -41,6 +41,8 @@ class VMConfig:
     distribution: Optional[str] = None
     arch: Optional[str] = "x86_64"
     memory: str = "2G"
+    kvm: bool = True
+    display: bool = False
     cpus: int = 2
     build_free_mb: Optional[int] = None
     disks: List[VirtualDisk] = field(default_factory=list)
@@ -49,6 +51,7 @@ class VMConfig:
 
     def __str__(self):
         return (f"VM(name={self.name}, memory={self.memory}, cpus={self.cpus}, "
+                f"kvm={self.kvm}, display={self.display}, "
                 f"distribution={self.distribution}, arch={self.arch}, "
                 f"build_free_mb={self.build_free_mb}, "
                 f"networks={[n.bridge for n in self.networks]})")  # Changed here
@@ -84,6 +87,8 @@ class VMConfigLoader:
                 name=vm_name,
                 networks=networks,
                 memory=vm_data.get('memory', "2G"),
+                kvm=vm_data.get('kvm', True),
+                display=vm_data.get('display', False),
                 distribution=vm_data.get('distribution', "None"),
                 build_free_mb=vm_data.get('build_free_mb', "None"),
                 arch=vm_data.get('arch', "x86_64"),
