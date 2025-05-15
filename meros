@@ -19,7 +19,7 @@ def main():
         opts, args = getopt.getopt(sys.argv[1:], "hic:v", [
                                 "help",
                                 "kernel-build",
-                                "get", "bootstrap", "build",
+                                "get", "bootstrap", "build", "patch",
                                 "init","shutdown",
                                 "connect","push", "pull", "run",
                                 "info", "log",
@@ -55,15 +55,26 @@ def main():
 
         elif o in ("--kernel-build"):
             kernel_builder = KernelBuilder()
+
             kernel_builder.kernel_clone()
             kernel_builder.kernel_build()
 
             sys.exit()
 
-        ## When building, we will be chrooting in the newly created rootfs
-        ## configuring local ( build-time ) packages-
-        ## thus needing elevated ( root ) privileges
-        ## ( See: mos/target_manage.py:104 )
+        elif o in ("--patch"):
+            template = sys.argv[2]
+            vm_name = sys.argv[3]
+            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+
+            config = VMConfigLoader.load_config(config_path)
+            vm_builder = VMBuilder(config, template)
+
+            disk_image_path = Path(sys.argv[4])
+            disk_image_abs_path = (Path.cwd() / disk_image_path).resolve()
+
+            vm_builder.image_patch(vm_name, disk_image_abs_path)
+            logging.info(f"Patched {vm_name}")
+
         elif o in ("--build"):
             template = sys.argv[2]
             config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
@@ -80,7 +91,7 @@ def main():
             for vm_name in vms_to_build:
                 if vm_name in config.virtual_machines:
                     AppConfig.elevate_privs()
-                    vm_builder.build_vm(vm_name)
+                    vm_builder.rootfs_image_build(vm_name)
                     logging.info(f"Built {vm_name}")
                 else:
                     logging.warning(f"VM {vm_name} not found in config")
@@ -185,8 +196,8 @@ def main():
         elif o in ("--push"):
             template = sys.argv[2]
             vm_name = sys.argv[3]
-            input_path = Path(sys.argv[4])
-            absolute_path = (Path.cwd() / input_path).resolve()
+            file_path = Path(sys.argv[4])
+            file_abs_path = (Path.cwd() / input_path).resolve()
 
             config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
             config = VMConfigLoader.load_config(config_path)
@@ -195,7 +206,7 @@ def main():
             vm_ip_addr = vm_config.networks[0].ip_addr
 
             ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
-            ssh_manager.push_file(absolute_path)
+            ssh_manager.push_file(file_abs_path)
 
         elif o in ("--run"):
             template = sys.argv[2]
