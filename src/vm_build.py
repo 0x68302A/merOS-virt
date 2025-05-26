@@ -19,6 +19,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from src.vm_models import VMConfig, Config, VirtualDisk
 from src.app_config import AppConfig
 from src.rootfs_manager import RootfsManager
+from src.disk_manager import DiskManager
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class VMBuilder:
     def __init__(self, config: Config, template: str, verbose: bool = False):
         self.config = config
         self.template = template
+        self.disk_manager = DiskManager()
 
         try:
             self.running_uid = int(os.getenv('SUDO_UID'))
@@ -62,7 +64,10 @@ class VMBuilder:
             logger.error(f"Failed to build VM: {e}")
             raise
 
-    def image_patch(self, vm_name: str, image_path: str):
+    def image_patch(self, vm_name: str, src_image_path: str):
+        vm = self.config.virtual_machines[vm_name]
+        disk = vm.disks[0]
+
         ## Template files
         source_conf_dir = f"{AppConfig.mos_path}/templates/{self.template}"
         source_conf_rootfs_dir = f"{source_conf_dir}/rootfs/{vm_name}/includes.chroot"
@@ -72,41 +77,43 @@ class VMBuilder:
 
         ## Build files
         rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
-        rootfs_img = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
+        dest_image_path = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
 
-        try:
-            shutil.copy(image_path, rootfs_img)
-        except:
-            logger.error(f"Patch File not found")
-
-        if not os.path.exists(rootfs_img):
-            raise FileNotFoundError(f"QCOW2 image not found: {rootfs_img}")
+        ssh_keys = self._ssh_keyadd(False, vm_name)
 
         g = guestfs.GuestFS(python_return_dict=True)
+        g_orig = guestfs.GuestFS(python_return_dict=True)
+
+        start_time = time.time()
 
         try:
-            g.add_drive_opts(rootfs_img, format="qcow2", readonly=0)
+
+            ## Initialize & Analyze source image
+            g_orig.add_drive_opts(str(src_image_path), format="qcow2", readonly=1)
+            g_orig.launch()
+            partitions = g_orig.list_partitions()
+
+            rootfs = g_orig.inspect_os()
+            rootfs_partition = rootfs[0]
+
+            ## Clone image
+            self.disk_manager.clone_qcow2(str(src_image_path), dest_image_path, vm.build_free_mb, rootfs_partition)
+
+            ## Initialize & Configure destination image
+            g.add_drive_opts(str(dest_image_path), format="qcow2", readonly=0)
+            g.set_network(True)
             g.launch()
-            ssh_keys = self._ssh_keyadd(False, vm_name)
 
             devices = g.list_devices()
             if len(devices) == 0:
                 raise RuntimeError("No devices found in the QCOW2 image")
 
-            # Assuming first partition is root
-            partitions = g.list_partitions()
-            roots = g.inspect_os()
+            rootfs = g.inspect_os()
+            rootfs_partition = rootfs[0]
 
-            ## Handle cases where disk is not partitioned
-            if len(partitions) == 0:
-                root_partition = roots[0]
-            elif len(partitions) != 0:
-                root_partition = partitions[1]
+            g.mount(rootfs_partition, "/")
 
-
-            g.mount(root_partition, "/")
-
-            # Perform operations
+            ## Perform rootfs operations
             try:
                 self._copy_directory_to_guest_tar(g, f"{source_conf_rootfs_common_dir}", "/")
             except:
@@ -115,20 +122,28 @@ class VMBuilder:
             logger.debug(f"Copying rootfs contents for VM: {vm_name}")
             self._copy_directory_to_guest_tar(g, f"{source_conf_rootfs_dir}", "/")
             self._copy_directory_to_guest_tar(g, f"{source_hooks_dir}", "/tmp/src/hooks")
+
             logger.debug(f"Configuring ssh keys for VM: {vm_name}")
             g.write("/etc/ssh/ssh_host_rsa_key", ssh_keys[0])
             g.write("/etc/ssh/authorized_keys", ssh_keys[1])
+
             logger.debug(f"Configuring VM: {vm_name}")
             g.command(["chmod", "0600", "/etc/ssh/ssh_host_rsa_key"])
-            g.command(["sh", "/tmp/src/hooks/0100-conf.chroot"])
+
+            output = g.command(["sh", "-c", "for script in /tmp/src/hooks/*.chroot; do sh \"$script\"; done"])
+            logging.debug(output)
 
             g.umount("/")
             g.sync()
 
-            logging.debug('Successfully patched QCOW image for VM: %s', vm_name)
+            elapsed = time.time() - start_time
+            logging.debug(f"Successfully patched QCOW image for VM: %s after {elapsed:.2f}s", vm_name)
 
         finally:
-            # Ensure we always close the guestfs handle
+            ## Ensure we close the guestfs handles
+            g_orig.shutdown()
+            g_orig.close()
+
             g.shutdown()
             g.close()
 
@@ -142,9 +157,9 @@ class VMBuilder:
                 # Add each item inside host_src_dir (not host_src_dir itself)
                 for item in os.listdir(host_src_dir):
                     full_path = os.path.join(host_src_dir, item)
-                    tar.add(full_path, arcname=item)  # Key: arcname=item (no parent dir)
+                    tar.add(full_path, arcname=item)
 
-            # Extract to guest_dest_dir (which must exist)
+            ## Extract to guest_dest_dir (which must exist)
             g.mkdir_p(guest_dest_dir)  # Ensure target dir exists
             g.tar_in(tmp_tar.name, guest_dest_dir)
 
@@ -267,8 +282,8 @@ class VMBuilder:
         vm = self.config.virtual_machines[vm_name]
         build_free_mb = vm.build_free_mb
 
-        if os.path.exists(self.rootfs_img):
-            os.remove(self.rootfs_img)
+        if os.path.exists(self.dest_image_path):
+            os.remove(self.dest_image_path)
         else:
             pass
 
@@ -277,10 +292,10 @@ class VMBuilder:
 
         g = guestfs.GuestFS(python_return_dict=True)
 
-        g.disk_create(self.rootfs_img, "qcow2", self.storage_mb * 1024 * 1024 )
+        g.disk_create(self.dest_image_path, "qcow2", self.storage_mb * 1024 * 1024 )
         # Enable for verbosity
         # g.set_trace(1)
-        g.add_drive_opts(self.rootfs_img, format = "qcow2", readonly=0)
+        g.add_drive_opts(self.dest_image_path, format = "qcow2", readonly=0)
         g.launch()
         devices = g.list_devices()
         assert(len(devices) == 1)
@@ -299,7 +314,7 @@ class VMBuilder:
         logging.info('Created QCOW image for VM: %s with %i MB size',
                 vm_name, self.storage_mb)
 
-        os.chown(self.rootfs_img, self.running_uid, self.running_gid)
+        os.chown(self.dest_image_path, self.running_uid, self.running_gid)
 
 class SSHKeys:
     def __init__(self):

@@ -34,9 +34,9 @@ class DiskManager:
 
             try:
                 g.disk_create(str(disk_path), 'qcow2', disk_size_kb)
-                print(f"Successfully created QCOW2 image at {disk_path}")
+                logger.info(f"Successfully created QCOW2 image at {disk_path}")
             except Exception as e:
-                print(f"Error creating QCOW2 image: {e}")
+                logger.error(f"Error creating QCOW2 image: {e}")
 
                 elapsed = time.time() - start_time
                 logger.info(f"Disk created in {elapsed:.2f}s: {disk_path}")
@@ -44,3 +44,17 @@ class DiskManager:
         return {
             "path": disk_path
         }
+
+    def clone_qcow2(self, src_qcow2_path, dest_qcow2_path, size_mb, rootfs_part):
+        ## Resize disk
+        ## TODO Handle resizing with guestfs
+        ## part_list, truncate - Investigate
+        create_cmd = ["qemu-img", "create", dest_qcow2_path, "-f", "qcow2" ,f"+{size_mb}M"]
+        expand_cmd = ["virt-resize", "--expand", rootfs_part , src_qcow2_path, dest_qcow2_path]
+
+        try:
+            subprocess.run(create_cmd)
+            subprocess.run(expand_cmd)
+            logger.info(f"Configured {dest_qcow2_path} to: {size_mb}MB")
+        except Exception as e:
+            logger.error(f"Failed to clone image: {e}")
