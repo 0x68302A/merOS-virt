@@ -1,24 +1,10 @@
 
 import os
-import socket
 import sys
 import subprocess
-import paramiko
-from paramiko.py3compat import u
-import termios
-import tty
-import select
+import logging
 import time
 
-import struct
-import fcntl
-import signal
-import errno
-import stat
-
-import subprocess
-
-import logging
 
 from .app_config import AppConfig
 from .vm_models import VMConfig, Config

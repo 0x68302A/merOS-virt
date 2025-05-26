@@ -34,6 +34,7 @@ setup(
 				'GitPython',
 				'cryptography',
 				'pyroute2.nftables',
+				'pyyaml',
 				'requests'
 	],
 
