@@ -196,7 +196,7 @@ def main():
         elif o in ("--push"):
             template = sys.argv[2]
             vm_name = sys.argv[3]
-            file_path = Path(sys.argv[4])
+            input_path = Path(sys.argv[4])
             file_abs_path = (Path.cwd() / input_path).resolve()
 
             config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
