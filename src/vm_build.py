@@ -38,17 +38,28 @@ class VMBuilder:
         if verbose:
             logger.setLevel(logging.DEBUG)
 
+        ## Source/ Configuration paths
+        self.source_conf_dir = f"{AppConfig.mos_path}/templates/{self.template}"
+        self.source_conf_rootfs_common_dir = f"{self.source_conf_dir}/rootfs/common/includes.chroot"
+        self.source_pkgs_dir = f"{self.source_conf_dir}/pkg/"
+
+
+
     def rootfs_image_build(self, vm_name: str):
         vm = self.config.virtual_machines[vm_name]
         logger.info(f"Building VM: {vm_name}")
         start_time = time.time()
         app_config = AppConfig()
 
-        ## Chroot ( final ) files
+        ## Chroot/ rootfs paths
         self.chroot_dir = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}/"
         self.chroot_hooks_dir = f"{self.chroot_dir}/tmp/src/hooks"
         self.chroot_pkgs_dir = f"{self.chroot_dir}/opt"
         self.chroot_ssh_dir = f"{self.chroot_dir}/etc/ssh"
+
+        ## Build paths
+        self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
+        self.dest_image_path = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
 
         try:
             # Prepare rootfs
@@ -69,15 +80,12 @@ class VMBuilder:
         disk = vm.disks[0]
 
         ## Template files
-        source_conf_dir = f"{AppConfig.mos_path}/templates/{self.template}"
-        source_conf_rootfs_dir = f"{source_conf_dir}/rootfs/{vm_name}/includes.chroot"
-        source_conf_rootfs_common_dir = f"{source_conf_dir}/rootfs/common/includes.chroot"
-        source_hooks_dir = f"{source_conf_dir}/rootfs/{vm_name}/hooks"
-        source_pkgs_dir = f"{source_conf_dir}/pkg/"
+        source_conf_rootfs_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/includes.chroot"
+        source_hooks_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/hooks"
 
-        ## Build files
-        rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
-        dest_image_path = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
+        ## Build paths
+        self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
+        self.dest_image_path = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
 
         ssh_keys = self._ssh_keyadd(False, vm_name)
 
@@ -97,10 +105,10 @@ class VMBuilder:
             rootfs_partition = rootfs[0]
 
             ## Clone image
-            self.disk_manager.clone_qcow2(str(src_image_path), dest_image_path, vm.build_free_mb, rootfs_partition)
+            self.disk_manager.clone_qcow2(str(src_image_path), self.dest_image_path, vm.build_free_mb, rootfs_partition)
 
             ## Initialize & Configure destination image
-            g.add_drive_opts(str(dest_image_path), format="qcow2", readonly=0)
+            g.add_drive_opts(str(self.dest_image_path), format="qcow2", readonly=0)
             g.set_network(True)
             g.launch()
 
@@ -203,6 +211,9 @@ class VMBuilder:
     ## In a Chroot enviroment
     def _chroot_configure(self, vm_name: str):
 
+        self.source_conf_rootfs_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/includes.chroot"
+        self.source_hooks_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/hooks"
+
         try:
             distutils.dir_util.copy_tree(self.source_conf_rootfs_common_dir, self.chroot_dir)
         except:
@@ -244,19 +255,19 @@ class VMBuilder:
 
         os.chmod(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-'+ vm_name + "-id_rsa", 0o0600)
 
-        ## When --build is used
+        ## When --rootfs-only is used
         if chroot == True:
             with open(self.chroot_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
-                content_file.write(self.ssh_privkey_01)
+                content_file.write(ssh_privkey_01)
 
             with open(self.chroot_ssh_dir + "/authorized_keys", 'w') as content_file:
-                    content_file.write(self.ssh_pubkey_02)
+                    content_file.write(ssh_pubkey_02)
 
             os.chmod(self.chroot_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 
             os.chown(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-'+ vm_name + "-id_rsa", self.running_uid, self.running_gid)
 
-        ## When --patch is used
+        ## When --use is used
         elif chroot == False:
             return ssh_privkey_01, ssh_pubkey_02
 
