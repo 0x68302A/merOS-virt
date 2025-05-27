@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 
-import subprocess
+import argparse
 import logging
-from pathlib import Path
-import getopt
 import sys
-import os
+from pathlib import Path
 
 from src.app_config import AppConfig
 from src.vm_models import VMConfigLoader
@@ -14,230 +12,297 @@ from src.vm_manager import VMManager
 from src.vm_build import VMBuilder
 from src.ssh_manager import SSHManager
 
+
 def main():
+    """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description="MerOS VM and Kernel Management Tool",
+        epilog='See "meros <command> --help" for more information on a specific command.'
+    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
+    subparsers = parser.add_subparsers(dest="command", required=True, title="commands")
+
+    # Register all subcommands
+    register_log_command(subparsers)
+    register_kernel_build_command(subparsers)
+    register_init_command(subparsers)
+    register_shutdown_command(subparsers)
+    register_build_command(subparsers)
+    register_patch_command(subparsers)
+    register_connect_command(subparsers)
+    register_push_command(subparsers)
+    register_pull_command(subparsers)
+    register_run_command(subparsers)
+    register_info_command(subparsers)
+
+    args = parser.parse_args()
+    configure_logging(args.verbose)
+
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hic:v", [
-                                "help",
-                                "kernel-build",
-                                "get", "bootstrap", "build", "patch",
-                                "init","shutdown",
-                                "connect","push", "pull", "run",
-                                "info", "log",
-                                "output="
-                                ])
+        handle_command(args)
+    except Exception as e:
+        logging.error(f"Operation failed: {str(e)}")
+        sys.exit(1)
 
-    except getopt.GetoptError as err:
-        print(err)
-        AppConfig.display_help()
-        sys.exit(2)
-    output = None
-    verbose = False
 
+def register_log_command(subparsers):
+    """Register log subcommand"""
+    subparsers.add_parser("log", help="Display the application log")
+
+
+def register_kernel_build_command(subparsers):
+    """Register kernel-build subcommand"""
+    subparsers.add_parser("kernel-build", help="Build the Linux kernel")
+
+
+def register_init_command(subparsers):
+    """Register init subcommand"""
+    parser = subparsers.add_parser("init", help="Initialize VMs and network bridges")
+    parser.add_argument("template", help="Name of template configuration to use")
+
+
+def register_shutdown_command(subparsers):
+    """Register shutdown subcommand"""
+    parser = subparsers.add_parser("shutdown", help="Shutdown VMs and remove resources")
+    parser.add_argument("template", help="Name of template configuration to use")
+
+def register_build_command(subparsers):
+    """Register build subcommand"""
+    parser = subparsers.add_parser("build", help="Build VM images")
+    parser.add_argument("template", help="Name of template configuration to use")
+    parser.add_argument("vm_name", nargs='?', help="Name of VM to patch (required with --use)")
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--from-source",
+                      action="store_true",
+                      help="Build all images from source")
+    group.add_argument("--use",
+                      type=Path,
+                      metavar="PATCH_IMAGE",
+                      help="Patch VM using existing disk image")
+
+
+def register_patch_command(subparsers):
+    """Register patch subcommand"""
+    parser = subparsers.add_parser("patch", help="Patch VM disk image")
+    parser.add_argument("template", help="Name of template configuration to use")
+    parser.add_argument("vm_name", help="Name of VM to patch")
+    parser.add_argument("disk_image", type=Path, help="Path to disk image file")
+
+
+def register_connect_command(subparsers):
+    """Register connect subcommand"""
+    parser = subparsers.add_parser("connect", help="Connect to VM via SSH")
+    parser.add_argument("template", help="Name of template configuration to use")
+    parser.add_argument("vm_name", help="Name of VM to connect to")
+
+
+def register_push_command(subparsers):
+    """Register push subcommand"""
+    parser = subparsers.add_parser("push", help="Push file to VM")
+    parser.add_argument("template", help="Name of template configuration to use")
+    parser.add_argument("vm_name", help="Name of target VM")
+    parser.add_argument("local_path", type=Path, help="Path to local file")
+
+
+def register_pull_command(subparsers):
+    """Register pull subcommand"""
+    parser = subparsers.add_parser("pull", help="Pull files from VM")
+    parser.add_argument("template", help="Name of template configuration to use")
+    parser.add_argument("vm_name", help="Name of target VM")
+
+
+def register_run_command(subparsers):
+    """Register run subcommand"""
+    parser = subparsers.add_parser("run", help="Execute command on VM")
+    parser.add_argument("template", help="Name of template configuration to use")
+    parser.add_argument("vm_name", help="Name of target VM")
+    parser.add_argument("application", type=Path, help="Path to application to execute")
+
+
+def register_info_command(subparsers):
+    """Register info subcommand"""
+    parser = subparsers.add_parser("info", help="Show VM status information")
+    parser.add_argument("template", help="Name of template configuration to use")
+
+
+def configure_logging(verbose: bool):
+    """Configure logging system"""
     logging.basicConfig(
-            # filename = AppConfig.mos_path + '/LOG',
-            format = '%(asctime)s::MerOS::%(levelname)s::%(message)s',
-            datefmt = '%H:%M:%S',
-            # level=logging.DEBUG if verbose else logging.INFO,
-            level=logging.DEBUG,
-            encoding = 'utf-8')
-
-    for o, a in opts:
-        if o == "-v":
-            verbose = True
-
-        elif o in ("--log"):
-            AppConfig.display_log()
-            sys.exit()
-
-        elif o in ("-h", "--help"):
-            AppConfig.display_help()
-            sys.exit()
-
-        elif o in ("--kernel-build"):
-            kernel_builder = KernelBuilder()
-
-            kernel_builder.kernel_clone()
-            kernel_builder.kernel_build()
-
-            sys.exit()
-
-        elif o in ("--patch"):
-            template = sys.argv[2]
-            vm_name = sys.argv[3]
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-
-            config = VMConfigLoader.load_config(config_path)
-            vm_builder = VMBuilder(config, template)
-
-            disk_image_path = Path(sys.argv[4])
-            disk_image_abs_path = (Path.cwd() / disk_image_path).resolve()
-
-            vm_builder.image_patch(vm_name, disk_image_abs_path)
-            logging.info(f"Patched {vm_name}")
-
-        elif o in ("--build"):
-            template = sys.argv[2]
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-
-            config = VMConfigLoader.load_config(config_path)
-            vm_builder = VMBuilder(config, template)
-
-            vms_to_build = config.virtual_machines.keys()
-
-            if not vms_to_build:
-                logging.warning("No VMs specified and none found in config")
-                return
-
-            for vm_name in vms_to_build:
-                if vm_name in config.virtual_machines:
-                    AppConfig.elevate_privs()
-                    vm_builder.rootfs_image_build(vm_name)
-                    logging.info(f"Built {vm_name}")
-                else:
-                    logging.warning(f"VM {vm_name} not found in config")
-
-        elif o in ("-i", "--init"):
-            template = sys.argv[2]
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-
-            # Load full config (bridges + VMs)
-            # Initialize manager with full config
-            config = VMConfigLoader.load_config(config_path)
-            vm_manager = VMManager(config)
-
-            # Determine Bridges to configure
-            bridges_to_configure = list(config.bridges.keys())
-            if not bridges_to_configure:
-                logging.warning("No bridges defined in config")
-                return
-
-            for bridge_name in bridges_to_configure:
-                AppConfig.elevate_privs()
-                vm_manager.configure_bridge(bridge_name)
-                logging.info(f"Processed bridge: {bridge_name}")
-
-            # Determine VMs to start
-            vms_to_start = config.virtual_machines.keys()
-
-            if not vms_to_start:
-                logging.warning("No VMs specified and none found in config")
-                return
-
-            for vm_name in vms_to_start:
-                if vm_name in config.virtual_machines:
-                    AppConfig.elevate_privs()
-                    vm_manager.start_vm(vm_name)
-                    logging.info(f"Started {vm_name}")
-                else:
-                    logging.warning(f"VM {vm_name} not found in config")
+        format="%(asctime)s::MerOS::%(levelname)s::%(message)s",
+        datefmt="%H:%M:%S",
+        level=logging.DEBUG if verbose else logging.INFO,
+        encoding="utf-8"
+    )
 
 
-        elif o in ("--shutdown"):
-            AppConfig.elevate_privs()
-            template = sys.argv[2]
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-
-            # Load full config (bridges + VMs)
-            # Initialize manager with full config
-            config = VMConfigLoader.load_config(config_path)
-            vm_manager = VMManager(config)
-
-            # Determine Bridges to delete
-            bridges_to_delete = list(config.bridges.keys())
-            if not bridges_to_delete:
-                logging.warning("No bridges defined in config")
-                return
-
-            for bridge_name in bridges_to_delete:
-                vm_manager.delete_bridge(bridge_name)
-                logging.info(f"Deleted bridge: {bridge_name}")
-
-            # Determine VMs to stop
-            vms_to_stop = config.virtual_machines.keys()
-
-            if not vms_to_stop:
-                logging.warning("No VMs specified and none found in config")
-                return
-
-            for vm_name in vms_to_stop:
-                if vm_name in config.virtual_machines:
-                    vm_manager.stop_vm(vm_name)
-                    logging.info(f"Stopped {vm_name}")
-                else:
-                    logging.warning(f"VM {vm_name} not found in config")
-
-        elif o in ("-c", "--connect"):
-            template = sys.argv[2]
-            vm_name = sys.argv[3]
-
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-            config = VMConfigLoader.load_config(config_path)
-
-            vm_config = config.virtual_machines[vm_name]
-            vm_ip_addr = vm_config.networks[0].ip_addr
-
-            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
-            ssh_manager.interactive_shell()
+def handle_command(args):
+    """Dispatch command to appropriate handler"""
+    command_handlers = {
+        "log": handle_log,
+        "kernel-build": handle_kernel_build,
+        "init": handle_init,
+        "shutdown": handle_shutdown,
+        "build": handle_build,
+        "patch": handle_patch,
+        "connect": handle_connect,
+        "push": handle_push,
+        "pull": handle_pull,
+        "run": handle_run,
+        "info": handle_info,
+    }
+    handler = command_handlers.get(args.command)
+    if handler:
+        handler(args)
+    else:
+        raise ValueError(f"Unknown command: {args.command}")
 
 
-        elif o in ("--pull"):
-            template = sys.argv[2]
-            vm_name = sys.argv[3]
+def handle_log(_):
+    """Handle log command"""
+    AppConfig.display_log()
 
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-            config = VMConfigLoader.load_config(config_path)
 
-            vm_config = config.virtual_machines[vm_name]
-            vm_ip_addr = vm_config.networks[0].ip_addr
+def handle_kernel_build(_):
+    """Handle kernel-build command"""
+    KernelBuilder().build_kernel()
 
-            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
-            ssh_manager.pull_files()
 
-        elif o in ("--push"):
-            template = sys.argv[2]
-            vm_name = sys.argv[3]
-            input_path = Path(sys.argv[4])
-            file_abs_path = (Path.cwd() / input_path).resolve()
+def handle_init(args):
+    """Handle init command"""
+    config = load_config(args.template)
+    vm_manager = VMManager(config)
 
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-            config = VMConfigLoader.load_config(config_path)
+    # Configure bridges
+    for bridge in config.bridges:
+        with_privileges(lambda: vm_manager.configure_bridge(bridge))
 
-            vm_config = config.virtual_machines[vm_name]
-            vm_ip_addr = vm_config.networks[0].ip_addr
+    # Start VMs
+    for vm_name in config.virtual_machines:
+        with_privileges(lambda: vm_manager.start_vm(vm_name))
 
-            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
-            ssh_manager.push_file(file_abs_path)
 
-        elif o in ("--run"):
-            template = sys.argv[2]
-            vm_name = sys.argv[3]
-            application = Path(sys.argv[4])
+def handle_shutdown(args):
+    """Handle shutdown command"""
+    config = load_config(args.template)
+    vm_manager = VMManager(config)
 
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
-            config = VMConfigLoader.load_config(config_path)
+    # Stop VMs
+    for vm_name in config.virtual_machines:
+        with_privileges(lambda: vm_manager.stop_vm(vm_name))
 
-            vm_config = config.virtual_machines[vm_name]
-            vm_ip_addr = vm_config.networks[0].ip_addr
+    # Remove bridges
+    for bridge in config.bridges:
+        vm_manager.delete_bridge(bridge)
 
-            ssh_manager = SSHManager(config, template, vm_name, vm_ip_addr)
-            ssh_manager.vm_run(application)
 
-        ## TODO Fix
-        elif o in ("--info"):
-            template = sys.argv[2]
-            config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+def handle_build(args):
+    """Handle build command"""
+    config = load_config(args.template)
+    builder = VMBuilder(config, args.template)
 
-            # Load full config (bridges + VMs)
-            # Initialize manager with full config
-            AppConfig.elevate_privs()
-            config = VMConfigLoader.load_config(config_path)
-            vm_manager = VMManager(config)
-            for vm_name, status in vm_manager.get_all_statuses().items():
-                print(f"{template}_{vm_name}: {'Running' if status else 'Stopped'}")
+    if args.from_source:
+        if args.vm_name is not None:
+            raise ValueError("vm_name should not be provided with --from-source")
 
-        else:
-            print("Error")
-            assert False, "unhandled option"
+        # Build all VMs from source
+        for vm_name in config.virtual_machines:
+            with_privileges(lambda: builder.rootfs_image_build(vm_name))
+            logging.info(f"Built {vm_name} from source")
+
+    elif args.use:
+        if not args.vm_name:
+            raise ValueError("vm_name is required when using --use")
+
+        # Patch specific VM with provided image
+        disk_image = args.use.resolve()
+        if not disk_image.exists():
+            raise FileNotFoundError(f"Disk image {disk_image} not found")
+
+        with_privileges()
+        builder.image_patch(args.vm_name, disk_image)
+        logging.info(f"Patched {args.vm_name} with {disk_image}")
+
+
+def handle_patch(args):
+    """Handle patch command"""
+    config = load_config(args.template)
+    builder = VMBuilder(config, args.template)
+    builder.image_patch(args.vm_name, args.disk_image.resolve())
+
+
+def handle_connect(args):
+    """Handle connect command"""
+    config = load_config(args.template)
+    vm_config = get_vm_config(config, args.vm_name)
+    ssh = create_ssh_manager(config, args.template, args.vm_name, vm_config)
+    ssh.interactive_shell()
+
+
+def handle_push(args):
+    """Handle push command"""
+    config = load_config(args.template)
+    vm_config = get_vm_config(config, args.vm_name)
+    ssh = create_ssh_manager(config, args.template, args.vm_name, vm_config)
+    ssh.push_file(args.local_path.resolve())
+
+
+def handle_pull(args):
+    """Handle pull command"""
+    config = load_config(args.template)
+    vm_config = get_vm_config(config, args.vm_name)
+    ssh = create_ssh_manager(config, args.template, args.vm_name, vm_config)
+    ssh.pull_files()
+
+
+def handle_run(args):
+    """Handle run command"""
+    config = load_config(args.template)
+    vm_config = get_vm_config(config, args.vm_name)
+    ssh = create_ssh_manager(config, args.template, args.vm_name, vm_config)
+    ssh.vm_run(args.application)
+
+
+def handle_info(args):
+    """Handle info command"""
+    with_privileges()
+    config = load_config(args.template)
+    vm_manager = VMManager(config)
+
+    for vm_name, status in vm_manager.get_all_statuses().items():
+        state = "Running" if status else "Stopped"
+        print(f"{args.template}_{vm_name}: {state}")
+
+
+def load_config(template: str):
+    """Load configuration for given template"""
+    config_path = f"{AppConfig.mos_path}/templates/{template}/manifest.yml"
+    return VMConfigLoader.load_config(config_path)
+
+
+def get_vm_config(config, vm_name: str):
+    """Get VM configuration with validation"""
+    if vm_name not in config.virtual_machines:
+        raise ValueError(f"VM {vm_name} not found in configuration")
+    return config.virtual_machines[vm_name]
+
+
+def create_ssh_manager(config, template: str, vm_name: str, vm_config):
+    """Create SSH manager instance"""
+    return SSHManager(
+        config=config,
+        template=template,
+        vm_name=vm_name,
+        vm_ip_addr=vm_config.networks[0].ip_addr
+    )
+
+
+def with_privileges(action=None):
+    """Elevate privileges for sensitive operations"""
+    AppConfig.elevate_privs()
+    if action:
+        action()
+
 
 if __name__ == "__main__":
     main()
