@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import traceback
 import sys
 from pathlib import Path
 
@@ -14,12 +15,18 @@ from src.ssh_manager import SSHManager
 
 
 def main():
-    """Main entry point"""
+    """Main entry point for MerOS"""
     parser = argparse.ArgumentParser(
         description="MerOS VM and Kernel Management Tool",
         epilog='See "meros <command> --help" for more information on a specific command.'
     )
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
+
+    # Add debug flag to global arguments
+    parser.add_argument("--debug", action="store_true",
+                      help="Show full Python traceback on errors")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                      help="Enable verbose output")
+
     subparsers = parser.add_subparsers(dest="command", required=True, title="commands")
 
     # Register all subcommands
@@ -36,14 +43,17 @@ def main():
     register_info_command(subparsers)
 
     args = parser.parse_args()
-    configure_logging(args.verbose)
+    configure_logging(args.verbose, args.debug)  # Update this line
 
     try:
         handle_command(args)
     except Exception as e:
-        logging.error(f"Operation failed: {str(e)}")
+        if args.debug:
+            # Print raw traceback to stderr
+            traceback.print_exc(file=sys.stderr)
+        else:
+            logging.error(f"Operation failed: {str(e)}")
         sys.exit(1)
-
 
 def register_log_command(subparsers):
     """Register log subcommand"""
@@ -126,12 +136,13 @@ def register_info_command(subparsers):
     parser.add_argument("template", help="Name of template configuration to use")
 
 
-def configure_logging(verbose: bool):
+def configure_logging(verbose: bool, debug: bool):
     """Configure logging system"""
+    level = logging.DEBUG if verbose or debug else logging.INFO
     logging.basicConfig(
         format="%(asctime)s::MerOS::%(levelname)s::%(message)s",
         datefmt="%H:%M:%S",
-        level=logging.DEBUG if verbose else logging.INFO,
+        level=level,
         encoding="utf-8"
     )
 
