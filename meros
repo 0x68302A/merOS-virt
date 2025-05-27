@@ -257,6 +257,7 @@ def handle_run(args):
     ssh.vm_run(args.application)
 
 
+## TODO Fix - Partially working
 def handle_info(args):
     """Handle info command"""
     with_privileges()

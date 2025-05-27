@@ -198,7 +198,7 @@ class VMManager:
         except:
             pass  # Process already dead
 
-    def get_status(self, vm_name: str) -> Tuple[bool, Optional[str]]:
+    def _get_status(self, vm_name: str) -> Tuple[bool, Optional[str]]:
         """
         Returns:
             Tuple of (is_running: bool, bridge: Optional[str])
@@ -230,7 +230,7 @@ class VMManager:
         """Returns detailed status for all VMs"""
         statuses = {}
         for vm_name in self.list_vms():
-            is_running = self.get_status(vm_name)
+            is_running = self._get_status(vm_name)
             statuses[vm_name] = {
                 "running": is_running,
             }
