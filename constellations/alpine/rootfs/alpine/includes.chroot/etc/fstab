@@ -1,0 +1,2 @@
+none    /dev/pts    devpts    defaults    0    0
+/dev/root	/	ext4	rw,noauto 0 1

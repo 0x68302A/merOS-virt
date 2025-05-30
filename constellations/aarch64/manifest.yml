@@ -1,0 +1,25 @@
+bridges:
+  aarch64_br_01:
+    subnet: "10.0.2.1/24"
+    policy_type: host-access
+    allowed_ports: [22, 80, 443]
+
+virtual_machines:
+  arm_alpine:
+    distribution: "alpine"
+    arch: "aarch64"
+    memory: "2G"
+    display: False
+    build_free_mb: 500
+    networks:
+      - label: tap_arm_alp_01
+        bridge: aarch64_br_01
+        ip_addr: "10.0.2.21"
+        model: virtio-net-pci
+    disks:
+      - label: "generic_alpine-3.21.0-aarch64-uefi-tiny-r0.qcow2"
+        fs_type: qcow2
+    extra_args:
+      - "-machine virt"
+      - "-cpu cortex-a57"
+      - "-bios /usr/share/AAVMF/AAVMF_CODE.fd"

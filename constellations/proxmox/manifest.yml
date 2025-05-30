@@ -1,0 +1,54 @@
+bridges:
+  proxmox_br:
+    subnet: "10.0.4.1/24"
+    policy_type: isolated
+    allowed_ips: [192.168.100.0/24]
+
+virtual_machines:
+  node01:
+    display: True
+    memory: "2G"
+    kvm: True
+    networks:
+      - label: tap_node01
+        bridge: proxmox_br
+        ip_addr: "10.0.4.10"
+        model: virtio-net-pci
+    disks:
+      - label: proxmox-node01.qcow2
+        fs_type: "qcow2"
+        size_gb: 20
+    extra_args:
+      - "-cdrom ~/proxmox-ve_8.4-1.iso"
+
+  node02:
+    memory: "2G"
+    display: True
+    kvm: True
+    networks:
+      - label: tap_node02
+        bridge: proxmox_br
+        ip_addr: "10.0.4.20"
+        model: virtio-net-pci
+    disks:
+      - label: proxmox-node02.qcow2
+        fs_type: "qcow2"
+        size_gb: 20
+    extra_args:
+      - "-cdrom ~/proxmox-ve_8.4-1.iso"
+
+  node03:
+    display: True
+    memory: "2G"
+    kvm: True
+    networks:
+      - label: tap_node03
+        bridge: pmox_br
+        ip_addr: "10.0.4.30"
+        model: virtio-net-pci
+    disks:
+      - label: mos_pmox-node03.qcow2
+        fs_type: "qcow2"
+        size_gb: 20
+    extra_args:
+      - "-cdrom ~/proxmox-ve_8.4-1.iso"

@@ -1,2 +1,5 @@
-*
-!.gitignore
+/*
+
+!alpine/
+!aarch64/
+!proxmox/
