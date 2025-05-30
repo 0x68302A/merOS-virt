@@ -123,7 +123,8 @@ class VMBuilder:
 
             ## Perform rootfs operations
             try:
-                self._copy_directory_to_guest_tar(g, f"{source_conf_rootfs_common_dir}", "/")
+                self._copy_directory_to_guest_tar(g, f"{self.source_conf_rootfs_common_dir}", "/")
+                logger.info(f"Copying common rootfs contents: {vm_name}")
             except:
                 logging.debug('No common rootfs for: %s', vm_name)
 
@@ -136,8 +137,6 @@ class VMBuilder:
             g.write("/etc/ssh/authorized_keys", ssh_keys[1])
 
             logger.debug(f"Configuring VM: {vm_name}")
-            g.command(["chmod", "0600", "/etc/ssh/ssh_host_rsa_key"])
-
             output = g.command(["sh", "-c", "for script in /tmp/src/hooks/*.chroot; do sh \"$script\"; done"])
             logging.debug(output)
 
@@ -241,35 +240,29 @@ class VMBuilder:
         self.vm_name = vm_name
 
         ## Used for key_based authentication
-        host_key = SSHKeys()
-        communication_key = SSHKeys()
-
-        ssh_privkey_01 = host_key.privkey
-
-        ssh_privkey_02 = communication_key.privkey
-        ssh_pubkey_02 = communication_key.pubkey
+        host_keypair = SSHKeys()
+        communication_keypair = SSHKeys()
 
         ## PrivKey used by host
-        with open(AppConfig.mos_ssh_priv_key_dir + "/" + self.constellation + '-' + vm_name + "-id_rsa", 'w') as content_file:
-                content_file.write(ssh_privkey_02)
+        with open(f"{AppConfig.mos_ssh_priv_key_dir}/{self.constellation}-{vm_name}-id_rsa", 'w') as content_file:
+                content_file.write(communication_keypair.privkey)
 
-        os.chmod(AppConfig.mos_ssh_priv_key_dir + "/" + self.constellation + '-'+ vm_name + "-id_rsa", 0o0600)
+        os.chmod(f"{AppConfig.mos_ssh_priv_key_dir}/{self.constellation}-{vm_name}-id_rsa", 0o0600)
 
         ## When --rootfs-only is used
         if chroot == True:
-            with open(self.chroot_ssh_dir + "/ssh_host_rsa_key", 'w') as content_file:
-                content_file.write(ssh_privkey_01)
+            with open(f"{self.chroot_ssh_dir}/ssh_host_rsa_key", 'w') as content_file:
+                content_file.write(host_keypair.privkey)
 
-            with open(self.chroot_ssh_dir + "/authorized_keys", 'w') as content_file:
-                    content_file.write(ssh_pubkey_02)
+            with open(f"{self.chroot_ssh_dir}/authorized_keys", 'w') as content_file:
+                    content_file.write(communication_keypair.pubkey)
 
-            os.chmod(self.chroot_ssh_dir + "/ssh_host_rsa_key", 0o0600)
-
-            os.chown(AppConfig.mos_ssh_priv_key_dir + "/" + self.constellation + '-'+ vm_name + "-id_rsa", self.running_uid, self.running_gid)
+            os.chmod(f"{self.chroot_ssh_dir}/ssh_host_rsa_key", 0o0600)
+            os.chown(f"{AppConfig.mos_ssh_priv_key_dir}/{self.constellation}-{vm_name}-id_rsa", self.running_uid, self.running_gid)
 
         ## When --use is used
         elif chroot == False:
-            return ssh_privkey_01, ssh_pubkey_02
+            return host_keypair.privkey, communication_keypair.pubkey
 
         logging.info('Created SSH Keypair for VM: %s', vm_name)
         logging.info('Configured VM: %s ',
