@@ -17,20 +17,19 @@ from src.ssh_manager import SSHManager
 def main():
     """Main entry point for MerOS"""
     parser = argparse.ArgumentParser(
-        description="MerOS VM and Kernel Management Tool",
+        description="MerOS-virt VM Management Tool",
         epilog='See "meros <command> --help" for more information on a specific command.'
     )
 
     # Add debug flag to global arguments
-    parser.add_argument("--debug", action="store_true",
-                      help="Show full Python traceback on errors")
     parser.add_argument("-v", "--verbose", action="store_true",
                       help="Enable verbose output")
+    parser.add_argument("--debug", action="store_true",
+                      help="Show full Python traceback on errors")
 
     subparsers = parser.add_subparsers(dest="command", required=True, title="commands")
 
     # Register all subcommands
-    register_log_command(subparsers)
     register_kernel_build_command(subparsers)
     register_init_command(subparsers)
     register_shutdown_command(subparsers)
@@ -53,10 +52,6 @@ def main():
         else:
             logging.error(f"Operation failed: {str(e)}")
         sys.exit(1)
-
-def register_log_command(subparsers):
-    """Register log subcommand"""
-    subparsers.add_parser("log", help="Display the application log")
 
 
 def register_kernel_build_command(subparsers):
@@ -141,11 +136,10 @@ def configure_logging(verbose: bool, debug: bool):
 def handle_command(args):
     """Dispatch command to appropriate handler"""
     command_handlers = {
-        "log": handle_log,
         "kernel-build": handle_kernel_build,
+        "build": handle_build,
         "init": handle_init,
         "shutdown": handle_shutdown,
-        "build": handle_build,
         "connect": handle_connect,
         "push": handle_push,
         "pull": handle_pull,
@@ -157,11 +151,6 @@ def handle_command(args):
         handler(args)
     else:
         raise ValueError(f"Unknown command: {args.command}")
-
-
-def handle_log(_):
-    """Handle log command"""
-    AppConfig.display_log()
 
 
 def handle_kernel_build(_):
