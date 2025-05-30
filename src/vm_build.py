@@ -24,9 +24,9 @@ from src.disk_manager import DiskManager
 logger = logging.getLogger(__name__)
 
 class VMBuilder:
-    def __init__(self, config: Config, template: str, verbose: bool = False):
+    def __init__(self, config: Config, constellation: str, verbose: bool = False):
         self.config = config
-        self.template = template
+        self.constellation = constellation
         self.disk_manager = DiskManager()
 
         try:
@@ -39,7 +39,7 @@ class VMBuilder:
             logger.setLevel(logging.DEBUG)
 
         ## Source/ Configuration paths
-        self.source_conf_dir = f"{AppConfig.mos_path}/templates/{self.template}"
+        self.source_conf_dir = f"{AppConfig.mos_path}/constellations/{self.constellation}"
         self.source_conf_rootfs_common_dir = f"{self.source_conf_dir}/rootfs/common/includes.chroot"
         self.source_pkgs_dir = f"{self.source_conf_dir}/pkg/"
 
@@ -52,14 +52,14 @@ class VMBuilder:
         app_config = AppConfig()
 
         ## Chroot/ rootfs paths
-        self.chroot_dir = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}/"
+        self.chroot_dir = f"{AppConfig.mos_path}/data/build/bootstrap/{self.constellation}/{vm_name}/"
         self.chroot_hooks_dir = f"{self.chroot_dir}/tmp/src/hooks"
         self.chroot_pkgs_dir = f"{self.chroot_dir}/opt"
         self.chroot_ssh_dir = f"{self.chroot_dir}/etc/ssh"
 
         ## Build paths
-        self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
-        self.dest_image_path = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
+        self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.constellation}/{vm_name}.tar"
+        self.dest_image_path = f"{AppConfig.mos_disk_dir}/{self.constellation}-{vm_name}.qcow2"
 
         try:
             # Prepare rootfs
@@ -79,13 +79,13 @@ class VMBuilder:
         vm = self.config.virtual_machines[vm_name]
         disk = vm.disks[0]
 
-        ## Template files
+        ## Constellation files
         source_conf_rootfs_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/includes.chroot"
         source_hooks_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/hooks"
 
         ## Build paths
-        self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.template}/{vm_name}.tar"
-        self.dest_image_path = f"{AppConfig.mos_disk_dir}/{self.template}-{vm_name}.qcow2"
+        self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.constellation}/{vm_name}.tar"
+        self.dest_image_path = f"{AppConfig.mos_disk_dir}/{self.constellation}-{vm_name}.qcow2"
 
         ssh_keys = self._ssh_keyadd(False, vm_name)
 
@@ -250,10 +250,10 @@ class VMBuilder:
         ssh_pubkey_02 = communication_key.pubkey
 
         ## PrivKey used by host
-        with open(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-' + vm_name + "-id_rsa", 'w') as content_file:
+        with open(AppConfig.mos_ssh_priv_key_dir + "/" + self.constellation + '-' + vm_name + "-id_rsa", 'w') as content_file:
                 content_file.write(ssh_privkey_02)
 
-        os.chmod(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-'+ vm_name + "-id_rsa", 0o0600)
+        os.chmod(AppConfig.mos_ssh_priv_key_dir + "/" + self.constellation + '-'+ vm_name + "-id_rsa", 0o0600)
 
         ## When --rootfs-only is used
         if chroot == True:
@@ -265,7 +265,7 @@ class VMBuilder:
 
             os.chmod(self.chroot_ssh_dir + "/ssh_host_rsa_key", 0o0600)
 
-            os.chown(AppConfig.mos_ssh_priv_key_dir + "/" + self.template + '-'+ vm_name + "-id_rsa", self.running_uid, self.running_gid)
+            os.chown(AppConfig.mos_ssh_priv_key_dir + "/" + self.constellation + '-'+ vm_name + "-id_rsa", self.running_uid, self.running_gid)
 
         ## When --use is used
         elif chroot == False:

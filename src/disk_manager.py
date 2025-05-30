@@ -55,6 +55,6 @@ class DiskManager:
         try:
             subprocess.run(create_cmd)
             subprocess.run(expand_cmd)
-            logger.info(f"Configured {dest_qcow2_path} to: {size_mb}MB")
+            logger.info(f"Sized {dest_qcow2_path}: {size_mb} MB")
         except Exception as e:
             logger.error(f"Failed to clone image: {e}")

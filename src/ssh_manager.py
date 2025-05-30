@@ -10,12 +10,12 @@ from .app_config import AppConfig
 from .vm_models import VMConfig, Config
 
 class SSHManager:
-    def __init__(self, config: Config, template: str, vm_name: str, vm_ip_addr: str, verbose: bool = False):
+    def __init__(self, config: Config, constellation: str, vm_name: str, vm_ip_addr: str, verbose: bool = False):
         self.config = config
         vm = self.config.virtual_machines[vm_name]
-        self.mos_ssh_key = f"{AppConfig.mos_ssh_priv_key_dir}/{template}-{vm.name}-id_rsa"
+        self.mos_ssh_key = f"{AppConfig.mos_ssh_priv_key_dir}/{constellation}-{vm.name}-id_rsa"
 
-        self.template = template
+        self.constellation = constellation
         self.vm_name = vm_name
         self.vm_username = vm.distribution
         self.vm_ip_addr = vm_ip_addr
@@ -41,7 +41,7 @@ class SSHManager:
                 "--progress",
                 "--stats",
                 "--human-readable",
-                f"{AppConfig.mos_path}/data/mos-shared/{self.template}-{self.vm_name}",
+                f"{AppConfig.mos_path}/data/mos-shared/{self.constellation}-{self.vm_name}",
             ]
 
             subprocess.run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)

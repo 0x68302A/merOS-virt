@@ -7,7 +7,7 @@
 - **Make**, the `Linux kernel`
 
 - **Build**, a `rootfs image` of `Debian` or `Alpine` Linux.
-	
+
 - **Configure**, the `rootfs` with a custom set of configuration `files`, `packages` and `build-time` scripts.
 
 - **Patch** an existing `qcow2` image, with the same configuration items.
@@ -30,7 +30,7 @@ Using:
 - nftables
 - waypipe
 
-**merOS-virt Templates:**
+**merOS-virt Constellations:**
 
 Provide **a simple, YAML and file-based configuration file-set**.
 
@@ -40,17 +40,17 @@ From a `manifest.yml` **recipe-like structure**, they allow us to manage the lif
 ---
 ### ARCHITECTURE
 
-**Templates are used to describe VM groups**
+**Constellations are used to describe VM Groups (*Stars*) **
 
 **Destination files** are found, and should be placed,
-under: <br> `templates/[template_name]/` - containing:
-	
-#### 1. **The Target rootfs path** : `rootfs/[vm_name]/includes.chroot/` 
+under: <br> `constellations/[constellation]/` - containing:
+
+#### 1. **The Target rootfs path** : `rootfs/[vm_name]/includes.chroot/`
 
 
 Where any custom package configuration file, or persistent data, can be placed.
-	
-	
+
+
 ( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-includes-chroot) Debian-Building architecture. )
 
 
@@ -61,7 +61,7 @@ Where a shell script can be placed and is run in the Target Chroot, before build
 
 ( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-hooks) Debian-Building architecture. )
 
-#### 3. **Main YAML configuration file** : `manifest.yml` 
+#### 3. **Main YAML configuration file** : `manifest.yml`
 
 Where Target properties are described, such as `distro`, `image_frees_ize`, etc.
 
@@ -101,20 +101,20 @@ reducing bandwidth/ processing use-** but leaving a significant part of the runn
 - **Python3**
 
 	After initially implementing this idea in bash,
-	
+
 	Python3 is chosen for its' **wide availability on machines, ease of understanding- auditing and contributing.**
-	
+
 - **[Debootstrap](https://wiki.debian.org/Debootstrap)**
-	Is used for the Debian Target **Rootfs building.** 
+	Is used for the Debian Target **Rootfs building.**
 
 	Being activelly-maintained by the Debian team,
-	
+
 	and greatly adopted-	( *Just think of Debian-based OSes* )
-	
+
 	Along with bringing the **security and stability** of Debian-
-	
+
 	It was chosen for the **basic flavor for merOS-based Targets.**
-	
+
 - **[Waypipe](https://github.com/neonkore/waypipe/)**
 
 	Is used as the main SSH- Wayland communication framework, <br>
