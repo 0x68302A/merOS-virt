@@ -11,14 +11,14 @@ def read(fname):
 	return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-	name = "merOS-virt",
+	name = "meros",
 	version = "0.8.6",
 	author = "Aaran Ailbne",
 	author_email = "mosp08@protonmail.com",
 
-	description = ("merOS - Build && Interconnect a set of systems."),
+	description = ("meros - Build && Interconnect a set of systems."),
 	license = "GPLv3",
-	keywords = "meros-virt isolation security",
+	keywords = "meros isolation security",
 	url = "https://github.com/AranAilbhe/merOS-virt/",
 
 	packages=['src'],

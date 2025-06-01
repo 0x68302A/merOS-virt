@@ -15,9 +15,9 @@ from src.ssh_manager import SSHManager
 
 
 def main():
-    """Main entry point for MerOS"""
+    """Main entry point for meros"""
     parser = argparse.ArgumentParser(
-        description="MerOS-virt VM Management Tool",
+        description="meros VM Management Tool",
         epilog='See "meros <command> --help" for more information on a specific command.'
     )
 
@@ -126,7 +126,7 @@ def configure_logging(verbose: bool, debug: bool):
     """Configure logging system"""
     level = logging.DEBUG if verbose or debug else logging.INFO
     logging.basicConfig(
-        format="%(asctime)s::MerOS::%(levelname)s::%(message)s",
+        format="%(asctime)s::meros::%(levelname)s::%(message)s",
         datefmt="%H:%M:%S",
         level=level,
         encoding="utf-8"
