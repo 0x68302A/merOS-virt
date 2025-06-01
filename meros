@@ -21,7 +21,7 @@ def main():
         epilog='See "meros <command> --help" for more information on a specific command.'
     )
 
-    # Add debug flag to global arguments
+    ## Add debug flag to global arguments
     parser.add_argument("-v", "--verbose", action="store_true",
                       help="Enable verbose output")
     parser.add_argument("--debug", action="store_true",
@@ -29,7 +29,7 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command", required=True, title="commands")
 
-    # Register all subcommands
+    ## Register all subcommands
     register_kernel_build_command(subparsers)
     register_init_command(subparsers)
     register_shutdown_command(subparsers)
@@ -41,13 +41,13 @@ def main():
     register_info_command(subparsers)
 
     args = parser.parse_args()
-    configure_logging(args.verbose, args.debug)  # Update this line
+    configure_logging(args.verbose, args.debug)
 
     try:
         handle_command(args)
     except Exception as e:
         if args.debug:
-            # Print raw traceback to stderr
+            ## Print raw traceback to stderr
             traceback.print_exc(file=sys.stderr)
         else:
             logging.error(f"Operation failed: {str(e)}")
@@ -163,11 +163,12 @@ def handle_init(args):
     config = load_config(args.constellation)
     vm_manager = VMManager(config)
 
-    # Configure bridges
-    for bridge in config.bridges:
+    ## Configure bridges
+    unique_bridges = list(dict.fromkeys(config.bridges))
+    for bridge in unique_bridges:
         with_privileges(lambda: vm_manager.configure_bridge(bridge))
 
-    # Start VMs
+    ## Start VMs
     for vm_name in config.virtual_machines:
         with_privileges(lambda: vm_manager.start_vm(vm_name))
 
@@ -177,13 +178,14 @@ def handle_shutdown(args):
     config = load_config(args.constellation)
     vm_manager = VMManager(config)
 
-    # Stop VMs
+    ## Stop VMs
     for vm_name in config.virtual_machines:
         with_privileges(lambda: vm_manager.stop_vm(vm_name))
 
-    # Remove bridges
-    for bridge in config.bridges:
-        vm_manager.delete_bridge(bridge)
+    ## Remove bridges
+    unique_bridges = list(dict.fromkeys(config.bridges))
+    for bridge in unique_bridges:
+        with_privileges(lambda: vm_manager.delete_bridge(bridge))
 
 
 def handle_build(args):
@@ -195,7 +197,7 @@ def handle_build(args):
         if args.vm_name is not None:
             raise ValueError("vm_name should not be provided with --rootfs-only")
 
-        # Build all VMs rootfs
+        ## Build all VMs rootfs
         for vm_name in config.virtual_machines:
             with_privileges(lambda: builder.rootfs_image_build(vm_name))
             logging.info(f"Built {vm_name} rootfs")
@@ -204,7 +206,7 @@ def handle_build(args):
         if not args.vm_name:
             raise ValueError("vm_name is required when using --use")
 
-        # Patch specific VM with provided image
+        ## Patch specific VM with provided image
         disk_image = args.use.resolve()
         if not disk_image.exists():
             raise FileNotFoundError(f"Disk image {disk_image} not found")

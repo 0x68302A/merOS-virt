@@ -23,7 +23,7 @@ class DiskManager:
     def create_disk(self, vm_name: str, disk: VirtualDisk) -> Dict:
         disk_path = self.disk_dir / f"{disk.label}"
 
-        logger.info(f"Creating disk: {disk} for VM {vm_name}")
+        logger.debug(f"Creating disk: {disk} for VM {vm_name}")
 
         if not disk_path.exists():
             start_time = time.time()
@@ -34,12 +34,12 @@ class DiskManager:
 
             try:
                 g.disk_create(str(disk_path), 'qcow2', disk_size_kb)
-                logger.info(f"Successfully created QCOW2 image at {disk_path}")
+                logger.debug(f"Successfully created QCOW2 image at {disk_path}")
             except Exception as e:
                 logger.error(f"Error creating QCOW2 image: {e}")
 
                 elapsed = time.time() - start_time
-                logger.info(f"Disk created in {elapsed:.2f}s: {disk_path}")
+                logger.debug(f"Disk created in {elapsed:.2f}s: {disk_path}")
 
         return {
             "path": disk_path
@@ -55,6 +55,6 @@ class DiskManager:
         try:
             subprocess.run(create_cmd)
             subprocess.run(expand_cmd)
-            logger.info(f"Sized {dest_qcow2_path}: {size_mb} MB")
+            logger.debug(f"Sized {dest_qcow2_path}: {size_mb} MB")
         except Exception as e:
             logger.error(f"Failed to clone image: {e}")

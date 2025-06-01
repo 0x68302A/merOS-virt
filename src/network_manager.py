@@ -11,7 +11,7 @@ class NetworkManager:
 
     @classmethod
     def create_tap(cls, tap_name: str, ip_addr: str, bridge_master: str):
-        logger.info(f"Creating TAP device : {tap_name}")
+        logger.debug(f"Creating TAP device : {tap_name}")
         try:
             subprocess.run(
                 ["sudo", "ip", "tuntap", "add", "name", tap_name, "mode", "tap"],
@@ -38,7 +38,7 @@ class NetworkManager:
 
     @classmethod
     def create_bridge(cls, bridge_name: str, bridge_subnet: str):
-        logger.info(f"Creating network bridge: {bridge_name}")
+        logger.debug(f"Creating network bridge: {bridge_name}")
         try:
             subprocess.run(
                 ["sudo", "ip", "link", "add", bridge_name, "type", "bridge"],
@@ -71,7 +71,7 @@ class NetworkManager:
 
     @classmethod
     def delete_tap(cls, tap_name: str):
-        logger.info(f"Deleting TAP device: {tap_name}")
+        logger.debug(f"Deleting TAP device: {tap_name}")
         try:
             subprocess.run(
                 ["sudo", "ip", "link", "del", tap_name],
@@ -86,7 +86,7 @@ class NetworkManager:
 
     @classmethod
     def delete_bridge(cls, bridge_name: str):
-        logger.info(f"Removing network bridge: {bridge_name}")
+        logger.debug(f"Removing network bridge: {bridge_name}")
         try:
             subprocess.run(
                 ["sudo", "ip", "link", "del", bridge_name],

@@ -58,11 +58,11 @@ class VMManager:
 
         try:
             ## Prepare disks
-            disk_info = {}
+            disk_debug = {}
             for disk in vm.disks:
                 logger.debug(f"Preparing disk: {disk.label}")
                 disk_data = self.disk_manager.create_disk(vm.name, disk)
-                disk_info[disk.label] = disk_data
+                disk_debug[disk.label] = disk_data
 
             for tap_interface in vm.networks:
                 logger.debug(f"Preparing TAP Interface: {tap_interface.label}")
@@ -82,7 +82,7 @@ class VMManager:
             for disk in vm.disks:
                 cmd += [
                     "-drive",
-                    f"file={disk_info[disk.label]['path']},format={disk.fs_type},if=virtio"
+                    f"file={disk_debug[disk.label]['path']},format={disk.fs_type},if=virtio"
                 ]
 
             ## Add networks
@@ -134,11 +134,11 @@ class VMManager:
             if process.returncode != 0:
                 logger.error(f"VM failed to start after {elapsed:.2f}s. Error:\n{stderr.strip()}")
             else:
-                logger.info(f"VM started successfully in {elapsed:.2f}s")
+                logger.debug(f"VM started successfully in {elapsed:.2f}s")
                 if stderr.strip():
-                    logger.warning(f"VM started with warnings:\n{stderr.strip()}")
+                    logger.debug(f"Qemu started with warnings:\n{stderr.strip()}")
                 if stdout.strip():
-                    logger.info(f"VM output:\n{stdout.strip()}")
+                    logger.debug(f"Qemu output:\n{stdout.strip()}")
 
         except Exception as e:
             logger.error(f"Failed to start VM: {e}")
@@ -174,8 +174,8 @@ class VMManager:
         logger.info(f"Starting VM: {vm_name}")
         pid_file = self._get_pid_file(vm_name)
 
-        # Delete TAP interfaces
-        network_info = {}
+        ## Delete TAP interfaces
+        network_debug = {}
         try:
             for network in vm.networks:
                 logger.debug(f"Deleting {vm.name} TAPs")
@@ -184,15 +184,7 @@ class VMManager:
             logger.debug(f"TAP interface is already deleted")
             pass
 
-        # Delete network bridges
-        try:
-            for network in vm.networks:
-                logger.debug(f"Deleting {network.label} bridges")
-                self.network_manager.delete_bridge(network.bridge)
-        except Exception as e:
-            logger.debug(f"TAP is already deleted")
-            pass
-
+        ## Stop related qemu proccess
         try:
             os.kill(pid, signal.SIGTERM)
         except:
