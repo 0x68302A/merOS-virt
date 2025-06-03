@@ -15,7 +15,7 @@ case "$OS" in
         echo "Detected Debian-based system: $OS"
 		apt install -y \
 			rsync flex bison bc libelf-dev \
-			python3 python3-pip python3-guestfs \
+			python3 python3-venv python3-pip python3-guestfs \
 			guestfs-tools \
 			rustc libssl-dev net-tools \
 			qemu-kvm &&
