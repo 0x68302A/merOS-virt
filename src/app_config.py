@@ -9,7 +9,7 @@ import random as r
 import pydoc
 
 class AppConfig:
-    ## Define MerOS path
+    ## Define meros path
     config_path = os.path.dirname(os.path.realpath(__file__))
     venv_path = sys.prefix if hasattr(sys, 'real_prefix') or (
         hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
