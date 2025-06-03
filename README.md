@@ -1,8 +1,18 @@
-## merOS-virt :: Build, Provision and Interact with Virtual Machine Sets
+## NAME
 
-### SYNOPSIS
+**meros** - Build, Provision and Interact with VM groups
 
-`meros` can be used to:
+
+## SYNOPSIS
+
+**meros** *command* [options/ VMs/ Groups]
+
+
+## DESCRIPTION
+
+**meros** is a tool for managing, provisioning and configure access to - *and from* - VMs.
+
+More specifically, it allows for the following actions:
 
 - **Make**, the `Linux kernel`
 
@@ -18,63 +28,49 @@
 
 - **Network/ Netfilter** resulting Targets.
 
----
-### DESCRIPTION
 
-`meros` is designed as a virtualization *swiss knife*.
+## USAGE/ OPTIONS
 
-Using:
-- qemu-system-[all]
-- qemu-img
-- net-tools
-- nftables
-- waypipe
+`meros kernel-build`:
 
-**merOS-virt Constellations:**
+    Builds the Linux kernel, from the latest git commit.
+    This, results in: `data/disks/bzImage`
 
-Provide **a simple, YAML and file-based configuration file-set**.
+`meros build (--rootfs-only | --use PATCH_IMAGE) *constellation* [vm_name]`:
 
+    Builds the VM group, or individual VM
+    `--rootfs-only` results in a single qcow2 image, containing the rootfs.
+    To run, this image needs a compatible `kernel`, as the one created with `kernel-build`
+    `--use` takes advanted of an existing qcow2 image - which is cloned, and configured.
 
-From a `manifest.yml` **recipe-like structure**, they allow us to manage the lifecycle of a **set** of `virtual machines`.
+`meros init *constellation*`
 
----
-### ARCHITECTURE
+    Initializes the VM group.
 
-**Constellations are used to describe VM Groups (*Stars*) **
+_TODO: more_
 
-**Destination files** are found, and should be placed,
-under: <br> `constellations/[constellation]/` - containing:
+## ARCHITECTURE
 
-#### 1. **The Target rootfs path** : `rootfs/[vm_name]/includes.chroot/`
+### **meros** Constellations:
 
+Are comprised of:
+- A **YAML configuration file**, containing build/ run-time critical info, such as:
+    - Networking options
+    - Disk size/ format
+    - _TODO: more_
+- A **dir structure that contains**.
+    - `includes.choot`: Which is copied directly on the VM image
+    - `hooks`: Which is build-time executed on the VM OS
 
-Where any custom package configuration file, or persistent data, can be placed.
+### **meros** VM Management:
 
+_TODO: more_
 
-( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-includes-chroot) Debian-Building architecture. )
+### **meros** Network Management:
 
+_TODO: more_
 
-#### 2. **The VM build-time hooks path** : `rootfs/[vm_name]/hooks/`
-
-
-Where a shell script can be placed and is run in the Target Chroot, before build.
-
-( Inspired by the [Debootstrap](https://debian-live-config.readthedocs.io/en/latest/custom.html#config-hooks) Debian-Building architecture. )
-
-#### 3. **Main YAML configuration file** : `manifest.yml`
-
-Where Target properties are described, such as `distro`, `image_frees_ize`, etc.
-
-**A fully transparent, but critical, part of building a Target** (VM)-	is the **Linux Kernel Cloning and Building.**
-
-
-This step could as well be skipped, and replaced with a **precompiled kernel-image download,
-reducing bandwidth/ processing use-** but leaving a significant part of the running machine out of our control.
-
-(Such an option could/ should nevertheless be implemented )
-
----
-### SYSTEM PREPARATION
+## SYSTEM PREPARATION
 
 **All merOS created data** are placed
   under: `./data/`
@@ -88,15 +84,22 @@ reducing bandwidth/ processing use-** but leaving a significant part of the runn
 
   `python3 -m venv [venv_path] install --system-site-packages`
 
-   `pip3 install -e .`
+  `pip3 install -e .`
 
 **You can now call `meros`** !
 
 
----
-### SYSTEM DEPENDENCIES
+## DEPENDANCIES
+### SYSTEM
 
-**Are aquired  through `./dist-conf.sh`** <br>
+**meros** is merely an automation framework, arround the following tools:
+- qemu-system-[all]
+- qemu-img
+- net-tools
+- nftables
+- waypipe
+
+#### These, can be aquired  through `./dist-conf.sh`
 
 - **Python3**
 
@@ -122,23 +125,11 @@ reducing bandwidth/ processing use-** but leaving a significant part of the runn
 
 	Being actively maintained, and well documented- it allows for a reliable and faster,	more secure way of XForward-like functions.
 
----
-### USAGE
 
-SEE: `meros --help`
-
----
-### COPYRIGHT
+## COPYRIGHT
 
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 
 This is free software: you are free to change and redistribute it.
 
 There is NO WARRANTY, to the extent permitted by law.
-
----
-### IMPORTANT NOTES:
-	Being an actively developed, actively maintained project- No security guarantee is provided.
-	Bugs are to be expected, implementations ( secure-critical or not ) may be broken.
-	And as always, security issues may arise from within the selected frameworks used-
-	no matter how widely adopted, or thoroughly tested they be.
