@@ -10,23 +10,11 @@
 
 ## DESCRIPTION
 
-**meros** is a tool for managing, provisioning and configure access to - *and from* - VMs.
+**meros** is a *swiss army knife* for managing, provisioning and configuring access to - *and from* - locally-run Virtual Machines.
 
-More specifically, it allows for the following actions:
+**meros** can `kernel-build`, the `Linux`, allowing for rootfs-only image use and individual kernel version/ future testing with a deterministically built rootfs. `build` allows the user to build complete filesystem (*--use an existing qcow2 image*), or `rootfs-only` images of `Debian` or `Alpine` Linux. When `build` is used, the rootfs is confiured with the custom set of configuration files (*As the rootfs structure is copied*), and build-time `hooks`. The resulting image is packed in a qcow2 image, as name in `manifest`
 
-- **Make**, the `Linux kernel`
-
-- **Build**, a `rootfs image` of `Debian` or `Alpine` Linux.
-
-- **Configure**, the `rootfs` with a custom set of configuration `files`, `packages` and `build-time` scripts.
-
-- **Patch** an existing `qcow2` image, with the same configuration items.
-
-- **Pack** the the resulting filesystem, in a `qcow2` image.
-
-- **Virtualize** the final VM image.
-
-- **Network/ Netfilter** resulting Targets.
+**meros** can the virtualize the host, using the relevant configuration settings in `manifest`.
 
 
 ## USAGE/ OPTIONS
@@ -38,9 +26,11 @@ More specifically, it allows for the following actions:
 
 `meros build (--rootfs-only | --use PATCH_IMAGE) *constellation* [vm_name]`:
 
-    Builds the VM group, or individual VM
+    Builds the VM group (*constellation*), or, an individual VM.
+
     `--rootfs-only` results in a single qcow2 image, containing the rootfs.
     To run, this image needs a compatible `kernel`, as the one created with `kernel-build`
+
     `--use` takes advanted of an existing qcow2 image - which is cloned, and configured.
 
 `meros init *constellation*`
