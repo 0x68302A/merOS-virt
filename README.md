@@ -2,8 +2,7 @@
 
 
 ## SYNOPSIS
-**meros** – a minimal toolkit for building, provisioning, and interconnecting local Virtual Machines - *declaratively*.
-
+**meros** – a minimal toolkit for - *declaratively* - building, provisioning, and interconnecting local Virtual Machines.
 
 ## DESCRIPTION
 
@@ -134,7 +133,7 @@ Or to reuse a previous image:
 meros build --use existing-image.qcow2 my_constellation vm_name
 ```
 
-#### 4. Launch the VM(s)
+### 4. Launch the VM(s)
 
 ```bash
 meros init my_constellation
@@ -189,4 +188,4 @@ Defines a small lab of VMs connected via bridged networking for simulating cross
 
 ## LICENSE
 
-MIT. See LICENSE file.
+GPL. See LICENSE file.
