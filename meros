@@ -194,7 +194,7 @@ def handle_build(args):
     config = load_config(args.constellation)
     builder = VMBuilder(config, args.constellation)
 
-    if args.rootfs_only:
+    if args.rootfs_img:
         if args.vm_name is not None:
             raise ValueError("vm_name should not be provided with --rootfs-img")
 
