@@ -110,7 +110,7 @@ bridges:
 
 virtual_machines: vm_name:
     arch: "x86_64" ## Appended to: `qemu-system-`
-    distribution: debian ## Optional: Used with `build --rotfs-only`
+    distribution: debian ## Optional: Used with `build --rotfs-img`
     disk_size: 2G
     memory: 512
     cpus: 1
@@ -124,7 +124,7 @@ virtual_machines: vm_name:
 ### 3. Build rootfs image
 
 ```bash
-meros build --rootfs-only my_constellation
+meros build --rootfs-img my_constellation
 ```
 
 Or to reuse a previous image:

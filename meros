@@ -77,7 +77,7 @@ def register_build_command(subparsers):
     parser.add_argument("vm_name", nargs='?', help="Name of VM to patch (required with --use)")
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--rootfs-only",
+    group.add_argument("--rootfs-img",
                       action="store_true",
                       help="Build all images' rootfs")
     group.add_argument("--use",
@@ -155,7 +155,8 @@ def handle_command(args):
 
 def handle_kernel_build(_):
     """Handle kernel-build command"""
-    KernelBuilder().build_kernel()
+    KernelBuilder().kernel_clone()
+    KernelBuilder().kernel_build()
 
 
 def handle_init(args):
@@ -195,7 +196,7 @@ def handle_build(args):
 
     if args.rootfs_only:
         if args.vm_name is not None:
-            raise ValueError("vm_name should not be provided with --rootfs-only")
+            raise ValueError("vm_name should not be provided with --rootfs-img")
 
         ## Build all VMs rootfs
         for vm_name in config.virtual_machines:

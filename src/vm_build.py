@@ -249,7 +249,7 @@ class VMBuilder:
 
         os.chmod(f"{AppConfig.mos_ssh_priv_key_dir}/{self.constellation}-{vm_name}-id_rsa", 0o0600)
 
-        ## When --rootfs-only is used
+        ## When --rootfs-img is used
         if chroot == True:
             with open(f"{self.chroot_ssh_dir}/ssh_host_rsa_key", 'w') as content_file:
                 content_file.write(host_keypair.privkey)
