@@ -1,125 +1,192 @@
-## NAME
-
-**meros** - Build, Provision and Interact with VM groups
+# meros
 
 
 ## SYNOPSIS
-
-**meros** *command* [options/ VMs/ Groups]
+**meros** – a minimal toolkit for building, provisioning, and interconnecting local Virtual Machines - *declaratively*.
 
 
 ## DESCRIPTION
 
-**meros** is a *swiss army knife* for managing, provisioning and configuring access to - *and from* - locally-run Virtual Machines.
+`meros` is a tool for managing local VMs through a combination of declarative configuration files and automated orchestration. It provides a unified interface for building root filesystem images, compiling the Linux Kernel, and running QEMU-based virtual machines, all defined through a simple YAML manifest.
 
-**meros** can `kernel-build`, the `Linux`, allowing for rootfs-only image use and individual kernel version/ future testing with a deterministically built rootfs. `build` allows the user to build complete filesystem (*--use an existing qcow2 image*), or `rootfs-only` images of `Debian` or `Alpine` Linux. When `build` is used, the rootfs is confiured with the custom set of configuration files (*As the rootfs structure is copied*), and build-time `hooks`. The resulting image is packed in a qcow2 image, as name in `manifest`
-
-**meros** can the virtualize the host, using the relevant configuration settings in `manifest`.
+The system is designed for fast iteration, cross-platform testing, and low-overhead provisioning, focused on remaining auditable and flexible. It adopts key ideas from tools like **debootstrap**, **Docker**, **Packer**, **Vagrant**, and **Ansible**, but focuses exclusively on local, Linux-hosted workflows with zero daemons, and minimal dependencies.
 
 
-## USAGE/ OPTIONS
+## PHILOSOPHY
 
-`meros kernel-build`:
+The core philosophy is to provide **local runtime agility** without introducing heavy abstractions.
+Rather than reinventing the stack, `meros` wraps common Linux utilities such as `qemu` and networking tools – into a declarative, reproducible lifecycle manager.
 
-    Builds the Linux kernel, from the latest git commit.
-    This, results in: `data/disks/bzImage`
+The project favors:
 
-`meros build (--rootfs-only | --use PATCH_IMAGE) *constellation* [vm_name]`:
+- **Simplicity** - over feature-bloat.
+- **Transparency** - over automation magic.
+- **Local-first tooling** - for fast feedback loops.
+- **Single-purpose composability** - avoiding implicit infrastructure.
 
-    Builds the VM group (*constellation*), or, an individual VM.
+Each VM Group is described by a **constellation**, a YAML document that defines how an image shall be built, and how the system should be launched.
 
-    `--rootfs-only` results in a single qcow2 image, containing the rootfs.
-    To run, this image needs a compatible `kernel`, as the one created with `kernel-build`
+This approach enables flexible and predictable provisioning across local machines without requiring external infrastructure.
 
-    `--use` takes advanted of an existing qcow2 image - which is cloned, and configured.
-
-`meros init *constellation*`
-
-    Initializes the VM group.
-
-_TODO: more_
 
 ## ARCHITECTURE
 
-### **meros** Constellations:
+At its core, `meros` consists of the following phases:
 
-Are comprised of:
-- A **YAML configuration file**, containing build/ run-time critical info, such as:
-    - Networking options
-    - Disk size/ format
-    - _TODO: more_
-- A **dir structure that contains**.
-    - `includes.choot`: Which is copied directly on the VM image
-    - `hooks`: Which is build-time executed on the VM OS
+1. **Kernel Compilation**
+   Uses upstream Linux sources to build a fresh kernel via `make`. Output goes to `./data/disks/bzImage`.
 
-### **meros** VM Management:
+2. **Root Filesystem/ Full Image Creation**
+   Uses `debootstrap` (or plain distro rootfs archives) to create a base image. Augmented by user-defined files (`includes.choot/`) and shell scripts (`hooks/`). Result is a `qcow2` root disk per VM.
 
-_TODO: more_
+3. **Runtime Launching via QEMU**
+   Spawns one or more VMs using `qemu-system-x86_64`, networking via `bridge` and `nftables`, with optional Wayland GUI forwarding via `waypipe`.
 
-### **meros** Network Management:
+4. **Manifest-Driven Orchestration**
+   Everything is controlled through a YAML manifest per constellation. This includes VM names, disk sizes, network setup, kernel parameters, and optional mounts or forwarding.
 
-_TODO: more_
-
-## SYSTEM PREPARATION
-
-**All merOS created data** are placed
-  under: `./data/`
-
-- Clone the project, along with it's submodules:
-`git clone --recursive`
-
-- Run `./dist-conf.sh` - or **Manually resolve any system/ distro-specific dependencies- See below.**
-
-- Setup project:
-
-  `python3 -m venv [venv_path] install --system-site-packages`
-
-  `pip3 install -e .`
-
-**You can now call `meros`** !
+No external services or agents are required. Everything runs locally and predictably.
 
 
-## DEPENDANCIES
-### SYSTEM
+## GETTING STARTED
 
-**meros** is merely an automation framework, arround the following tools:
-- qemu-system-[all]
-- qemu-img
-- net-tools
-- nftables
-- waypipe
+### Dependencies
 
-#### These, can be aquired  through `./dist-conf.sh`
+- `python3`
+- `qemu-system-x86_64`
+- `qemu-img`
+- `debootstrap` or `apk-tools`
+- `bridge-utils` / `iproute2`
+- `nftables`
+- Optional: `waypipe` (for GUI apps passthrough to host)
 
-- **Python3**
+Install them using your package manager or run:
 
-	After initially implementing this idea in bash,
+```bash
+sudo ./dist-conf.sh
+```
 
-	Python3 is chosen for its' **wide availability on machines, ease of understanding- auditing and contributing.**
+### Setup
 
-- **[Debootstrap](https://wiki.debian.org/Debootstrap)**
-	Is used for the Debian Target **Rootfs building.**
+```bash
+git clone recursive https://github.com/0x68302A/merOS-virt
+cd merOS-virt
+python3 -m venv venv --system-site-packages
+pip install -e .
+```
 
-	Being activelly-maintained by the Debian team,
+## USAGE
 
-	and greatly adopted-	( *Just think of Debian-based OSes* )
+### 1. Build the Kernel
 
-	Along with bringing the **security and stability** of Debian-
+```bash
+meros kernel-build
+```
 
-	It was chosen for the **basic flavor for merOS-based Targets.**
+Builds a minimal Linux kernel, and places the bzImage in ./data/disks/bzImage.
 
-- **[Waypipe](https://github.com/neonkore/waypipe/)**
-
-	Is used as the main SSH- Wayland communication framework, <br>
-	used with `--run` and `--connect|-c`.
-
-	Being actively maintained, and well documented- it allows for a reliable and faster,	more secure way of XForward-like functions.
+### 2. Create a constellation
 
 
-## COPYRIGHT
+```bash
+cp -r examples/my_constellation constellations/
+```
 
-License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+The constellation directory should include:
 
-This is free software: you are free to change and redistribute it.
+- my_constellation.yml – The manifest
+- includes.choot/ – files to copy into the rootfs
+- hooks/ – optional build-time scripts (post-install, finalize etc.)
 
-There is NO WARRANTY, to the extent permitted by law.
+Example manifest:
+
+```bash
+bridges:
+  bridge_name:
+    subnet: "10.0.10.0/24"
+    policy_type: host-access ## Or: `isolated`
+    allowed_ports: [22, 80, 443] ## Optional
+    allowed_ips: [192.168.100.0/24] ## Optional
+
+
+virtual_machines: vm_name:
+    arch: "x86_64" ## Appended to: `qemu-system-`
+    distribution: debian ## Optional: Used with `build --rotfs-only`
+    disk_size: 2G
+    memory: 512
+    cpus: 1
+    networks:
+      - label: tap_vmname_01_
+        bridge: bridge_name ## Refference to `bridge_name`
+        ip_addr: "10.0.10.21"
+        model: virtio-net-pci
+```
+
+### 3. Build rootfs image
+
+```bash
+meros build --rootfs-only my_constellation
+```
+
+Or to reuse a previous image:
+
+```bash
+meros build --use existing-image.qcow2 my_constellation vm_name
+```
+
+#### 4. Launch the VM(s)
+
+```bash
+meros init my_constellation
+```
+
+VMs start with bridge networking and no serial console access.
+
+## EXAMPLES
+
+### Alpine with GUI forwarding
+
+
+```bash
+meros build alpine-gui
+meros push alpine-gui vm_name local_dir
+meros run alpine-gui vm_name remote_application
+```
+
+Build the `alpine-gui` constellation, pushes a local file to the VM, launches an X11/Wayland GUI tunneled application over Waypipe.
+
+
+### Multi-VM constellation
+
+```bash
+meros init lab_network
+meros connect lab_network vm_name
+```
+
+Defines a small lab of VMs connected via bridged networking for simulating cross-system behaviors, connects to the VM via SSH,.
+
+
+## BENEFITS
+
+- Cross-Platform Testing
+  Boot multiple Linux distros on the same host with different kernels and filesystems.
+
+- Minimal Runtime Overhead
+  Uses only standard CLI tools with no background agents or daemons.
+
+- Rapid Development Cycles
+  Constellation manifests are versionable and easy to duplicate.
+
+- Flexible GUI/Network Modes
+  Run headless, forward GUIs via Waypipe, or test networked configurations locally.
+
+
+## LIMITATIONS
+
+- No automatic snapshotting or long-term storage integration
+- Designed for developers and admins comfortable with the Linux CLI
+
+
+## LICENSE
+
+MIT. See LICENSE file.
