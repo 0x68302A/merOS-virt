@@ -41,9 +41,6 @@ class VMBuilder:
         ## Source/ Configuration paths
         self.source_conf_dir = f"{AppConfig.mos_path}/constellations/{self.constellation}"
         self.source_conf_rootfs_common_dir = f"{self.source_conf_dir}/rootfs/common/includes.chroot"
-        self.source_pkgs_dir = f"{self.source_conf_dir}/pkg/"
-
-
 
     def rootfs_image_build(self, vm_name: str):
         vm = self.config.virtual_machines[vm_name]
@@ -54,7 +51,6 @@ class VMBuilder:
         ## Chroot/ rootfs paths
         self.chroot_dir = f"{AppConfig.mos_path}/data/build/bootstrap/{self.constellation}/{vm_name}/"
         self.chroot_hooks_dir = f"{self.chroot_dir}/tmp/src/hooks"
-        self.chroot_pkgs_dir = f"{self.chroot_dir}/opt"
         self.chroot_ssh_dir = f"{self.chroot_dir}/etc/ssh"
 
         ## Build paths
@@ -220,7 +216,6 @@ class VMBuilder:
 
         distutils.dir_util.copy_tree(self.source_conf_rootfs_dir, self.chroot_dir)
         distutils.dir_util.copy_tree(self.source_hooks_dir, self.chroot_hooks_dir)
-        distutils.dir_util.copy_tree(self.source_pkgs_dir, self.chroot_pkgs_dir)
 
         ## Chroot to VM
         f = os.open("/", os.O_PATH)
