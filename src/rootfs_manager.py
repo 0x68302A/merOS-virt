@@ -81,6 +81,6 @@ class RootfsManager:
                 + ' --variant=minbase' ## Limiting final size is vital, we start with the "Required" Debian packages
                 + ' stable ' ## Always build on stable release
                 + self.distribution_rootfs_dir ## Build path
-                + ' http://ftp.de.debian.org/debian' ) ##
+                + ' http://ftp.debian.org/debian' ) ##
 
         subprocess.run([self.debootstrap_args], shell=True)

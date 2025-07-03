@@ -232,7 +232,14 @@ class VMBuilder:
         with open("/etc/resolv.conf", 'w') as file:
                 file.write("nameserver 1.1.1.1")
 
-        subprocess.run("/tmp/src/hooks/*.chroot", shell=True)
+        ## Chrooting seems to expose null as ro, we need to write
+        subprocess.run("chmod -f 0666 /dev/null", shell=True)
+
+        hooks = glob.glob("/tmp/src/hooks/*.chroot")
+
+        for hook in hooks:
+            subprocess.run([hook], shell=True)
+
         os.chdir(f)
         os.chroot(".")
 
@@ -243,9 +250,11 @@ class VMBuilder:
         host_keypair = SSHKeys()
         communication_keypair = SSHKeys()
 
-        ## PrivKey used by host
+        ## KeyPair used for communication
         with open(f"{AppConfig.mos_ssh_priv_key_dir}/{self.constellation}-{vm_name}-id_rsa", 'w') as content_file:
                 content_file.write(communication_keypair.privkey)
+        with open(f"{AppConfig.mos_ssh_priv_key_dir}/{self.constellation}-{vm_name}-id_rsa.pub", 'w') as content_file:
+                content_file.write(communication_keypair.pubkey)
 
         os.chmod(f"{AppConfig.mos_ssh_priv_key_dir}/{self.constellation}-{vm_name}-id_rsa", 0o0600)
 
