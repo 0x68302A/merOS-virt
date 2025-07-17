@@ -3,6 +3,7 @@ import logging
 import time
 import os
 import signal
+import hashlib
 
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -71,6 +72,7 @@ class VMManager:
             ## Build QEMU command
             cmd = [
                 f"qemu-system-{vm.arch}",
+                "-machine", "q35",
                 "-name", vm.name,
                 "-m", vm.memory,
                 "-smp", str(vm.cpus),
@@ -87,9 +89,10 @@ class VMManager:
 
             ## Add networks
             for network in vm.networks:
+                mac_addr = self._generate_mac(str(network.label))
                 cmd += [
                     "-netdev", f"tap,id=net_{network.label},ifname={network.label}",
-                    "-device", f"{network.model},netdev=net_{network.label}",
+                    "-device", f"{network.model},netdev=net_{network.label},mac={mac_addr}",
                 ]
 
             ## Handle KVM
@@ -171,7 +174,7 @@ class VMManager:
         vm = self.config.virtual_machines[vm_name]
         pid = self._read_pid_file(vm.name)
         start_time = time.time()
-        logger.info(f"Starting VM: {vm_name}")
+        logger.info(f"Stopping VM: {vm_name}")
         pid_file = self._get_pid_file(vm_name)
 
         ## Delete TAP interfaces
@@ -189,6 +192,11 @@ class VMManager:
             os.kill(pid, signal.SIGTERM)
         except:
             pass  # Process already dead
+
+    def _generate_mac(self, network_label):
+        h = hashlib.md5(network_label.encode()).digest()
+        mac = [0x02, h[1], h[2], h[3], h[4], h[5]]
+        return ':'.join(f'{b:02x}' for b in mac)
 
     def _get_status(self, vm_name: str) -> Tuple[bool, Optional[str]]:
         """
