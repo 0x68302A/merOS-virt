@@ -40,7 +40,7 @@ class VMBuilder:
 
         ## Source/ Configuration paths
         self.source_conf_dir = f"{AppConfig.mos_path}/constellations/{self.constellation}"
-        self.source_conf_rootfs_common_dir = f"{self.source_conf_dir}/rootfs/common/includes.chroot"
+        self.source_conf_common_dir = f"{self.source_conf_dir}/common/includes.chroot"
 
     def rootfs_image_build(self, vm_name: str):
         vm = self.config.virtual_machines[vm_name]
@@ -48,7 +48,9 @@ class VMBuilder:
         start_time = time.time()
         app_config = AppConfig()
 
+
         ## Chroot/ rootfs paths
+        self.conf_dir = f"{AppConfig.mos_path}/constellations/{self.constellation}/{vm_name}/"
         self.chroot_dir = f"{AppConfig.mos_path}/data/build/bootstrap/{self.constellation}/{vm_name}/"
         self.chroot_hooks_dir = f"{self.chroot_dir}/tmp/src/hooks"
         self.chroot_ssh_dir = f"{self.chroot_dir}/etc/ssh"
@@ -56,6 +58,13 @@ class VMBuilder:
         ## Build paths
         self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.constellation}/{vm_name}.tar"
         self.dest_image_path = f"{AppConfig.mos_disk_dir}/{self.constellation}-{vm_name}.qcow2"
+
+        if os.path.exists(self.conf_dir):
+            logger.debug(f"Hooks for {vm_name} found, building")
+        else:
+            logger.debug(f"Hooks for {vm_name} not found, skipping build")
+            os.remove(self.rootfs_tar)
+            return
 
         try:
             # Prepare rootfs
@@ -76,8 +85,8 @@ class VMBuilder:
         disk = vm.disks[0]
 
         ## Constellation files
-        source_conf_rootfs_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/includes.chroot"
-        source_hooks_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/hooks"
+        source_conf_rootfs_dir = f"{self.source_conf_dir}/{vm_name}/includes.chroot"
+        source_hooks_dir = f"{self.source_conf_dir}/{vm_name}/hooks"
 
         ## Build paths
         self.rootfs_tar = f"{AppConfig.mos_path}/data/build/bootstrap/{self.constellation}/{vm_name}.tar"
@@ -119,13 +128,13 @@ class VMBuilder:
 
             ## Perform rootfs operations
             try:
-                self._copy_directory_to_guest_tar(g, f"{self.source_conf_rootfs_common_dir}", "/")
+                self._copy_directory_to_guest_tar(g, f"{self.source_conf_common_dir}", "/")
                 logger.info(f"Copying common rootfs contents: {vm_name}")
             except:
                 logging.debug('No common rootfs for: %s', vm_name)
 
             logger.debug(f"Copying rootfs contents for VM: {vm_name}")
-            self._copy_directory_to_guest_tar(g, f"{source_conf_rootfs_dir}", "/")
+            self._copy_directory_to_guest_tar(g, f"{source_conf_dir}", "/")
             self._copy_directory_to_guest_tar(g, f"{source_hooks_dir}", "/tmp/src/hooks")
 
             logger.debug(f"Configuring ssh keys for VM: {vm_name}")
@@ -206,8 +215,8 @@ class VMBuilder:
     ## In a Chroot enviroment
     def _chroot_configure(self, vm_name: str):
 
-        self.source_conf_rootfs_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/includes.chroot"
-        self.source_hooks_dir = f"{self.source_conf_dir}/rootfs/{vm_name}/hooks"
+        self.source_conf_rootfs_dir = f"{self.source_conf_dir}/{vm_name}/includes.chroot"
+        self.source_hooks_dir = f"{self.source_conf_dir}/{vm_name}/hooks"
 
         try:
             distutils.dir_util.copy_tree(self.source_conf_rootfs_common_dir, self.chroot_dir)
