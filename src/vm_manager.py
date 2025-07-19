@@ -108,17 +108,17 @@ class VMManager:
                 cmd += ["-kernel", f"{AppConfig.mos_path}/{vm.kernel}"]
                 cmd += ["-append", f"root=/dev/vda1"]
 
-            ## Add extra arguments
-            extra_args = []
+            ## Add qemu arguments
+            qemu_args = []
 
-            for arg in vm.extra_args:
+            for arg in vm.qemu_args:
                 # Split if the argument contains spaces but doesn't start with a quote
                 if " " in arg and not (arg.startswith('"') or arg.startswith("'")):
-                    extra_args.extend(arg.split())
+                    qemu_args.extend(arg.split())
                 else:
-                    extra_args.append(arg)
+                    qemu_args.append(arg)
 
-            cmd.extend(extra_args)
+            cmd.extend(qemu_args)
 
             logger.debug(f"QEMU command: {' '.join(cmd)}")
 

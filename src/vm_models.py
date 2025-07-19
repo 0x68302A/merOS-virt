@@ -47,7 +47,7 @@ class VMConfig:
     build_free_mb: Optional[int] = None
     disks: List[VirtualDisk] = field(default_factory=list)
     networks: List[NetworkInterface] = field(default_factory=list)
-    extra_args: List[str] = field(default_factory=list)
+    qemu_args: List[str] = field(default_factory=list)
 
     def __str__(self):
         return (f"VM(name={self.name}, memory={self.memory}, cpus={self.cpus}, "
@@ -95,7 +95,7 @@ class VMConfigLoader:
                 cpus=vm_data.get('cpus', 2),
                 kernel=vm_data.get('kernel', None),
                 disks=[VirtualDisk(**d) for d in vm_data.get('disks', [])],
-                extra_args=vm_data.get('extra_args', [])
+                qemu_args=vm_data.get('qemu_args', [])
             )
 
         return Config(
