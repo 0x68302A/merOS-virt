@@ -63,7 +63,6 @@ class VMBuilder:
             logger.debug(f"Hooks for {vm_name} found, building")
         else:
             logger.debug(f"Hooks for {vm_name} not found, skipping build")
-            os.remove(self.rootfs_tar)
             return
 
         try:
@@ -75,6 +74,7 @@ class VMBuilder:
             self._rootfs_tar_build(vm_name)
             logger.debug(f"Building qcow2 for: {vm_name}")
             self._rootfs_qcow_build(vm_name)
+            os.remove(self.rootfs_tar)
 
         except Exception as e:
             logger.error(f"Failed to build VM: {e}")
