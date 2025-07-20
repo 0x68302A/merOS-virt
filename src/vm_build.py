@@ -134,7 +134,7 @@ class VMBuilder:
                 logging.debug('No common rootfs for: %s', vm_name)
 
             logger.debug(f"Copying rootfs contents for VM: {vm_name}")
-            self._copy_directory_to_guest_tar(g, f"{source_conf_dir}", "/")
+            self._copy_directory_to_guest_tar(g, f"{source_conf_rootfs_dir }", "/")
             self._copy_directory_to_guest_tar(g, f"{source_hooks_dir}", "/tmp/src/hooks")
 
             logger.debug(f"Configuring ssh keys for VM: {vm_name}")
