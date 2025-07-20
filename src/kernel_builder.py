@@ -29,6 +29,7 @@ class KernelBuilder:
         ## And build path
         self.kernel_git_url = "https://github.com/torvalds/linux"
         self.mos_kernel_build_dir = AppConfig.mos_path + "/data/build/kernel"
+        self.mos_kernel_opts = AppConfig.mos_path + "/src/kernelopts.config"
         self.mos_kernel_git_dir = AppConfig.mos_path + "/data/build/kernel/linux"
 
         ## bzimage build path
@@ -65,25 +66,11 @@ class KernelBuilder:
             subprocess.run(['make mrproper'], shell=True)
             subprocess.run(['make defconfig'], shell=True)
 
-            ## Custom kernel options for Virtualization support
-            self.kernelopts = ("CONFIG_TUN=y"
-                    + "\nCONFIG_VIRTIO_PCI=y"
-                    + "\nCONFIG_VIRTIO_BLK=y"
-                    + "\nCONFIG_OVERLAY_FS=y"
-                    + "\nCONFIG_NET=y"
-                    + "\nCONFIG_NETFILTER=y"
-                    + "\nCONFIG_NETFILTER_ADVANCED=y"
-                    + "\nCONFIG_NF_TABLES=y"
-                    + "\nCONFIG_BRIDGE_NETFILTER=y"
-                    + "\nCONFIG_BRIDGE=y"
-                    + "\nCONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y"
-                    + "\nCONFIG_NETFILTER_XT_TARGET_MASQUERADE=y"
-                    + "\nCONFIG_IP_NF_TARGET_MASQUERADE=y"
-                    + "\nCONFIG_IP_NF_NAT=y"
-                    + "\nCONFIG_VIRTIO_MMIO=y")
+            with open(self.mos_kernel_opts, 'r+') as f:
+                kernel_opts = f.read()
 
             with open('.mos_config', 'w') as f:
-                f.write(self.kernelopts)
+                f.write(kernel_opts)
 
             subprocess.run(['./scripts/kconfig/merge_config.sh .config .mos_config'], shell=True)
 
