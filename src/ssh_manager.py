@@ -20,6 +20,8 @@ class SSHManager:
         self.vm_username = vm.distribution
         self.vm_ip_addr = vm_ip_addr
 
+        self.logger = logging.getLogger(__name__)
+
     def interactive_shell(self):
 
             cmd = [
@@ -43,6 +45,7 @@ class SSHManager:
                 "--human-readable",
                 f"{AppConfig.mos_path}/data/mos-shared/{self.constellation}-{self.vm_name}",
             ]
+
 
             subprocess.run(cmd, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
 
@@ -89,17 +92,17 @@ class SSHManager:
         process_listen_local = subprocess.Popen(cmd_waypipe_listen_local, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         time.sleep(2)
 
-        ## non-debug
-        process_bind_remote = subprocess.Popen(cmd_waypipe_bind_remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if self.logger.isEnabledFor(logging.DEBUG):
+
+            with open('output.log', 'w') as outfile:
+                # Redirect stdout and stderr to the file
+                process_waypipe_bind_remote = subprocess.Popen(cmd_waypipe_bind_remote, stdout=outfile, stderr=subprocess.STDOUT)
+
+                # Optionally, wait for process to complete
+                process_waypipe_bind_remote.wait()
+
+                print("Process completed. Output written to output.log.")
+        else:
+            process_bind_remote = subprocess.Popen(cmd_waypipe_bind_remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         print(f"Started Local Waypipe with PID: {process_listen_local.pid}")
-
-        ## debug
-        # with open('output.log', 'w') as outfile:
-        #     # Start the command and redirect stdout and stderr to the file
-        #     process_waypipe_bind_remote = subprocess.Popen(cmd_waypipe_bind_remote, stdout=outfile, stderr=subprocess.STDOUT)
-
-        #     # Optionally, wait for the process to complete
-        #     process_waypipe_bind_remote.wait()
-
-        #     print("Process completed. Output written to output.log.")
